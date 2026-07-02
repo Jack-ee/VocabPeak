@@ -1,0 +1,4530 @@
+/* ============================================================
+   English Master Pro — Stylesheet
+   Design: Refined editorial, warm neutrals, precise typography
+   ============================================================ */
+
+/* --- Reset & Variables --- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* Hide scrollbars globally while keeping scroll functionality */
+* {
+    scrollbar-width : none;          /* Firefox */
+    -ms-overflow-style : none;       /* IE/Edge */
+}
+*::-webkit-scrollbar {
+    display : none;                  /* Chrome/Safari/Android */
+}
+
+:root {
+    --font-body    : 'DM Sans', system-ui, sans-serif;
+    --font-display : 'DM Serif Display', Georgia, serif;
+    --font-mono    : 'JetBrains Mono', 'Menlo', monospace;
+
+    --bg-page      : #faf9f7;
+    --bg-card      : #ffffff;
+    --bg-surface   : #f5f3f0;
+    --bg-hover     : #efecea;
+    --bg-accent    : #e8e4df;
+
+    --text-primary   : #1a1916;
+    --text-secondary : #5c5952;
+    --text-tertiary  : #8a857d;
+    --text-inverse   : #faf9f7;
+
+    --accent         : #2d5a3d;
+    --accent-light   : #3d7a52;
+    --accent-bg      : #eaf3ed;
+    --accent-text    : #1e3d29;
+
+    --danger         : #b5362a;
+    --danger-bg      : #fceae8;
+    --success        : #2d7a4a;
+    --success-bg     : #e6f5ec;
+    --warn           : #a67c1a;
+    --warn-bg        : #fef5e0;
+
+    --del-bg         : #fde2df;
+    --del-text       : #922a22;
+    --ins-bg         : #d8f0e0;
+    --ins-text       : #1e5a32;
+
+    --border         : #e2dfd9;
+    --border-focus   : #2d5a3d;
+    --shadow-sm      : 0 1px 3px rgba(26,25,22,0.06);
+    --shadow-md      : 0 4px 16px rgba(26,25,22,0.08);
+    --shadow-lg      : 0 8px 32px rgba(26,25,22,0.10);
+
+    --radius-sm  : 6px;
+    --radius-md  : 10px;
+    --radius-lg  : 14px;
+    --radius-xl  : 20px;
+
+    --max-width  : 840px;
+    --header-h   : 60px;
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-page      : #141312;
+        --bg-card      : #1e1d1b;
+        --bg-surface   : #252422;
+        --bg-hover     : #2e2d2a;
+        --bg-accent    : #333130;
+
+        --text-primary   : #e8e5df;
+        --text-secondary : #a09b93;
+        --text-tertiary  : #706b63;
+        --text-inverse   : #141312;
+
+        --accent         : #5cb87a;
+        --accent-light   : #7dd19a;
+        --accent-bg      : #1c2e22;
+        --accent-text    : #a5e0b8;
+
+        --danger         : #e86b5f;
+        --danger-bg      : #2d1a17;
+        --success        : #5cb87a;
+        --success-bg     : #1a2e22;
+        --warn           : #d4a83a;
+        --warn-bg        : #2b2416;
+
+        --del-bg         : #3a1f1c;
+        --del-text       : #f0a09a;
+        --ins-bg         : #1c3225;
+        --ins-text       : #90dba6;
+
+        --border         : #333130;
+        --border-focus   : #5cb87a;
+        --shadow-sm      : 0 1px 3px rgba(0,0,0,0.2);
+        --shadow-md      : 0 4px 16px rgba(0,0,0,0.3);
+        --shadow-lg      : 0 8px 32px rgba(0,0,0,0.4);
+    }
+}
+
+html {
+    font-size     : 18px;
+    line-height   : 1.6;
+    color         : var(--text-primary);
+    background    : var(--bg-page);
+    font-family   : var(--font-body);
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    min-height : 100vh;
+    display    : flex;
+    flex-direction: column;
+}
+
+/* --- Header --- */
+.app-header {
+    position       : sticky;
+    top            : 0;
+    z-index        : 100;
+    height         : 44px;
+    display        : flex;
+    align-items    : center;
+    justify-content: space-between;
+    padding        : 0 16px;
+    background     : var(--bg-card);
+    border-bottom  : 1px solid var(--border);
+    backdrop-filter: blur(12px);
+}
+
+.header-left {
+    display     : flex;
+    align-items : center;
+    gap         : 14px;
+}
+
+.app-title {
+    font-family : var(--font-display);
+    font-size   : 18px;
+    font-weight : 400;
+    letter-spacing: -0.3px;
+    color       : var(--text-primary);
+    white-space : nowrap;
+}
+
+.title-accent {
+    color       : var(--accent);
+    font-size   : 20px;
+}
+
+.title-pro {
+    font-family   : var(--font-mono);
+    font-size     : 9px;
+    font-weight   : 500;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color         : var(--accent);
+    background    : var(--accent-bg);
+    padding       : 1px 5px;
+    border-radius : 3px;
+    vertical-align: super;
+    margin-left   : 2px;
+}
+
+.header-stats {
+    display     : flex;
+    align-items : center;
+    gap         : 12px;
+}
+.header-stat {
+    font-size   : 11px;
+    color       : var(--text-tertiary);
+    white-space : nowrap;
+}
+.hs-val {
+    font-family : var(--font-mono);
+    font-weight : 500;
+    color       : var(--text-secondary);
+}
+
+.header-right {
+    display : flex;
+    gap     : 6px;
+}
+
+.header-btn {
+    position      : relative;
+    background    : transparent;
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-sm);
+    width         : 34px;
+    height        : 34px;
+    display       : flex;
+    align-items   : center;
+    justify-content: center;
+    cursor        : pointer;
+    color         : var(--text-secondary);
+    transition    : all 0.15s;
+}
+.header-btn:hover {
+    background : var(--bg-hover);
+    color      : var(--text-primary);
+}
+
+.badge {
+    position      : absolute;
+    top           : -4px;
+    right         : -4px;
+    background    : var(--accent);
+    color         : var(--text-inverse);
+    font-size     : 10px;
+    font-weight   : 600;
+    min-width     : 18px;
+    height        : 18px;
+    line-height   : 18px;
+    border-radius : 9px;
+    text-align    : center;
+    padding       : 0 4px;
+}
+
+/* --- Main Content --- */
+.app-main {
+    flex       : 1;
+    width      : 100%;
+    max-width  : var(--max-width);
+    margin     : 0 auto;
+    padding    : 8px 20px 60px;
+}
+
+/* --- Views --- */
+.app-view { display: none; }
+.app-view.active { display: block; }
+
+/* --- Writing Lab --- */
+.wl-container {
+    display       : flex;
+    flex-direction: column;
+    gap           : 20px;
+}
+
+.wl-modes-wrapper {
+    overflow-x : auto;
+    margin     : 0 -4px;
+    padding    : 0 4px;
+}
+
+.wl-modes {
+    display    : flex;
+    gap        : 8px;
+    flex-wrap  : wrap;
+}
+
+.wl-mode-btn {
+    display       : flex;
+    align-items   : center;
+    gap           : 6px;
+    padding       : 8px 14px;
+    background    : var(--bg-card);
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-md);
+    cursor        : pointer;
+    font-family   : var(--font-body);
+    font-size     : 13px;
+    color         : var(--text-secondary);
+    transition    : all 0.15s;
+    white-space   : nowrap;
+}
+
+.wl-mode-btn:hover {
+    border-color : var(--text-tertiary);
+    color        : var(--text-primary);
+}
+
+.wl-mode-btn.active {
+    background   : var(--accent-bg);
+    border-color : var(--accent);
+    color        : var(--accent-text);
+    font-weight  : 500;
+}
+
+.wl-mode-icon { font-size: 16px; }
+.wl-mode-label { font-size: 13px; }
+
+/* --- Input Area --- */
+.wl-input-area {
+    background    : var(--bg-card);
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-lg);
+    overflow      : hidden;
+    transition    : border-color 0.2s;
+}
+.wl-input-area:focus-within {
+    border-color : var(--border-focus);
+    box-shadow   : 0 0 0 3px rgba(45,90,61,0.08);
+}
+
+#wl-input {
+    width         : 100%;
+    border        : none;
+    outline       : none;
+    padding       : 18px 20px;
+    font-family   : var(--font-body);
+    font-size     : 15px;
+    line-height   : 1.7;
+    color         : var(--text-primary);
+    background    : transparent;
+    resize        : vertical;
+    min-height    : 140px;
+}
+
+#wl-input::placeholder {
+    color      : var(--text-tertiary);
+    font-style : italic;
+}
+
+.wl-input-footer {
+    display         : flex;
+    align-items     : center;
+    justify-content : space-between;
+    padding         : 10px 16px;
+    border-top      : 1px solid var(--border);
+    background      : var(--bg-surface);
+}
+
+.wl-char-count {
+    font-size  : 12px;
+    color      : var(--text-tertiary);
+    font-family: var(--font-mono);
+}
+.wl-char-count.wl-long { color: var(--warn); }
+
+.wl-input-actions {
+    display : flex;
+    gap     : 8px;
+}
+
+/* --- Buttons --- */
+.wl-btn-primary {
+    display       : inline-flex;
+    align-items   : center;
+    gap           : 6px;
+    padding       : 8px 16px;
+    background    : var(--accent);
+    color         : #fff;
+    border        : none;
+    border-radius : var(--radius-sm);
+    font-family   : var(--font-body);
+    font-size     : 14px;
+    font-weight   : 500;
+    cursor        : pointer;
+    transition    : all 0.15s;
+}
+.wl-btn-primary:hover:not(:disabled) {
+    background : var(--accent-light);
+}
+.wl-btn-primary:disabled {
+    opacity : 0.6;
+    cursor  : not-allowed;
+}
+.wl-btn-primary kbd {
+    font-family   : var(--font-mono);
+    font-size     : 10px;
+    background    : rgba(255,255,255,0.2);
+    padding       : 2px 5px;
+    border-radius : 3px;
+}
+
+.wl-btn-secondary {
+    display       : inline-flex;
+    align-items   : center;
+    gap           : 5px;
+    padding       : 7px 12px;
+    background    : var(--bg-card);
+    color         : var(--text-secondary);
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-sm);
+    font-family   : var(--font-body);
+    font-size     : 14px;
+    cursor        : pointer;
+    transition    : all 0.15s;
+}
+.wl-btn-secondary:hover {
+    border-color : var(--text-tertiary);
+    color        : var(--text-primary);
+}
+
+.wl-btn-small {
+    padding       : 4px 10px;
+    background    : var(--bg-surface);
+    color         : var(--text-secondary);
+    border        : 1px solid var(--border);
+    border-radius : 4px;
+    font-size     : 12px;
+    cursor        : pointer;
+    font-family   : var(--font-body);
+}
+.wl-btn-small:hover { background: var(--bg-hover); }
+
+.wl-btn-tiny {
+    padding       : 2px 8px;
+    background    : var(--accent-bg);
+    color         : var(--accent-text);
+    border        : 1px solid transparent;
+    border-radius : 4px;
+    font-size     : 11px;
+    cursor        : pointer;
+    font-family   : var(--font-body);
+}
+.wl-btn-tiny:hover { border-color: var(--accent); }
+.wl-btn-tiny:disabled { opacity: 0.5; cursor: default; }
+
+.wl-btn-danger {
+    padding       : 8px 16px;
+    background    : var(--danger-bg);
+    color         : var(--danger);
+    border        : 1px solid var(--danger);
+    border-radius : var(--radius-sm);
+    font-family   : var(--font-body);
+    font-size     : 13px;
+    cursor        : pointer;
+}
+.wl-btn-danger:hover { opacity: 0.85; }
+
+/* --- History Panel --- */
+.wl-history-panel {
+    display       : none;
+    background    : var(--bg-card);
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-lg);
+    padding       : 16px;
+    max-height    : 320px;
+    overflow-y    : auto;
+}
+.wl-history-panel.visible { display: block; }
+.wl-history-panel h3 {
+    font-size     : 14px;
+    font-weight   : 500;
+    margin-bottom : 12px;
+    color         : var(--text-secondary);
+}
+
+.wl-history-item {
+    padding       : 10px 12px;
+    border-radius : var(--radius-sm);
+    cursor        : pointer;
+    transition    : background 0.1s;
+    border-bottom : 1px solid var(--border);
+}
+.wl-history-item:last-child { border-bottom: none; }
+.wl-history-item:hover { background: var(--bg-hover); }
+
+.wl-history-meta {
+    display     : flex;
+    align-items : center;
+    gap         : 8px;
+    font-size   : 12px;
+    color       : var(--text-tertiary);
+    margin-bottom: 4px;
+}
+.wl-history-mode {
+    font-weight : 500;
+    color       : var(--text-secondary);
+}
+.wl-history-score {
+    font-family : var(--font-mono);
+    font-size   : 11px;
+    background  : var(--accent-bg);
+    color       : var(--accent-text);
+    padding     : 1px 6px;
+    border-radius: 3px;
+}
+.wl-history-preview {
+    font-size : 13px;
+    color     : var(--text-secondary);
+    white-space: nowrap;
+    overflow   : hidden;
+    text-overflow: ellipsis;
+}
+
+.wl-empty { color: var(--text-tertiary); font-style: italic; font-size: 14px; text-align: center; padding: 20px; }
+
+/* --- Results Area --- */
+.wl-results {
+    opacity    : 0;
+    transform  : translateY(8px);
+    transition : opacity 0.3s, transform 0.3s;
+}
+.wl-results.visible {
+    opacity   : 1;
+    transform : translateY(0);
+}
+
+.wl-result-card {
+    background    : var(--bg-card);
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-lg);
+    padding       : 24px;
+    display       : flex;
+    flex-direction: column;
+    gap           : 20px;
+}
+
+/* Score ring */
+.wl-score {
+    display     : flex;
+    align-items : center;
+    gap         : 12px;
+}
+.wl-score-ring {
+    width         : 56px;
+    height        : 56px;
+    border-radius : 50%;
+    display       : flex;
+    align-items   : center;
+    justify-content: center;
+    background    : conic-gradient(
+        var(--accent) calc(var(--score) * 1%),
+        var(--bg-accent) calc(var(--score) * 1%)
+    );
+    position      : relative;
+}
+.wl-score-ring::before {
+    content       : '';
+    position      : absolute;
+    inset         : 5px;
+    border-radius : 50%;
+    background    : var(--bg-card);
+}
+.wl-score-value {
+    position    : relative;
+    font-family : var(--font-mono);
+    font-size   : 18px;
+    font-weight : 600;
+    color       : var(--text-primary);
+}
+.wl-score-label {
+    font-size   : 14px;
+    font-weight : 500;
+    color       : var(--text-secondary);
+}
+
+/* Overall summary */
+.wl-overall {
+    font-size    : 15px;
+    line-height  : 1.6;
+    color        : var(--text-secondary);
+    padding      : 12px 16px;
+    background   : var(--bg-surface);
+    border-radius: var(--radius-sm);
+    border-left  : 3px solid var(--accent);
+    border-radius: 0;
+}
+
+/* Section titles */
+.wl-section-title {
+    font-size      : 13px;
+    font-weight    : 600;
+    text-transform : uppercase;
+    letter-spacing : 0.6px;
+    color          : var(--text-tertiary);
+    margin-bottom  : 10px;
+}
+
+/* Corrected text */
+.wl-corrected-section { }
+.wl-corrected-header {
+    display         : flex;
+    align-items     : center;
+    justify-content : space-between;
+    margin-bottom   : 8px;
+}
+.wl-corrected-text {
+    font-size    : 15px;
+    line-height  : 1.8;
+    color        : var(--text-primary);
+    padding      : 16px;
+    background   : var(--bg-surface);
+    border-radius: var(--radius-sm);
+    font-family  : var(--font-body);
+}
+
+/* Diff view */
+.wl-diff-view {
+    font-size    : 14px;
+    line-height  : 1.9;
+    padding      : 16px;
+    background   : var(--bg-surface);
+    border-radius: var(--radius-sm);
+}
+.wl-diff-del {
+    background     : var(--del-bg);
+    color          : var(--del-text);
+    text-decoration: line-through;
+    padding        : 1px 3px;
+    border-radius  : 3px;
+}
+.wl-diff-ins {
+    background    : var(--ins-bg);
+    color         : var(--ins-text);
+    padding       : 1px 3px;
+    border-radius : 3px;
+    font-weight   : 500;
+}
+.wl-no-diff {
+    color      : var(--success);
+    font-style : italic;
+}
+
+/* Changes list */
+.wl-changes { }
+.wl-change-item {
+    padding        : 12px;
+    border-bottom  : 1px solid var(--border);
+    animation      : fadeSlideIn 0.3s ease both;
+}
+.wl-change-item:last-child { border-bottom: none; }
+
+@keyframes fadeSlideIn {
+    from { opacity: 0; transform: translateX(-8px); }
+    to   { opacity: 1; transform: translateX(0); }
+}
+
+.wl-change-header {
+    display     : flex;
+    align-items : center;
+    gap         : 8px;
+    margin-bottom: 6px;
+}
+.wl-change-num {
+    font-family   : var(--font-mono);
+    font-size     : 11px;
+    font-weight   : 500;
+    width         : 22px;
+    height        : 22px;
+    display       : flex;
+    align-items   : center;
+    justify-content: center;
+    background    : var(--bg-accent);
+    border-radius : 50%;
+    color         : var(--text-tertiary);
+}
+.wl-change-diff {
+    display     : flex;
+    align-items : center;
+    gap         : 8px;
+    flex-wrap   : wrap;
+    font-size   : 14px;
+    margin-bottom: 4px;
+}
+.wl-del {
+    background     : var(--del-bg);
+    color          : var(--del-text);
+    text-decoration: line-through;
+    padding        : 2px 6px;
+    border-radius  : 4px;
+    font-size      : 13px;
+}
+.wl-ins {
+    background    : var(--ins-bg);
+    color         : var(--ins-text);
+    padding       : 2px 6px;
+    border-radius : 4px;
+    font-size     : 13px;
+    font-weight   : 500;
+}
+.wl-arrow-icon {
+    color     : var(--text-tertiary);
+    font-size : 14px;
+}
+.wl-change-reason {
+    font-size  : 13px;
+    color      : var(--text-secondary);
+    line-height: 1.5;
+    padding-left: 30px;
+}
+
+/* Severity badges */
+.wl-severity {
+    font-size     : 10px;
+    font-weight   : 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding       : 2px 6px;
+    border-radius : 3px;
+}
+.wl-severity-minor    { background: var(--accent-bg); color: var(--accent-text); }
+.wl-severity-moderate { background: var(--warn-bg); color: var(--warn); }
+.wl-severity-strong   { background: var(--danger-bg); color: var(--danger); }
+
+/* Clean patterns (chinglish) */
+.wl-clean-patterns {
+    padding       : 12px 16px;
+    background    : var(--success-bg);
+    border-radius : var(--radius-sm);
+}
+.wl-clean-patterns ul {
+    list-style: none;
+    padding: 0;
+}
+.wl-clean-patterns li {
+    font-size: 13px;
+    color: var(--success);
+    padding: 3px 0;
+}
+.wl-clean-patterns li::before {
+    content: "\2713 ";
+    font-weight: 600;
+}
+
+/* Email subject suggestions */
+.wl-subjects { }
+.wl-subject-option {
+    padding       : 8px 12px;
+    background    : var(--bg-surface);
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-sm);
+    margin-bottom : 6px;
+    cursor        : pointer;
+    font-size     : 14px;
+    transition    : background 0.1s;
+}
+.wl-subject-option:hover { background: var(--bg-hover); }
+.wl-copy-hint {
+    font-size  : 11px;
+    color      : var(--text-tertiary);
+    float      : right;
+}
+
+/* Notes */
+.wl-notes {
+    font-size    : 13px;
+    color        : var(--text-secondary);
+    padding      : 10px 14px;
+    background   : var(--warn-bg);
+    border-radius: var(--radius-sm);
+}
+.wl-notes-icon { margin-right: 4px; }
+
+/* --- Paraphrase Results --- */
+.wl-paraphrases {
+    display : flex;
+    flex-direction: column;
+    gap     : 12px;
+}
+
+.wl-paraphrase-card {
+    background    : var(--bg-surface);
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-md);
+    padding       : 16px;
+    animation     : fadeSlideIn 0.3s ease both;
+}
+
+.wl-paraphrase-header {
+    display         : flex;
+    align-items     : center;
+    justify-content : space-between;
+    margin-bottom   : 8px;
+}
+
+.wl-paraphrase-label {
+    font-size      : 12px;
+    font-weight    : 600;
+    text-transform : uppercase;
+    letter-spacing : 0.5px;
+    color          : var(--accent);
+}
+
+.wl-paraphrase-text {
+    font-size   : 15px;
+    line-height : 1.7;
+    color       : var(--text-primary);
+    margin-bottom: 6px;
+}
+
+.wl-paraphrase-diff {
+    font-size : 12px;
+    color     : var(--text-tertiary);
+    font-style: italic;
+}
+
+/* Vocabulary highlight */
+.wl-vocab-highlight {
+    padding       : 16px;
+    background    : var(--bg-surface);
+    border-radius : var(--radius-md);
+}
+
+.wl-vocab-item {
+    display     : flex;
+    align-items : center;
+    gap         : 8px;
+    flex-wrap   : wrap;
+    padding     : 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size   : 13px;
+}
+.wl-vocab-item:last-child { border-bottom: none; }
+
+.wl-vocab-word {
+    font-weight : 500;
+    color       : var(--text-primary);
+    font-family : var(--font-mono);
+    font-size   : 13px;
+}
+
+.wl-register-tag {
+    font-size      : 10px;
+    font-weight    : 600;
+    text-transform : uppercase;
+    letter-spacing : 0.5px;
+    padding        : 2px 6px;
+    border-radius  : 3px;
+}
+.wl-register-formal  { background: #e6ecf5; color: #2b4a7a; }
+.wl-register-neutral { background: var(--bg-accent); color: var(--text-secondary); }
+.wl-register-casual  { background: #f5ece6; color: #7a4a2b; }
+
+@media (prefers-color-scheme: dark) {
+    .wl-register-formal  { background: #1c2535; color: #7aa0d4; }
+    .wl-register-casual  { background: #2d2218; color: #d4a07a; }
+}
+
+.wl-vocab-note {
+    color     : var(--text-secondary);
+    font-size : 12px;
+    flex      : 1;
+}
+
+/* --- Loading --- */
+.wl-loading {
+    display        : flex;
+    flex-direction : column;
+    align-items    : center;
+    padding        : 40px 20px;
+    color          : var(--text-tertiary);
+    font-size      : 14px;
+}
+
+.wl-loading-dots {
+    display : flex;
+    gap     : 6px;
+    margin-bottom: 12px;
+}
+.wl-loading-dots span {
+    width         : 8px;
+    height        : 8px;
+    border-radius : 50%;
+    background    : var(--accent);
+    animation     : dotPulse 1.2s ease infinite;
+}
+.wl-loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.wl-loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes dotPulse {
+    0%, 60%, 100% { opacity: 0.2; transform: scale(0.8); }
+    30%           { opacity: 1;   transform: scale(1);    }
+}
+
+/* Spinner */
+.wl-spinner {
+    display       : inline-block;
+    width         : 14px;
+    height        : 14px;
+    border        : 2px solid rgba(255,255,255,0.3);
+    border-top    : 2px solid #fff;
+    border-radius : 50%;
+    animation     : spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Error */
+.wl-error {
+    padding       : 16px 20px;
+    background    : var(--danger-bg);
+    color         : var(--danger);
+    border-radius : var(--radius-md);
+    font-size     : 14px;
+    text-align    : center;
+}
+
+/* --- Modals --- */
+.modal-overlay {
+    position        : fixed;
+    inset           : 0;
+    z-index         : 200;
+    background      : rgba(26,25,22,0.5);
+    display         : none;
+    align-items     : flex-start;
+    justify-content : center;
+    padding         : 30px 20px;
+    overflow-y      : auto;
+    backdrop-filter : blur(4px);
+}
+.modal-overlay.open {
+    display : flex;
+}
+
+@media (prefers-color-scheme: dark) {
+    .modal-overlay { background: rgba(0,0,0,0.6); }
+}
+
+.modal-card {
+    background    : var(--bg-card);
+    border-radius : var(--radius-xl);
+    box-shadow    : var(--shadow-lg);
+    width         : 100%;
+    max-width     : 560px;
+    animation     : modalIn 0.2s ease;
+}
+
+@keyframes modalIn {
+    from { opacity: 0; transform: translateY(-12px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.modal-header {
+    display         : flex;
+    align-items     : center;
+    justify-content : space-between;
+    padding         : 14px 20px 0;
+}
+.modal-header h2 {
+    font-family : var(--font-display);
+    font-size   : 18px;
+    font-weight : 400;
+}
+.modal-close {
+    background    : transparent;
+    border        : none;
+    font-size     : 24px;
+    color         : var(--text-tertiary);
+    cursor        : pointer;
+    width         : 36px;
+    height        : 36px;
+    display       : flex;
+    align-items   : center;
+    justify-content: center;
+    border-radius : 50%;
+}
+.modal-close:hover {
+    background : var(--bg-hover);
+    color      : var(--text-primary);
+}
+
+.modal-body {
+    padding : 14px 20px 18px;
+}
+
+.modal-notebook {
+    max-width  : 640px;
+    max-height : 80vh;
+    display    : flex;
+    flex-direction: column;
+}
+.modal-notebook .modal-body {
+    overflow-y : auto;
+    flex       : 1;
+}
+
+/* Settings */
+.settings-section {
+    margin-bottom  : 14px;
+    padding-bottom : 12px;
+    border-bottom  : 1px solid var(--border);
+}
+.settings-section:last-child { border-bottom: none; margin-bottom: 0; }
+.settings-section h3 {
+    font-size   : 13px;
+    font-weight : 500;
+    margin-bottom: 6px;
+}
+.settings-hint {
+    font-size     : 12px;
+    color         : var(--text-tertiary);
+    margin-bottom : 8px;
+    line-height   : 1.4;
+}
+.settings-row {
+    display : flex;
+    gap     : 8px;
+}
+.settings-input {
+    flex          : 1;
+    padding       : 7px 10px;
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-sm);
+    font-family   : var(--font-mono);
+    font-size     : 12px;
+    background    : var(--bg-surface);
+    color         : var(--text-primary);
+    outline       : none;
+}
+.settings-input:focus {
+    border-color : var(--border-focus);
+    box-shadow   : 0 0 0 2px rgba(45,90,61,0.1);
+}
+.settings-btn-row {
+    display  : flex;
+    gap      : 6px;
+    flex-wrap: wrap;
+}
+
+/* Settings tabs — mirrors the .sc-tab pattern used by the Sentences
+   area, with its own class so the speaking-coach tab handler does
+   not pick up these buttons. */
+.set-tabs {
+    display       : flex;
+    gap           : 4px;
+    padding       : 3px;
+    margin-bottom : 16px;
+    background    : var(--bg-surface);
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-md);
+}
+.set-tab {
+    flex          : 1;
+    padding       : 8px 10px;
+    background    : transparent;
+    border        : none;
+    border-radius : var(--radius-sm);
+    cursor        : pointer;
+    font-family   : var(--font-body);
+    font-size     : 13px;
+    font-weight   : 500;
+    color         : var(--text-secondary);
+    transition    : all 0.15s;
+    text-align    : center;
+    white-space   : nowrap;
+}
+.set-tab:hover { color: var(--text-primary); }
+.set-tab.active {
+    background : var(--bg-card);
+    color      : var(--text-primary);
+    box-shadow : var(--shadow-sm);
+}
+.set-panel { display: none; }
+.set-panel.active { display: block; }
+@media (max-width: 640px) {
+    .set-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .set-tab  { font-size: 12px; padding: 7px 8px; flex-shrink: 0; }
+}
+.settings-field {
+    margin-bottom : 8px;
+}
+.settings-field-label {
+    display       : block;
+    font-size     : 11px;
+    font-weight   : 500;
+    color         : var(--text-secondary);
+    margin-bottom : 3px;
+}
+
+/* --- Notebook Items --- */
+.notebook-list {
+    display        : flex;
+    flex-direction : column;
+    gap            : 8px;
+}
+
+.nb-item {
+    padding       : 12px;
+    background    : var(--bg-surface);
+    border-radius : var(--radius-sm);
+    border        : 1px solid var(--border);
+}
+.nb-item-header {
+    display     : flex;
+    align-items : center;
+    gap         : 6px;
+    flex-wrap   : wrap;
+    margin-bottom: 4px;
+}
+.nb-word {
+    font-weight : 500;
+    font-size   : 15px;
+    color       : var(--text-primary);
+}
+.nb-register {
+    font-size      : 10px;
+    font-weight    : 600;
+    text-transform : uppercase;
+    padding        : 2px 5px;
+    border-radius  : 3px;
+}
+.nb-register-formal { background: #e6ecf5; color: #2b4a7a; }
+.nb-register-casual { background: #f5ece6; color: #7a4a2b; }
+
+@media (prefers-color-scheme: dark) {
+    .nb-register-formal { background: #1c2535; color: #7aa0d4; }
+    .nb-register-casual { background: #2d2218; color: #d4a07a; }
+}
+
+.nb-tag {
+    font-size     : 10px;
+    background    : var(--accent-bg);
+    color         : var(--accent-text);
+    padding       : 1px 6px;
+    border-radius : 3px;
+}
+.nb-delete {
+    margin-left   : auto;
+    background    : transparent;
+    border        : none;
+    font-size     : 18px;
+    color         : var(--text-tertiary);
+    cursor        : pointer;
+    width         : 24px;
+    height        : 24px;
+    line-height   : 24px;
+    text-align    : center;
+    border-radius : 50%;
+}
+.nb-delete:hover { background: var(--danger-bg); color: var(--danger); }
+
+.nb-meaning {
+    font-size  : 13px;
+    color      : var(--text-secondary);
+}
+.nb-endef {
+    font-size  : 13px;
+    color      : var(--text-tertiary);
+    font-style : italic;
+}
+.nb-collo {
+    font-size  : 12px;
+    color      : var(--accent);
+    font-family: var(--font-mono);
+}
+.nb-context {
+    font-size  : 12px;
+    color      : var(--text-tertiary);
+    font-style : italic;
+    padding    : 4px 0;
+}
+.nb-meta {
+    display   : flex;
+    gap       : 12px;
+    font-size : 11px;
+    color     : var(--text-tertiary);
+    margin-top: 6px;
+}
+
+.nb-empty {
+    text-align : center;
+    color      : var(--text-tertiary);
+    font-style : italic;
+    padding    : 24px;
+    font-size  : 14px;
+}
+
+/* --- Toast --- */
+#toast-container {
+    position       : fixed;
+    bottom         : 24px;
+    left           : 50%;
+    transform      : translateX(-50%);
+    z-index        : 9999;
+    display        : flex;
+    flex-direction : column;
+    align-items    : center;
+    gap            : 8px;
+    pointer-events : none;
+}
+.toast {
+    padding        : 10px 20px;
+    background     : var(--text-primary);
+    color          : var(--text-inverse);
+    border-radius  : var(--radius-md);
+    font-size      : 13px;
+    box-shadow     : var(--shadow-md);
+    opacity        : 0;
+    transform      : translateY(8px);
+    transition     : opacity 0.3s, transform 0.3s;
+    pointer-events : auto;
+}
+.toast.show {
+    opacity   : 1;
+    transform : translateY(0);
+}
+
+/* --- Responsive --- */
+@media (max-width: 640px) {
+    .app-header { padding: 0 10px; }
+    .app-title  { font-size: 16px; }
+    .title-accent { font-size: 18px; }
+    .header-stats { display: none; }
+    .app-main { padding: 6px 10px 48px; }
+    .wl-modes { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
+    .wl-mode-label { display: none; }
+    .wl-mode-btn { padding: 8px 10px; }
+    .wl-input-footer { flex-wrap: wrap; gap: 8px; }
+    .wl-result-card { padding: 16px; }
+    .modal-card { border-radius: var(--radius-lg); }
+    .app-nav { gap: 2px; margin-bottom: 4px; }
+    .nav-tab { padding: 5px 6px; }
+    .nav-label { display: none; }
+    .vd-header-row { flex-direction: column; align-items: flex-start; }
+    .vd-drill-btns { width: 100%; }
+    .rd-control-row { flex-direction: column; }
+    .sc-scenario-grid { grid-template-columns: repeat(2, 1fr); }
+    .sc-tabs { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .sc-tab { font-size: 11px; padding: 7px 8px; flex-shrink: 0; white-space: nowrap; }
+    .sc-phrasing-note { padding-left: 0; }
+    .st-vocab-table { font-size: 12px; }
+    .st-vocab-row { grid-template-columns: 1.5fr 1fr 1fr 1fr; padding: 6px 8px; }
+    .st-examples { display: none; }
+}
+
+/* ============================================================
+   NAVIGATION TABS
+   ============================================================ */
+
+.app-nav {
+    display        : flex;
+    gap            : 3px;
+    margin-bottom  : 8px;
+    padding        : 3px;
+    background     : var(--bg-card);
+    border         : 1px solid var(--border);
+    border-radius  : var(--radius-md);
+}
+
+.nav-tab {
+    display       : flex;
+    align-items   : center;
+    gap           : 4px;
+    padding       : 8px 12px;
+    background    : transparent;
+    border        : none;
+    border-radius : var(--radius-sm);
+    cursor        : pointer;
+    font-family   : var(--font-body);
+    font-size     : 14px;
+    font-weight   : 500;
+    color         : var(--text-secondary);
+    transition    : all 0.15s;
+    flex          : 1;
+    justify-content: center;
+}
+.nav-tab:hover {
+    background : var(--bg-hover);
+    color      : var(--text-primary);
+}
+.nav-tab.active {
+    background : var(--accent-bg);
+    color      : var(--accent-text);
+}
+.nav-icon { font-size: 18px; }
+.nav-label { font-size: 13px; }
+
+/* --- Global TTS speak button --- */
+.speak-btn {
+    display         : inline-flex;
+    align-items     : center;
+    justify-content : center;
+    width           : 26px;
+    height          : 26px;
+    background      : var(--bg-surface);
+    border          : 1px solid var(--border);
+    border-radius   : 50%;
+    cursor          : pointer;
+    font-size       : 13px;
+    color           : var(--text-secondary);
+    transition      : all 0.12s;
+    flex-shrink     : 0;
+    padding         : 0;
+    line-height     : 1;
+}
+.speak-btn:hover {
+    background   : var(--accent-bg);
+    color        : var(--accent);
+    border-color : var(--accent);
+}
+.speak-btn.speaking {
+    background   : var(--accent);
+    color        : #fff;
+    border-color : var(--accent);
+}
+
+/* ============================================================
+   VOCAB DRILL
+   ============================================================ */
+
+.vd-container {
+    display        : flex;
+    flex-direction : column;
+    gap            : 12px;
+}
+
+.vd-header-row {
+    display     : flex;
+    align-items : center;
+    gap         : 12px;
+    flex-wrap   : wrap;
+}
+.vd-header-title {
+    font-family : var(--font-display);
+    font-size   : 17px;
+    font-weight : 400;
+    white-space : nowrap;
+}
+.vd-drill-btns {
+    display  : flex;
+    gap      : 6px;
+    flex-wrap: wrap;
+}
+.vd-start-btn {
+    padding       : 7px 14px;
+    background    : var(--bg-card);
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-md);
+    cursor        : pointer;
+    font-family   : var(--font-body);
+    font-size     : 13px;
+    color         : var(--text-secondary);
+    transition    : all 0.15s;
+    white-space   : nowrap;
+}
+.vd-start-btn:hover {
+    border-color : var(--accent);
+    color        : var(--accent-text);
+    background   : var(--accent-bg);
+}
+
+/* --- Drill Question --- */
+.vd-results {
+    opacity   : 0;
+    transform : translateY(8px);
+    transition: opacity 0.3s, transform 0.3s;
+}
+.vd-results.visible {
+    opacity   : 1;
+    transform : translateY(0);
+}
+
+.vd-question-card {
+    background    : var(--bg-card);
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-lg);
+    padding       : 24px;
+    display       : flex;
+    flex-direction: column;
+    gap           : 14px;
+}
+
+.vd-progress-bar {
+    width         : 100%;
+    height        : 4px;
+    background    : var(--bg-accent);
+    border-radius : 2px;
+    overflow      : hidden;
+}
+.vd-progress-fill {
+    height        : 100%;
+    background    : var(--accent);
+    border-radius : 2px;
+    transition    : width 0.4s ease;
+}
+
+.vd-q-meta {
+    display     : flex;
+    align-items : center;
+    gap         : 10px;
+    font-size   : 12px;
+    color       : var(--text-tertiary);
+}
+.vd-q-num {
+    font-family : var(--font-mono);
+    font-weight : 500;
+}
+.vd-q-type {
+    text-transform : uppercase;
+    letter-spacing : 0.5px;
+    font-weight    : 600;
+    color          : var(--accent);
+}
+.vd-q-topic {
+    font-style : italic;
+}
+
+.vd-q-prompt {
+    font-size : 15px;
+    color     : var(--text-primary);
+}
+
+.vd-sentence {
+    font-size     : 16px;
+    line-height   : 1.8;
+    padding       : 16px;
+    background    : var(--bg-surface);
+    border-radius : var(--radius-sm);
+    color         : var(--text-primary);
+    font-family   : var(--font-body);
+}
+
+.vd-collocation-word {
+    font-size   : 20px;
+    font-weight : 500;
+    text-align  : center;
+}
+
+.vd-register-hint {
+    font-size   : 12px;
+    color       : var(--text-tertiary);
+    display     : flex;
+    align-items : center;
+    gap         : 6px;
+}
+
+.vd-options {
+    display        : flex;
+    flex-direction : column;
+    gap            : 8px;
+}
+
+.vd-option {
+    display         : flex;
+    align-items     : center;
+    justify-content : space-between;
+    padding         : 12px 16px;
+    background      : var(--bg-surface);
+    border          : 1.5px solid var(--border);
+    border-radius   : var(--radius-md);
+    cursor          : pointer;
+    font-family     : var(--font-body);
+    font-size       : 14px;
+    color           : var(--text-primary);
+    transition      : all 0.12s;
+    text-align      : left;
+}
+.vd-option:hover:not(:disabled) {
+    border-color : var(--accent);
+    background   : var(--accent-bg);
+}
+.vd-option:disabled { cursor: default; opacity: 0.85; }
+.vd-option.vd-correct {
+    border-color : var(--success);
+    background   : var(--success-bg);
+}
+.vd-option.vd-wrong {
+    border-color : var(--danger);
+    background   : var(--danger-bg);
+}
+
+.vd-opt-register {
+    font-size : 10px;
+    margin-left: auto;
+    margin-left: 8px;
+}
+
+.vd-feedback {
+    opacity    : 0;
+    transition : opacity 0.2s;
+}
+.vd-feedback.visible { opacity: 1; }
+
+.vd-feedback-msg {
+    padding       : 12px 16px;
+    border-radius : var(--radius-sm);
+    font-size     : 13px;
+    line-height   : 1.6;
+    display       : flex;
+    align-items   : center;
+    gap           : 8px;
+    flex-wrap     : wrap;
+}
+.vd-fb-correct {
+    background : var(--success-bg);
+    color      : var(--success);
+}
+.vd-fb-wrong {
+    background : var(--danger-bg);
+    color      : var(--danger);
+}
+
+.vd-save-btn {
+    margin-left: 8px;
+}
+
+/* Drill complete */
+.vd-complete {
+    background     : var(--bg-card);
+    border         : 1px solid var(--border);
+    border-radius  : var(--radius-lg);
+    padding        : 32px 24px;
+    display        : flex;
+    flex-direction : column;
+    align-items    : center;
+    gap            : 20px;
+    text-align     : center;
+}
+.vd-complete-detail {
+    font-size  : 13px;
+    color      : var(--text-tertiary);
+    margin-top : 4px;
+}
+.vd-complete-actions {
+    display : flex;
+    gap     : 10px;
+}
+
+/* ============================================================
+   READER EXTRACTION
+   ============================================================ */
+
+.rd-container {
+    display        : flex;
+    flex-direction : column;
+    gap            : 20px;
+}
+
+.rd-intro { }
+.rd-title {
+    font-family : var(--font-display);
+    font-size   : 22px;
+    font-weight : 400;
+    margin-bottom: 4px;
+}
+.rd-subtitle {
+    font-size : 14px;
+    color     : var(--text-secondary);
+}
+
+.rd-controls {
+    display : flex;
+    gap     : 12px;
+}
+.rd-control-row {
+    display : flex;
+    gap     : 12px;
+    width   : 100%;
+}
+.rd-label {
+    display        : flex;
+    flex-direction : column;
+    gap            : 4px;
+    font-size      : 12px;
+    font-weight    : 500;
+    color          : var(--text-tertiary);
+    text-transform : uppercase;
+    letter-spacing : 0.5px;
+    flex           : 1;
+}
+.rd-select {
+    padding       : 8px 12px;
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-sm);
+    background    : var(--bg-card);
+    color         : var(--text-primary);
+    font-family   : var(--font-body);
+    font-size     : 13px;
+    outline       : none;
+    cursor        : pointer;
+}
+.rd-select:focus {
+    border-color : var(--border-focus);
+}
+
+.rd-results {
+    opacity   : 0;
+    transform : translateY(8px);
+    transition: opacity 0.3s, transform 0.3s;
+}
+.rd-results.visible {
+    opacity   : 1;
+    transform : translateY(0);
+}
+
+.rd-extraction {
+    display        : flex;
+    flex-direction : column;
+    gap            : 20px;
+}
+
+.rd-summary {
+    background    : var(--bg-card);
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-lg);
+    padding       : 18px 20px;
+}
+.rd-summary-header {
+    display     : flex;
+    align-items : center;
+    gap         : 10px;
+    margin-bottom: 8px;
+}
+.rd-level-badge {
+    font-family    : var(--font-mono);
+    font-size      : 11px;
+    font-weight    : 600;
+    background     : var(--accent-bg);
+    color          : var(--accent-text);
+    padding        : 3px 8px;
+    border-radius  : 4px;
+}
+.rd-style-note {
+    font-size  : 12px;
+    color      : var(--text-tertiary);
+    font-style : italic;
+}
+.rd-summary p {
+    font-size   : 14px;
+    line-height : 1.6;
+    color       : var(--text-secondary);
+}
+
+.rd-section {
+    display        : flex;
+    flex-direction : column;
+    gap            : 10px;
+}
+.rd-section-header {
+    display         : flex;
+    align-items     : center;
+    justify-content : space-between;
+}
+
+/* Word cards */
+.rd-word-card {
+    background    : var(--bg-card);
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-md);
+    padding       : 14px 16px;
+    display       : flex;
+    flex-direction: column;
+    gap           : 6px;
+    animation     : fadeSlideIn 0.3s ease both;
+}
+
+.rd-word-header {
+    display     : flex;
+    align-items : center;
+    gap         : 8px;
+    flex-wrap   : wrap;
+}
+.rd-word-text {
+    font-weight : 500;
+    font-size   : 15px;
+    color       : var(--text-primary);
+}
+.rd-pos {
+    font-family    : var(--font-mono);
+    font-size      : 11px;
+    color          : var(--text-tertiary);
+    background     : var(--bg-surface);
+    padding        : 1px 6px;
+    border-radius  : 3px;
+}
+
+.rd-word-meanings {
+    display   : flex;
+    gap       : 12px;
+    flex-wrap : wrap;
+    font-size : 13px;
+}
+.rd-meaning-cn {
+    color       : var(--text-primary);
+    font-weight : 500;
+}
+.rd-meaning-en {
+    color      : var(--text-secondary);
+    font-style : italic;
+}
+
+.rd-word-context {
+    font-size    : 13px;
+    color        : var(--text-tertiary);
+    font-style   : italic;
+    padding      : 6px 10px;
+    background   : var(--bg-surface);
+    border-radius: 4px;
+    line-height  : 1.5;
+}
+
+.rd-word-usage {
+    font-size : 12px;
+    color     : var(--accent);
+}
+
+.rd-word-collos {
+    font-family : var(--font-mono);
+    font-size   : 11px;
+    color       : var(--text-tertiary);
+}
+
+/* Grammar patterns */
+.rd-grammar-card {
+    background    : var(--bg-card);
+    border        : 1px solid var(--border);
+    border-left   : 3px solid var(--accent);
+    border-radius : 0;
+    padding       : 12px 16px;
+    display       : flex;
+    flex-direction: column;
+    gap           : 4px;
+}
+.rd-grammar-pattern {
+    font-weight : 500;
+    font-size   : 14px;
+    color       : var(--text-primary);
+}
+.rd-grammar-example {
+    font-size  : 13px;
+    color      : var(--text-secondary);
+    font-style : italic;
+}
+.rd-grammar-explain {
+    font-size : 12px;
+    color     : var(--text-tertiary);
+}
+
+/* ============================================================
+   SENTENCE TRANSFORMER
+   ============================================================ */
+
+.st-container {
+    display        : flex;
+    flex-direction : column;
+    gap            : 12px;
+}
+
+.st-toolbar {
+    display     : flex;
+    align-items : flex-end;
+    gap         : 12px;
+    flex-wrap   : wrap;
+}
+
+.st-examples {
+    display     : flex;
+    align-items : center;
+    gap         : 8px;
+    flex-wrap   : wrap;
+}
+.st-examples-label {
+    font-size  : 12px;
+    color      : var(--text-tertiary);
+    font-weight: 500;
+}
+
+.st-results {
+    opacity   : 0;
+    transform : translateY(8px);
+    transition: opacity 0.3s, transform 0.3s;
+}
+.st-results.visible {
+    opacity   : 1;
+    transform : translateY(0);
+}
+
+.st-result-card {
+    background    : var(--bg-card);
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-lg);
+    padding       : 24px;
+    display       : flex;
+    flex-direction: column;
+    gap           : 20px;
+}
+
+.st-original-bar {
+    display     : flex;
+    align-items : center;
+    gap         : 10px;
+    font-size   : 13px;
+}
+.st-orig-label {
+    font-weight : 500;
+    color       : var(--text-secondary);
+}
+.st-orig-score {
+    margin-left : auto;
+    font-family : var(--font-mono);
+    font-size   : 12px;
+    color       : var(--text-tertiary);
+}
+.st-orig-score strong {
+    color       : var(--text-primary);
+}
+
+.st-versions {
+    display        : flex;
+    flex-direction : column;
+    gap            : 12px;
+}
+
+.st-version-card {
+    background    : var(--bg-surface);
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-md);
+    padding       : 16px;
+    display       : flex;
+    flex-direction: column;
+    gap           : 10px;
+    animation     : fadeSlideIn 0.3s ease both;
+}
+
+.st-version-header {
+    display         : flex;
+    align-items     : center;
+    justify-content : space-between;
+}
+.st-version-label {
+    font-size      : 11px;
+    font-weight    : 600;
+    text-transform : uppercase;
+    letter-spacing : 0.5px;
+}
+.st-version-text {
+    font-size   : 15px;
+    line-height : 1.7;
+    color       : var(--text-primary);
+}
+.st-tone-notes {
+    font-size  : 12px;
+    color      : var(--accent);
+    font-style : italic;
+}
+.st-key-changes {
+    display        : flex;
+    flex-direction : column;
+    gap            : 6px;
+    padding-top    : 8px;
+    border-top     : 1px solid var(--border);
+}
+.st-change-row {
+    display     : flex;
+    align-items : center;
+    gap         : 8px;
+    flex-wrap   : wrap;
+    font-size   : 13px;
+}
+.st-change-why {
+    font-size : 11px;
+    color     : var(--text-tertiary);
+    flex-basis: 100%;
+    padding-left: 0;
+}
+
+/* Chinglish section (shared with writing lab) */
+.st-chinglish-section {
+    display        : flex;
+    flex-direction : column;
+    gap            : 8px;
+}
+.st-chinglish-card {
+    padding       : 10px 14px;
+    background    : var(--danger-bg);
+    border-radius : var(--radius-sm);
+}
+.st-chinglish-pattern {
+    display     : flex;
+    align-items : center;
+    gap         : 8px;
+    flex-wrap   : wrap;
+    font-size   : 13px;
+    margin-bottom: 4px;
+}
+.st-chinglish-explain {
+    font-size  : 12px;
+    color      : var(--text-secondary);
+}
+
+/* Register vocabulary table */
+.st-vocab-table-section { }
+.st-vocab-table {
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-md);
+    overflow      : hidden;
+}
+.st-vocab-row {
+    display               : grid;
+    grid-template-columns : 1.2fr 1fr 1fr 1fr;
+    padding               : 8px 12px;
+    font-size             : 13px;
+    border-bottom         : 1px solid var(--border);
+    align-items           : center;
+}
+.st-vocab-row:last-child { border-bottom: none; }
+.st-vocab-header-row {
+    background     : var(--bg-surface);
+    font-weight    : 500;
+    font-size      : 11px;
+    text-transform : uppercase;
+    letter-spacing : 0.5px;
+    color          : var(--text-tertiary);
+}
+.st-vocab-concept {
+    font-weight : 500;
+    color       : var(--text-primary);
+}
+.st-vocab-cell {
+    cursor  : pointer;
+    padding : 2px 4px;
+    border-radius: 3px;
+    transition: background 0.1s;
+}
+.st-vocab-cell:hover { background: var(--accent-bg); }
+.st-vocab-formal { color: #2b4a7a; }
+.st-vocab-casual { color: #7a4a2b; }
+
+@media (prefers-color-scheme: dark) {
+    .st-vocab-formal { color: #7aa0d4; }
+    .st-vocab-casual { color: #d4a07a; }
+}
+
+.st-save-vocab-btn {
+    margin-top: 10px;
+}
+
+/* ============================================================
+   SPEAKING COACH
+   ============================================================ */
+
+.sc-container {
+    display        : flex;
+    flex-direction : column;
+    gap            : 8px;
+}
+
+/* Sub-tabs */
+.sc-tabs {
+    display       : flex;
+    gap           : 4px;
+    padding       : 3px;
+    background    : var(--bg-surface);
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-md);
+}
+.sc-tab {
+    flex          : 1;
+    padding       : 8px 12px;
+    background    : transparent;
+    border        : none;
+    border-radius : var(--radius-sm);
+    cursor        : pointer;
+    font-family   : var(--font-body);
+    font-size     : 13px;
+    font-weight   : 500;
+    color         : var(--text-secondary);
+    transition    : all 0.15s;
+    text-align    : center;
+}
+.sc-tab:hover { color: var(--text-primary); }
+.sc-tab.active {
+    background : var(--bg-card);
+    color      : var(--text-primary);
+    box-shadow : var(--shadow-sm);
+}
+
+/* Panels */
+.sc-panel { display: none; }
+.sc-panel.active { display: block; }
+
+/* Scenario grid */
+.sc-scenario-grid {
+    display               : grid;
+    grid-template-columns : repeat(auto-fill, minmax(180px, 1fr));
+    gap                   : 10px;
+}
+.sc-scenario-card {
+    display        : flex;
+    flex-direction : column;
+    align-items    : center;
+    gap            : 8px;
+    padding        : 18px 14px;
+    background     : var(--bg-card);
+    border         : 1px solid var(--border);
+    border-radius  : var(--radius-md);
+    cursor         : pointer;
+    font-family    : var(--font-body);
+    text-align     : center;
+    transition     : all 0.15s;
+}
+.sc-scenario-card:hover {
+    border-color : var(--accent);
+    background   : var(--accent-bg);
+    transform    : translateY(-1px);
+}
+.sc-scenario-icon { font-size: 28px; }
+.sc-scenario-name {
+    font-size   : 13px;
+    font-weight : 500;
+    color       : var(--text-primary);
+    line-height : 1.4;
+}
+
+/* Active scenario */
+.sc-scenario-practice {
+    opacity   : 0;
+    transition: opacity 0.3s;
+}
+.sc-scenario-practice.visible { opacity: 1; }
+
+.sc-active-scenario {
+    display        : flex;
+    flex-direction : column;
+    gap            : 16px;
+}
+.sc-scenario-setup {
+    display       : flex;
+    align-items   : flex-start;
+    gap           : 12px;
+    padding       : 16px;
+    background    : var(--bg-surface);
+    border-radius : var(--radius-md);
+    border        : 1px solid var(--border);
+}
+.sc-scenario-setup .sc-scenario-icon { font-size: 28px; flex-shrink: 0; }
+.sc-scenario-title {
+    font-size     : 15px;
+    font-weight   : 500;
+    margin-bottom : 4px;
+}
+.sc-scenario-desc {
+    font-size : 13px;
+    color     : var(--text-secondary);
+    line-height: 1.5;
+}
+
+/* Feedback */
+.sc-feedback { }
+.sc-feedback-card {
+    background    : var(--bg-card);
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-lg);
+    padding       : 24px;
+    display       : flex;
+    flex-direction: column;
+    gap           : 18px;
+}
+.sc-encouragement {
+    font-size    : 14px;
+    color        : var(--success);
+    padding      : 8px 12px;
+    background   : var(--success-bg);
+    border-radius: var(--radius-sm);
+}
+
+.sc-native-versions {
+    display        : flex;
+    flex-direction : column;
+    gap            : 12px;
+}
+.sc-native-card {
+    background    : var(--bg-surface);
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-md);
+    padding       : 14px 16px;
+    display       : flex;
+    flex-direction: column;
+    gap           : 8px;
+    animation     : fadeSlideIn 0.3s ease both;
+}
+.sc-native-header {
+    display     : flex;
+    align-items : center;
+    gap         : 8px;
+}
+.sc-native-label {
+    font-size   : 12px;
+    font-weight : 600;
+    color       : var(--text-secondary);
+}
+.sc-native-text {
+    font-size   : 15px;
+    line-height : 1.7;
+    color       : var(--text-primary);
+}
+.sc-native-explain {
+    font-size : 12px;
+    color     : var(--text-tertiary);
+}
+
+/* Phrases */
+.sc-phrases-section {
+    display        : flex;
+    flex-direction : column;
+    gap            : 8px;
+}
+.sc-phrase-item {
+    display     : flex;
+    align-items : center;
+    gap         : 8px;
+    flex-wrap   : wrap;
+    padding     : 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size   : 13px;
+}
+.sc-phrase-item:last-child { border-bottom: none; }
+.sc-phrase-text {
+    font-weight : 500;
+    color       : var(--text-primary);
+}
+.sc-phrase-when {
+    color     : var(--text-tertiary);
+    font-size : 12px;
+    flex      : 1;
+}
+.sc-save-phrase { flex-shrink: 0; }
+
+/* Free-form */
+.sc-freeform-desc {
+    font-size    : 14px;
+    color        : var(--text-secondary);
+    margin-bottom: 12px;
+}
+.sc-freeform-feedback {
+    margin-top    : 16px;
+    background    : var(--bg-card);
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-md);
+    padding       : 16px;
+    display       : flex;
+    flex-direction: column;
+    gap           : 10px;
+}
+.sc-ff-score {
+    font-family : var(--font-mono);
+    font-size   : 13px;
+    color       : var(--text-secondary);
+}
+.sc-ff-score strong { color: var(--text-primary); }
+.sc-ff-native {
+    display     : flex;
+    align-items : center;
+    gap         : 8px;
+    flex-wrap   : wrap;
+}
+.sc-ff-label {
+    font-size   : 11px;
+    font-weight : 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color       : var(--text-tertiary);
+}
+.sc-ff-text {
+    font-size   : 15px;
+    color       : var(--text-primary);
+    font-weight : 500;
+}
+.sc-ff-explain {
+    font-size : 13px;
+    color     : var(--text-secondary);
+    line-height: 1.5;
+}
+.sc-ff-alt {
+    font-size : 13px;
+    color     : var(--text-secondary);
+}
+.sc-ff-phrase {
+    font-size    : 12px;
+    color        : var(--accent);
+    padding      : 6px 10px;
+    background   : var(--accent-bg);
+    border-radius: var(--radius-sm);
+}
+
+/* Phrasing Reference */
+.sc-phrasing-ref {
+    display        : flex;
+    flex-direction : column;
+    gap            : 24px;
+}
+.sc-phrasing-category { }
+.sc-phrasing-cat-title {
+    font-size      : 14px;
+    font-weight    : 500;
+    color          : var(--text-primary);
+    margin-bottom  : 10px;
+    padding-bottom : 6px;
+    border-bottom  : 1px solid var(--border);
+}
+.sc-phrasing-pair {
+    display        : flex;
+    flex-direction : column;
+    gap            : 4px;
+    padding        : 10px 0;
+    border-bottom  : 1px solid var(--border);
+}
+.sc-phrasing-pair:last-child { border-bottom: none; }
+.sc-phrasing-chinglish {
+    display     : flex;
+    align-items : center;
+    gap         : 8px;
+    font-size   : 13px;
+    color       : var(--text-tertiary);
+}
+.sc-phrasing-native {
+    display     : flex;
+    align-items : center;
+    gap         : 8px;
+    font-size   : 14px;
+    color       : var(--text-primary);
+    font-weight : 500;
+}
+.sc-phrasing-label {
+    font-size      : 10px;
+    font-weight    : 600;
+    text-transform : uppercase;
+    letter-spacing : 0.5px;
+    width          : 52px;
+    flex-shrink    : 0;
+    color          : var(--text-tertiary);
+}
+.sc-phrasing-note {
+    font-size    : 12px;
+    color        : var(--text-secondary);
+    padding-left : 60px;
+    line-height  : 1.5;
+}
+.sc-speak-btn {
+    flex-shrink : 0;
+}
+
+/* ============================================================
+   MY WORDS — Card Study + Import
+   ============================================================ */
+
+.mw-container {
+    display        : flex;
+    flex-direction : column;
+    gap            : 6px;
+}
+
+.mw-toolbar {
+    display     : flex;
+    align-items : center;
+    gap         : 6px;
+    flex-wrap   : wrap;
+}
+.mw-quick-add {
+    display   : flex;
+    gap       : 4px;
+    flex      : 1;
+    min-width : 160px;
+    position  : relative;
+}
+.mw-quick-input {
+    flex          : 1;
+    padding       : 8px 12px;
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-sm);
+    font-family   : var(--font-body);
+    font-size     : 15px;
+    background    : var(--bg-card);
+    color         : var(--text-primary);
+    outline       : none;
+}
+.mw-quick-input:focus {
+    border-color : var(--border-focus);
+}
+
+/* --- Search Dropdown --- */
+.mw-search-dropdown {
+    display       : none;
+    position      : absolute;
+    top           : 100%;
+    left          : 0;
+    right         : 0;
+    margin-top    : 4px;
+    background    : var(--bg-card);
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-md);
+    box-shadow    : var(--shadow-md);
+    z-index       : 100;
+    max-height    : 320px;
+    overflow-y    : auto;
+}
+.mw-sd-item {
+    display     : flex;
+    align-items : baseline;
+    gap         : 8px;
+    padding     : 10px 12px;
+    cursor      : pointer;
+    font-size   : 15px;
+    line-height : 1.4;
+    flex-wrap   : wrap;
+    border-bottom: 1px solid var(--bg-surface);
+    transition  : background 0.1s;
+}
+.mw-sd-item:last-child { border-bottom: none; }
+.mw-sd-item:hover,
+.mw-sd-item.mw-sd-highlight {
+    background : var(--bg-hover);
+}
+.mw-sd-word {
+    font-weight   : 600;
+    font-size     : 14px;
+    color         : var(--text-primary);
+    min-width     : 80px;
+}
+.mw-sd-word mark {
+    background    : var(--warn-bg);
+    color         : var(--warn);
+    border-radius : 2px;
+    padding       : 0 1px;
+}
+.mw-sd-phonetic {
+    font-family : var(--font-mono);
+    font-size   : 11px;
+    color       : var(--text-tertiary);
+}
+.mw-sd-meaning {
+    color     : var(--text-secondary);
+    font-size : 12px;
+    flex      : 1;
+    min-width : 100px;
+}
+.mw-sd-collo {
+    font-family : var(--font-mono);
+    font-size   : 11px;
+    color       : var(--accent);
+}
+.mw-sd-empty {
+    padding   : 10px 14px;
+    font-size : 12px;
+    color     : var(--text-tertiary);
+}
+.mw-view-toggle {
+    display : inline-flex;
+    gap     : 0;
+    border  : 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    flex    : 0 0 auto;
+}
+.mw-vt-btn {
+    padding    : 5px 10px;
+    background : transparent;
+    border     : none;
+    cursor     : pointer;
+    font-size  : 14px;
+    color      : var(--text-tertiary);
+    transition : all 0.1s;
+}
+.mw-vt-btn.active {
+    background : var(--accent-bg);
+    color      : var(--accent-text);
+}
+
+.mw-nav-row {
+    display         : flex;
+    align-items     : center;
+    justify-content : center;
+    gap             : 4px;
+}
+/* Arrow buttons — borderless, compact */
+.mw-arrow-btn {
+    display         : flex;
+    align-items     : center;
+    justify-content : center;
+    background      : transparent;
+    border          : none;
+    cursor          : pointer;
+    font-size       : 16px;
+    color           : var(--text-secondary);
+    padding         : 4px;
+    transition      : color 0.12s;
+}
+.mw-arrow-btn:hover { color: var(--accent); }
+.mw-arrow-btn:active { transform: scale(0.9); }
+
+/* Legacy .mw-nav-btn kept for group info rendering */
+.mw-nav-btn {
+    display         : flex;
+    align-items     : center;
+    justify-content : center;
+    background      : transparent;
+    border          : none;
+    cursor          : pointer;
+    font-size       : 14px;
+    color           : var(--text-secondary);
+    padding         : 4px;
+    transition      : color 0.12s;
+}
+.mw-nav-btn:hover { color: var(--accent); }
+
+.mw-counter {
+    font-family : var(--font-mono);
+    font-size   : 14px;
+    color       : var(--text-tertiary);
+    min-width   : 40px;
+    text-align  : center;
+    padding     : 0 2px;
+}
+
+/* "+" add button — centered */
+.mw-add-btn {
+    display         : flex;
+    align-items     : center;
+    justify-content : center;
+    width           : 38px;
+    height          : 38px;
+    background      : var(--accent);
+    color           : #fff;
+    border          : none;
+    border-radius   : var(--radius-sm);
+    cursor          : pointer;
+    font-size       : 22px;
+    font-weight     : 300;
+    line-height     : 1;
+    flex-shrink     : 0;
+}
+.mw-add-btn:hover { background: var(--accent-light); }
+
+/* Compact icon-only toolbar buttons (in filter row) */
+.mw-icon-btn {
+    display         : flex;
+    align-items     : center;
+    justify-content : center;
+    width           : 30px;
+    height          : 30px;
+    background      : var(--bg-card);
+    border          : 1px solid var(--border);
+    border-radius   : var(--radius-sm);
+    cursor          : pointer;
+    font-size       : 14px;
+    flex-shrink     : 0;
+    transition      : all 0.12s;
+}
+.mw-icon-btn:hover { border-color: var(--accent); background: var(--bg-hover); }
+
+/* Separator between pills and icons */
+.mw-filter-sep {
+    width       : 1px;
+    height      : 20px;
+    background  : var(--border);
+    flex-shrink : 0;
+    margin      : 0 2px;
+}
+
+/* --- Word Card --- */
+.mw-card {
+    background    : var(--bg-card);
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-lg);
+    padding       : 18px;
+    display       : flex;
+    flex-direction: column;
+    gap           : 10px;
+    animation     : fadeSlideIn 0.25s ease;
+}
+.mw-card-top { }
+.mw-card-word-row {
+    display     : flex;
+    align-items : center;
+    gap         : 10px;
+}
+.mw-card-word {
+    font-family : var(--font-display);
+    font-size   : 28px;
+    font-weight : 400;
+    color       : var(--text-primary);
+}
+.mw-card-phonetic {
+    font-family : var(--font-mono);
+    font-size   : 14px;
+    color       : var(--text-tertiary);
+    display     : block;
+    margin-top  : 2px;
+}
+
+.speak-btn-lg {
+    width   : 40px;
+    height  : 40px;
+    font-size: 18px;
+}
+
+.mw-card-body {
+    display        : flex;
+    flex-direction : column;
+    gap            : 8px;
+}
+.mw-card-meaning, .mw-card-endef, .mw-card-collo {
+    font-size   : 15px;
+    line-height : 1.5;
+    display     : flex;
+    align-items : baseline;
+    gap         : 8px;
+}
+.mw-label {
+    font-size      : 11px;
+    font-weight    : 600;
+    text-transform : uppercase;
+    letter-spacing : 0.5px;
+    color          : var(--text-tertiary);
+    background     : var(--bg-surface);
+    padding        : 2px 6px;
+    border-radius  : 3px;
+    flex-shrink    : 0;
+}
+.mw-card-meaning { color: var(--text-primary); font-weight: 500; }
+.mw-card-endef   { color: var(--text-secondary); font-style: italic; }
+.mw-card-collo   { color: var(--accent); font-family: var(--font-mono); font-size: 14px; }
+.mw-card-context {
+    font-size    : 14px;
+    color        : var(--text-secondary);
+    font-style   : italic;
+    padding      : 8px 12px;
+    background   : var(--bg-surface);
+    border-radius: var(--radius-sm);
+    display      : flex;
+    align-items  : center;
+    gap          : 8px;
+    line-height  : 1.6;
+}
+
+.mw-card-actions {
+    display  : flex;
+    gap      : 8px;
+    flex-wrap: wrap;
+}
+.mw-action-btn {
+    padding       : 7px 14px;
+    background    : var(--bg-surface);
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-sm);
+    cursor        : pointer;
+    font-family   : var(--font-body);
+    font-size     : 14px;
+    color         : var(--text-secondary);
+    transition    : all 0.12s;
+}
+.mw-action-btn:hover {
+    border-color : var(--accent);
+    color        : var(--accent-text);
+    background   : var(--accent-bg);
+}
+.mw-action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.mw-delete-btn:hover {
+    border-color : var(--danger);
+    color        : var(--danger);
+    background   : var(--danger-bg);
+}
+
+.mw-card-tags {
+    display  : flex;
+    gap      : 4px;
+    flex-wrap: wrap;
+}
+
+/* --- List view --- */
+.mw-list {
+    display        : flex;
+    flex-direction : column;
+    gap            : 2px;
+    max-height     : 60vh;
+    overflow-y     : auto;
+}
+.mw-list-item {
+    display       : flex;
+    align-items   : center;
+    gap           : 8px;
+    padding       : 8px 12px;
+    border-radius : var(--radius-sm);
+    cursor        : pointer;
+    transition    : background 0.1s;
+    border-bottom : 1px solid var(--border);
+}
+.mw-list-item:hover { background: var(--bg-hover); }
+.mw-list-active {
+    background : var(--accent-bg);
+    border-color: var(--accent);
+}
+.mw-list-word {
+    font-weight : 500;
+    font-size   : 16px;
+    color       : var(--text-primary);
+    min-width   : 120px;
+}
+.mw-list-meaning {
+    font-size     : 14px;
+    color         : var(--text-secondary);
+    flex          : 1;
+    overflow      : hidden;
+    text-overflow : ellipsis;
+    white-space   : nowrap;
+}
+
+/* --- Empty state --- */
+.mw-empty {
+    text-align  : center;
+    padding     : 40px 20px;
+    color       : var(--text-secondary);
+}
+.mw-empty p { font-size: 16px; margin-bottom: 12px; }
+.mw-empty-hint {
+    font-size    : 12px;
+    color        : var(--text-tertiary);
+    text-align   : left;
+    display      : inline-block;
+}
+.mw-empty-hint pre {
+    font-family   : var(--font-mono);
+    font-size     : 12px;
+    background    : var(--bg-surface);
+    padding       : 10px 14px;
+    border-radius : var(--radius-sm);
+    margin-top    : 6px;
+    white-space   : pre-wrap;
+    color         : var(--text-secondary);
+}
+
+/* --- Import modal --- */
+.mw-import-format {
+    font-family   : var(--font-mono);
+    font-size     : 12px;
+    background    : var(--bg-surface);
+    padding       : 8px 12px;
+    border-radius : var(--radius-sm);
+    margin-bottom : 10px;
+    color         : var(--text-secondary);
+    white-space   : pre-wrap;
+}
+.mw-import-textarea {
+    width         : 100%;
+    padding       : 10px 12px;
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-sm);
+    font-family   : var(--font-mono);
+    font-size     : 13px;
+    background    : var(--bg-surface);
+    color         : var(--text-primary);
+    resize        : vertical;
+    outline       : none;
+}
+.mw-import-textarea:focus {
+    border-color : var(--border-focus);
+}
+
+/* Labels hidden by default (mobile-first), shown on desktop */
+.mw-btn-label    { display: none; }
+.mw-fpill-label  { display: none; }
+.mw-enrich-count { display: none; }
+.mw-grp-short    { display: inline; }
+@media (min-width: 769px) {
+    .mw-btn-label    { display: inline; }
+    .mw-fpill-label  { display: inline; }
+    .mw-enrich-count { display: inline; }
+    .mw-grp-short    { display: none; }
+}
+
+@media (max-width: 640px) {
+    /* Toolbar: search full-width */
+    .mw-toolbar { gap: 4px; }
+
+    /* Filter + icon row: compact */
+    .mw-filter-row { gap: 3px; }
+    .mw-filter-pill { padding: 4px 8px; font-size: 12px; }
+    .mw-icon-btn { width: 28px; height: 28px; font-size: 13px; }
+
+    /* Nav row: tight */
+    .mw-nav-row { gap: 3px; flex-wrap: nowrap; }
+    .mw-mode-toggle { flex-shrink: 0; }
+    .mw-mt-btn { width: 30px; height: 28px; font-size: 14px; }
+    .mw-toggle-cn-btn { width: auto; height: 28px; font-size: 12px; padding: 3px 6px; }
+    .mw-counter { font-size: 12px; min-width: 30px; padding: 0 1px; }
+    .mw-arrow-btn { font-size: 14px; padding: 1px; }
+    .mw-vt-btn { padding: 3px 5px; font-size: 12px; }
+    .mw-grp-label { font-size: 10px; }
+    .mw-grp-btn { font-size: 10px; padding: 1px; }
+
+    /* Card: tighter padding */
+    .mw-card { padding: 14px; }
+    .mw-card-word { font-size: 24px; }
+}
+
+/* --- Mode toggle (Browse / Quiz) --- */
+.mw-mode-toggle {
+    display       : inline-flex;
+    gap           : 0;
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-sm);
+    overflow      : hidden;
+    flex          : 0 0 auto;
+}
+.mw-mt-btn {
+    display         : flex;
+    align-items     : center;
+    justify-content : center;
+    padding         : 6px 12px;
+    background      : transparent;
+    border          : none;
+    cursor          : pointer;
+    font-size       : 14px;
+    transition      : all 0.1s;
+    line-height     : 1;
+}
+.mw-mt-btn + .mw-mt-btn {
+    border-left : 1px solid var(--border);
+}
+.mw-mt-btn.active {
+    background : var(--accent-bg);
+}
+.mw-mt-btn:hover:not(.active) {
+    background : var(--bg-hover);
+}
+
+/* --- Chinese text toggle --- */
+.mw-cn {
+    display    : none;
+    opacity    : 0;
+    transition : opacity 0.2s ease;
+}
+.mw-cn.mw-cn-visible {
+    display    : block;
+    opacity    : 1;
+}
+/* Inline CN elements (inside flex/grid containers) */
+.mw-collo2 .mw-cn { display: none; }
+.mw-collo2 .mw-cn.mw-cn-visible { display: block; }
+
+/* --- Phonetic placeholder --- */
+.mw-phonetic-placeholder {
+    color      : var(--text-tertiary);
+    opacity    : 0.4;
+    font-style : italic;
+}
+
+.mw-list-phonetic {
+    font-family : var(--font-mono);
+    font-size   : 11px;
+    color       : var(--text-tertiary);
+    flex-shrink : 0;
+}
+
+/* --- Quiz mode --- */
+.mw-quiz-card {
+    text-align : center;
+}
+.mw-quiz-card .mw-card-top {
+    display        : flex;
+    flex-direction : column;
+    align-items    : center;
+}
+
+.mw-quiz-options {
+    display               : grid;
+    grid-template-columns : 1fr 1fr;
+    gap                   : 8px;
+    margin-top            : 8px;
+}
+
+.mw-quiz-option {
+    display       : flex;
+    align-items   : center;
+    gap           : 10px;
+    padding       : 14px 16px;
+    background    : var(--bg-surface);
+    border        : 1.5px solid var(--border);
+    border-radius : var(--radius-md);
+    cursor        : pointer;
+    font-family   : var(--font-body);
+    font-size     : 14px;
+    color         : var(--text-primary);
+    text-align    : left;
+    transition    : all 0.12s;
+}
+.mw-quiz-option:hover:not(:disabled) {
+    border-color : var(--accent);
+    background   : var(--accent-bg);
+}
+.mw-quiz-option:disabled { cursor: default; opacity: 0.85; }
+.mw-quiz-option.mw-quiz-correct {
+    border-color : var(--success);
+    background   : var(--success-bg);
+}
+.mw-quiz-option.mw-quiz-wrong {
+    border-color : var(--danger);
+    background   : var(--danger-bg);
+}
+
+.mw-quiz-letter {
+    display         : flex;
+    align-items     : center;
+    justify-content : center;
+    width           : 28px;
+    height          : 28px;
+    border-radius   : 50%;
+    background      : var(--bg-card);
+    border          : 1px solid var(--border);
+    font-family     : var(--font-mono);
+    font-size       : 13px;
+    font-weight     : 500;
+    flex-shrink     : 0;
+    color           : var(--text-secondary);
+}
+
+.mw-quiz-text {
+    flex : 1;
+    line-height: 1.4;
+}
+
+.mw-quiz-feedback {
+    min-height : 36px;
+    margin-top : 8px;
+}
+.mw-fb-correct {
+    padding       : 10px 14px;
+    background    : var(--success-bg);
+    color         : var(--success);
+    border-radius : var(--radius-sm);
+    font-size     : 14px;
+    font-weight   : 500;
+}
+.mw-fb-wrong {
+    padding       : 10px 14px;
+    background    : var(--danger-bg);
+    color         : var(--danger);
+    border-radius : var(--radius-sm);
+    font-size     : 14px;
+}
+
+@media (max-width: 640px) {
+    .mw-quiz-options { grid-template-columns: 1fr; }
+}
+
+/* --- Show CN toggle button --- */
+.mw-toggle-cn-btn {
+    display       : flex;
+    align-items   : center;
+    justify-content : center;
+    padding       : 4px 8px;
+    background    : var(--bg-card);
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-sm);
+    cursor        : pointer;
+    font-size     : 13px;
+    font-weight   : 600;
+    transition    : all 0.12s;
+    flex          : 0 0 auto;
+    line-height   : 1;
+}
+.mw-toggle-cn-btn:hover {
+    border-color : var(--accent);
+    color        : var(--accent);
+}
+.mw-toggle-cn-btn.active {
+    background   : var(--accent-bg);
+    color        : var(--accent-text);
+    border-color : var(--accent);
+}
+
+/* --- Rich card sections --- */
+.mw-card-header {
+    padding-bottom : 12px;
+    border-bottom  : 1px solid var(--border);
+}
+
+.mw-meanings {
+    display        : flex;
+    flex-direction : column;
+    gap            : 6px;
+    padding        : 12px 0;
+}
+.mw-meaning-cn {
+    font-size   : 20px;
+    font-weight : 500;
+    color       : var(--text-primary);
+    line-height : 1.4;
+}
+.mw-meaning-en {
+    font-size   : 14px;
+    color       : var(--text-secondary);
+    line-height : 1.6;
+    font-style  : italic;
+}
+
+.mw-section {
+    padding-top  : 10px;
+    border-top   : 1px solid var(--border);
+}
+.mw-section-label {
+    font-size      : 10px;
+    font-weight    : 600;
+    text-transform : uppercase;
+    letter-spacing : 0.8px;
+    color          : var(--text-tertiary);
+    margin-bottom  : 6px;
+}
+
+/* Collocation grid */
+.mw-collo-grid {
+    display        : flex;
+    flex-direction : column;
+    gap            : 4px;
+}
+.mw-collo-item {
+    display       : flex;
+    align-items   : center;
+    gap           : 6px;
+    padding       : 6px 10px;
+    background    : var(--bg-surface);
+    border-radius : var(--radius-sm);
+    flex-wrap     : wrap;
+}
+.mw-collo-en {
+    font-family : var(--font-mono);
+    font-size   : 13px;
+    color       : var(--accent);
+    font-weight : 500;
+}
+.mw-collo-cn {
+    font-size : 12px;
+    color     : var(--text-secondary);
+}
+
+/* Example block */
+.mw-example-block {
+    background    : var(--bg-surface);
+    border-radius : var(--radius-md);
+    padding       : 12px 14px;
+    border-left   : 3px solid var(--accent);
+    border-radius : 0 var(--radius-sm) var(--radius-sm) 0;
+}
+.mw-example-en {
+    font-size    : 14px;
+    line-height  : 1.7;
+    color        : var(--text-primary);
+    display      : flex;
+    align-items  : flex-start;
+    gap          : 6px;
+}
+.mw-example-cn {
+    font-size    : 13px;
+    color        : var(--text-secondary);
+    margin-top   : 6px;
+    padding-top  : 6px;
+    border-top   : 1px dashed var(--border);
+    line-height  : 1.5;
+}
+
+/* Note / tip */
+.mw-note-text {
+    font-size    : 13px;
+    color        : var(--text-secondary);
+    line-height  : 1.6;
+    padding      : 8px 12px;
+    background   : var(--warn-bg);
+    border-radius: var(--radius-sm);
+}
+
+/* --- Phrasing category tabs --- */
+.sc-cat-tabs {
+    display               : grid;
+    grid-template-columns : repeat(5, 1fr);
+    gap                   : 4px;
+    padding-bottom        : 10px;
+}
+.sc-cat-tab {
+    display         : flex;
+    align-items     : center;
+    justify-content : center;
+    gap             : 3px;
+    padding         : 6px 4px;
+    background      : var(--bg-card);
+    border          : 1px solid var(--border);
+    border-radius   : var(--radius-sm);
+    cursor          : pointer;
+    font-family     : var(--font-body);
+    font-size       : 11px;
+    color           : var(--text-tertiary);
+    white-space     : nowrap;
+    transition      : all 0.12s;
+    overflow        : hidden;
+    text-overflow   : ellipsis;
+}
+.sc-cat-tab:hover { border-color: var(--accent); color: var(--text-primary); }
+.sc-cat-active {
+    background   : var(--accent-bg);
+    color        : var(--accent-text);
+    border-color : var(--accent);
+    font-weight  : 500;
+}
+.sc-cat-icon { font-size: 13px; flex-shrink: 0; }
+.sc-cat-name { overflow: hidden; text-overflow: ellipsis; }
+
+.sc-phrasing-content {
+    display        : flex;
+    flex-direction : column;
+    animation      : fadeSlideIn 0.2s ease;
+}
+
+.sc-phrasing-cn {
+    font-size    : 13px;
+    color        : var(--text-secondary);
+    padding-left : 60px;
+    line-height  : 1.5;
+}
+
+.sc-phrasing-nav {
+    display         : flex;
+    align-items     : center;
+    justify-content : center;
+    gap             : 12px;
+    padding-top     : 12px;
+    border-top      : 1px solid var(--border);
+    margin-top      : 8px;
+}
+.sc-phrasing-page {
+    font-family : var(--font-mono);
+    font-size   : 12px;
+    color       : var(--text-tertiary);
+}
+
+/* ============================================================
+   v69 Ref tab: fixed-window phrase card with prev/next nav
+   ============================================================
+   Replaces the long scrolling list of TYPICAL/NATIVE pairs with
+   a single bordered card that shows ONE pair at a time. Matches
+   the Curated tab's detail-pane pattern (filled-triangle nav
+   buttons flanking a "N/Total" counter). The card has a min-height
+   so navigating between pairs of different content lengths does
+   not jolt the layout. */
+.sc-phr-card {
+    background     : var(--bg-card);
+    border         : 1px solid var(--border);
+    border-radius  : var(--radius-lg);
+    padding        : 16px;
+    min-height     : 240px;
+    display        : flex;
+    flex-direction : column;
+    gap            : 14px;
+    animation      : fadeSlideIn 0.2s ease;
+    box-sizing     : border-box;
+}
+.sc-phr-card-head {
+    display         : flex;
+    align-items     : center;
+    justify-content : center;
+    gap             : 16px;
+    padding-bottom  : 10px;
+    border-bottom   : 1px solid var(--border);
+}
+.sc-phr-card-body {
+    display        : flex;
+    flex-direction : column;
+    gap            : 10px;
+    flex           : 1;
+}
+.sc-phr-empty {
+    display         : flex;
+    align-items     : center;
+    justify-content : center;
+    flex            : 1;
+    color           : var(--text-tertiary);
+    font-size       : 13px;
+    font-style      : italic;
+}
+
+@media (max-width: 640px) {
+    .sc-cat-tabs { grid-template-columns: repeat(3, 1fr); }
+    .sc-cat-name { font-size: 10px; }
+    .sc-phrasing-cn { padding-left: 0; }
+    .sc-phr-card    { padding: 12px; min-height: 220px; }
+    .sc-phrasing-label { width: 48px; }
+}
+
+/* --- Compact card v2 --- */
+.mw-card-compact { padding: 16px; gap: 8px; }
+
+.mw-hdr2 { padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+.mw-word-row2 { display: flex; align-items: center; gap: 8px; }
+.mw-word2 {
+    font-family : var(--font-display);
+    font-size   : 22px;
+    font-weight : 400;
+    color       : var(--text-primary);
+}
+.mw-ph2 {
+    font-family : var(--font-mono);
+    font-size   : 12px;
+    color       : var(--text-tertiary);
+    margin-top  : 1px;
+}
+
+.mw-defs2 {
+    display     : flex;
+    flex-direction: column;
+    gap         : 2px;
+    padding     : 6px 0;
+}
+.mw-cn2 {
+    font-size   : 16px;
+    font-weight : 500;
+    color       : var(--text-primary);
+}
+.mw-en2 {
+    font-size   : 13px;
+    color       : var(--text-secondary);
+    font-style  : italic;
+    line-height : 1.4;
+}
+
+/* 2x2 collocation grid */
+.mw-collo-grid2 {
+    display               : grid;
+    grid-template-columns : 1fr 1fr;
+    gap                   : 4px;
+}
+.mw-collo2 {
+    display       : flex;
+    align-items   : center;
+    gap           : 4px;
+    padding       : 5px 8px;
+    background    : var(--bg-surface);
+    border-radius : var(--radius-sm);
+    flex-wrap     : wrap;
+}
+.mw-collo2.mw-speakable {
+    cursor     : pointer;
+    transition : background 0.15s;
+}
+.mw-collo2.mw-speakable:active,
+.mw-collo2.mw-speaking {
+    background : var(--accent-bg);
+}
+.mw-collo-icon2 {
+    font-size   : 12px;
+    flex-shrink : 0;
+    opacity     : 0.5;
+}
+.mw-collo-en2 {
+    font-family : var(--font-mono);
+    font-size   : 12px;
+    color       : var(--accent);
+    font-weight : 500;
+}
+.mw-collo-cn2 {
+    font-size : 11px;
+    color     : var(--text-tertiary);
+    width     : 100%;
+}
+
+.speak-btn-s {
+    width     : 20px;
+    height    : 20px;
+    font-size : 10px;
+    flex-shrink: 0;
+}
+
+/* Compact example */
+.mw-ex2 {
+    padding       : 8px 10px;
+    background    : var(--bg-surface);
+    border-left   : 2px solid var(--accent);
+    border-radius : 0 var(--radius-sm) var(--radius-sm) 0;
+    margin-top    : 4px;
+}
+.mw-ex-en2 {
+    font-size   : 13px;
+    line-height : 1.5;
+    color       : var(--text-primary);
+    display     : flex;
+    align-items : flex-start;
+    gap         : 4px;
+}
+/* When the example sentence is also a speakable surface (the whole box
+   triggers speech on tap), match the cursor / hover treatment used for
+   collocations and the English definition row. */
+.mw-ex-en2.mw-speakable {
+    cursor     : pointer;
+    transition : background 0.15s;
+    border-radius : var(--radius-sm);
+    padding       : 2px 4px;
+    margin        : -2px -4px;
+}
+.mw-ex-en2.mw-speakable:hover {
+    background : var(--bg-hover);
+}
+.mw-ex-en2.mw-speakable:active,
+.mw-ex-en2.mw-speaking-now {
+    background : var(--accent-bg);
+}
+.mw-ex-cn2 {
+    font-size   : 12px;
+    color       : var(--text-secondary);
+    margin-top  : 3px;
+    padding-top : 3px;
+    border-top  : 1px dashed var(--border);
+}
+
+.mw-note2 {
+    font-size     : 11px;
+    color         : var(--text-tertiary);
+    line-height   : 1.4;
+    padding       : 4px 8px;
+    background    : var(--warn-bg);
+    border-radius : var(--radius-sm);
+    margin-top    : 4px;
+}
+
+@media (max-width: 480px) {
+    .mw-collo-grid2 { grid-template-columns: 1fr; }
+    .mw-word2 { font-size: 18px; }
+}
+
+/* --- Two-column card top --- */
+.mw-row-top {
+    display     : flex;
+    gap         : 12px;
+    align-items : flex-start;
+    padding-bottom: 6px;
+    border-bottom : 1px solid var(--border);
+}
+.mw-col-word {
+    flex-shrink : 0;
+    min-width   : 140px;
+}
+.mw-col-def {
+    flex        : 1;
+    display     : flex;
+    flex-direction: column;
+    gap         : 3px;
+    padding-top : 4px;
+    border-left : 2px solid var(--border);
+    padding-left: 14px;
+}
+
+@media (max-width: 480px) {
+    .mw-row-top { flex-direction: column; gap: 4px; }
+    .mw-col-def { border-left: none; padding-left: 0; border-top: 1px solid var(--border); padding-top: 4px; }
+}
+
+/* --- Wide modal + settings grid --- */
+.modal-wide { max-width: 680px; }
+.settings-grid {
+    display               : grid;
+    grid-template-columns : 1fr 1fr;
+    gap                   : 16px;
+}
+.settings-grid .settings-section {
+    margin-bottom  : 0;
+    padding-bottom : 0;
+    border-bottom  : none;
+}
+@media (max-width: 640px) {
+    .settings-grid { grid-template-columns: 1fr; }
+    .modal-wide { max-width: 100%; }
+}
+
+/* --- Incomplete word tag --- */
+.mw-incomplete-tag {
+    font-size      : 10px;
+    color          : var(--warn);
+    background     : var(--warn-bg);
+    padding        : 2px 6px;
+    border-radius  : 3px;
+    font-weight    : 500;
+}
+
+.mw-list-incomplete {
+    border-left : 2px solid var(--warn);
+}
+
+/* --- Group navigation --- */
+.mw-group-info {
+    display     : flex;
+    align-items : center;
+    gap         : 2px;
+    flex        : 0 0 auto;
+}
+.mw-grp-label {
+    font-family : var(--font-mono);
+    font-size   : 11px;
+    color       : var(--accent);
+    font-weight : 500;
+    white-space : nowrap;
+    padding     : 0;
+}
+.mw-grp-btn {
+    font-size  : 11px;
+    padding    : 1px;
+    width      : auto;
+    height     : auto;
+}
+
+/* --- Focus tags --- */
+.mw-card-bottom {
+    display         : flex;
+    align-items     : center;
+    justify-content : space-between;
+    padding-top     : 6px;
+    border-top      : 1px solid var(--border);
+    margin-top      : 4px;
+    gap             : 8px;
+    flex-wrap       : wrap;
+}
+.mw-focus-tags {
+    display : flex;
+    gap     : 4px;
+}
+.mw-focus-btn {
+    display       : flex;
+    align-items   : center;
+    gap           : 3px;
+    padding       : 5px 10px;
+    background    : var(--bg-surface);
+    border        : 1px solid var(--border);
+    border-radius : 12px;
+    cursor        : pointer;
+    font-family   : var(--font-body);
+    font-size     : 12px;
+    color         : var(--text-tertiary);
+    transition    : all 0.12s;
+}
+.mw-focus-btn:hover {
+    border-color : var(--accent);
+    color        : var(--text-secondary);
+}
+.mw-focus-btn.mw-focus-active {
+    background   : var(--accent-bg);
+    border-color : var(--accent);
+    color        : var(--accent-text);
+    font-weight  : 500;
+}
+.mw-focus-btn span { font-size: 10px; }
+
+/* --- Filter dropdown --- */
+.mw-filter-select {
+    padding       : 6px 10px;
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-sm);
+    font-family   : var(--font-body);
+    font-size     : 14px;
+    background    : var(--bg-card);
+    color         : var(--text-primary);
+    cursor        : pointer;
+    outline       : none;
+}
+.mw-filter-select:focus {
+    border-color : var(--accent);
+}
+
+.mw-list-icons {
+    font-size   : 12px;
+    flex-shrink : 0;
+}
+
+/* --- Filter pill row --- */
+.mw-filter-row {
+    display     : flex;
+    align-items : center;
+    gap         : 4px;
+    flex-wrap   : nowrap;
+    overflow-x  : auto;
+    -webkit-overflow-scrolling : touch;
+}
+.mw-filter-pill {
+    display       : flex;
+    align-items   : center;
+    gap           : 2px;
+    padding       : 4px 10px;
+    background    : var(--bg-card);
+    border        : 1px solid var(--border);
+    border-radius : 14px;
+    cursor        : pointer;
+    font-family   : var(--font-body);
+    font-size     : 13px;
+    color         : var(--text-tertiary);
+    transition    : all 0.12s;
+    white-space   : nowrap;
+    flex-shrink   : 0;
+}
+.mw-filter-pill:hover {
+    border-color : var(--accent);
+    color        : var(--text-primary);
+}
+.mw-filter-pill.active {
+    /* v70: solid accent bg + white text so the currently-selected
+       group is unmistakable on mobile. Matches .mw-filter-pill-due.active
+       so the Due pill and the regular pills look consistent when active. */
+    background   : var(--accent);
+    border-color : var(--accent);
+    color        : #fff;
+    font-weight  : 500;
+}
+.mw-filter-pill.active .mw-fpill-count {
+    /* Count badge must read clearly on the dark active background. */
+    opacity : 0.9;
+    color   : inherit;
+}
+.mw-fpill-count {
+    font-family : var(--font-mono);
+    font-size   : 11px;
+    opacity     : 0.7;
+}
+
+/* ============================================================
+   PWA & MOBILE OPTIMIZATIONS
+   Xiaomi 17 Pro Max: 1200x2608, 6.9", safe area for notch
+   ============================================================ */
+
+/* Safe area padding for notch/rounded corners */
+html {
+    padding : env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* Standalone PWA: adjust header for status bar */
+@media (display-mode: standalone) {
+    .app-header {
+        padding-top : calc(env(safe-area-inset-top, 0px) + 6px);
+    }
+    body {
+        -webkit-user-select : none;
+        user-select         : none;
+        overscroll-behavior : none;
+    }
+    /* Allow text selection in inputs and textareas */
+    input, textarea, .mw-card, .ec-card, .wl-result-card, .nb-item {
+        -webkit-user-select : text;
+        user-select         : text;
+    }
+}
+
+/* ===== Mobile font & touch overhaul (phones) ===== */
+@media (max-width: 768px) and (pointer: coarse) {
+
+    /* --- Global font bump --- */
+    html { font-size: 20px; }
+
+    /* --- Touch targets: minimum 40px for actions, 36px for compact --- */
+    .wl-btn-primary, .wl-btn-secondary, .vd-option, .vd-start-btn,
+    .ec-option-btn {
+        min-height : 44px;
+        font-size  : 16px;
+    }
+    .nav-tab, .sc-tab, .mw-filter-pill, .mw-mt-btn,
+    .ec-chip, .ec-nav-btn, .mw-arrow-btn {
+        min-height : 38px;
+    }
+
+    /* --- Navigation tabs: icon-only on mobile, slightly shorter than before --- */
+    .app-nav {
+        overflow-x : auto;
+        -webkit-overflow-scrolling : touch;
+        flex-wrap  : nowrap;
+        gap        : 2px;
+        padding    : 3px;
+    }
+    .nav-tab {
+        flex-shrink : 0;
+        padding     : 6px 14px;      /* was 10px — reduced top/bottom */
+    }
+    .nav-icon { font-size : 20px; }  /* was 22px — proportional shrink */
+
+    /* --- Search input --- */
+    .mw-quick-input {
+        font-size : 16px;
+        padding   : 8px 12px;
+        height    : 40px;             /* explicit match with action buttons */
+        min-height: 40px;
+        min-width : 0;                /* critical: without this, the input's
+                                         default min-width:auto = placeholder
+                                         text width (~216px), which prevents
+                                         flex from shrinking it and forces
+                                         the sibling + button to overflow
+                                         its .mw-quick-add container. That
+                                         overflow caused the confirmed 12px
+                                         overlap with the Import button. */
+    }
+    .mw-add-btn {
+        min-width  : 40px;            /* match input height */
+        width      : 40px;
+        height     : 40px;
+        min-height : 40px;
+        font-size  : 22px;
+    }
+
+    /* --- Filter + icon row --- */
+    .mw-filter-pill {
+        font-size  : 14px;
+        padding    : 6px 12px;
+        min-height : 36px;
+    }
+    .mw-fpill-count { font-size: 12px; }
+    .mw-icon-btn {
+        width      : 36px;
+        height     : 36px;
+        font-size  : 16px;
+    }
+
+    /* --- Nav row (Browse/Quiz, Show CN, arrows, counter) --- */
+    .mw-nav-row {
+        gap      : 4px;
+        flex-wrap: nowrap;
+    }
+    .mw-mode-toggle { flex-shrink: 0; }
+    .mw-mt-btn {
+        width     : 36px;
+        height    : 34px;
+        font-size : 16px;
+    }
+    .mw-toggle-cn-btn {
+        width     : auto;
+        height    : 34px;
+        font-size : 14px;
+        padding   : 4px 8px;
+    }
+    .mw-counter {
+        font-size  : 13px;
+        min-width  : 56px;      /* room for 'XX/XX' and 'XX/XX (XX/XX)' */
+        padding    : 0 2px;
+        white-space: nowrap;
+    }
+    .mw-arrow-btn {
+        font-size : 16px;
+        padding   : 3px;
+    }
+    .mw-nav-btn {
+        font-size : 14px;
+    }
+    .mw-vt-btn {
+        padding   : 5px 8px;
+        font-size : 14px;
+    }
+    .mw-grp-btn {
+        font-size : 12px;
+    }
+    .mw-grp-label { font-size: 12px; }
+
+    /* --- Word cards --- */
+    .mw-card { padding: 18px; }
+    .mw-card-word { font-size: 26px; }
+    .mw-card-phonetic { font-size: 15px; }
+    .mw-card-meaning, .mw-card-endef, .mw-card-collo {
+        font-size: 16px;
+    }
+    .mw-card-context { font-size: 15px; }
+    .mw-label { font-size: 12px; }
+    .mw-action-btn { font-size: 15px; padding: 8px 16px; min-height: 40px; }
+
+    /* --- Word list items --- */
+    .mw-list-item { padding: 10px 14px; }
+    .mw-list-word { font-size: 17px; }
+    .mw-list-meaning { font-size: 15px; }
+    .mw-list-icons { font-size: 14px; }
+
+    /* --- Focus tags --- */
+    .mw-focus-btn { font-size: 13px; padding: 5px 10px; }
+
+    /* --- Empty state --- */
+    .mw-empty p { font-size: 18px; }
+
+    /* --- Expression Coach --- */
+    .ec-chip {
+        padding    : 10px 16px;
+        font-size  : 1rem;
+    }
+    .ec-slot {
+        min-width  : 60px;
+        min-height : 38px;
+        padding    : 4px 12px;
+    }
+    .ec-option-btn { padding: 12px 14px; }
+    .ec-fill-sentence, .ec-scenario-context, .ec-rephrase-prompt {
+        font-size : 1.05rem;
+    }
+
+    /* --- Prevent horizontal overflow --- */
+    .ec-wrapper, .sc-container, .mw-container,
+    .vd-container, .wl-container, .rd-container {
+        padding-left  : 8px;
+        padding-right : 8px;
+        overflow-x    : hidden;
+    }
+
+    /* --- Bottom padding for scroll comfort --- */
+    .app-main {
+        padding-bottom : calc(env(safe-area-inset-bottom, 0px) + 20px);
+    }
+
+    /* --- Settings modal --- */
+    .settings-grid { gap: 14px; }
+    .settings-grid h3 { font-size: 16px; }
+    .settings-grid label { font-size: 14px; }
+    .rd-select { font-size: 16px; min-height: 40px; }
+    .settings-input { font-size: 16px; }
+
+    /* --- Search dropdown --- */
+    .mw-sd-item { padding: 12px 14px; font-size: 16px; }
+    .mw-sd-word { font-size: 16px; }
+    .mw-sd-meaning { font-size: 14px; }
+}
+
+/* Prevent pull-to-refresh in standalone PWA */
+@media (display-mode: standalone) {
+    body {
+        overscroll-behavior-y : contain;
+    }
+}
+
+/* Smooth scrolling on mobile */
+.app-view, .modal-body, .ec-browse-list, .mw-area {
+    -webkit-overflow-scrolling : touch;
+}
+
+/* ============================================================
+   UI POLISH — v11 (PWA install + sync UI refinements)
+   ============================================================ */
+
+/* Left-align both toolbar rows on PC so they share the same
+   starting edge — more stable than the previous centered nav row.
+   Also switch both rows from overflow-scrolling to wrapping, since
+   labeled buttons need more width than mobile icon-only buttons. */
+@media (min-width: 769px) {
+    .mw-filter-row {
+        flex-wrap  : wrap;
+        overflow-x : visible;
+        row-gap    : 6px;
+    }
+    .mw-nav-row {
+        justify-content : flex-start;
+        flex-wrap       : wrap;
+        gap             : 6px;
+        row-gap         : 6px;
+    }
+    /* Icon buttons expand to fit label text on PC */
+    .mw-icon-btn {
+        width       : auto;
+        height      : 30px;
+        padding     : 0 10px;
+        gap         : 4px;
+        font-size   : 13px;
+        white-space : nowrap;
+    }
+    .mw-icon-btn .mw-btn-label {
+        font-size   : 12px;
+        font-weight : 500;
+        color       : var(--text-secondary);
+    }
+    .mw-icon-btn:hover .mw-btn-label {
+        color : var(--text-primary);
+    }
+    /* Pending-enrich count shown next to "AI enrich" label on desktop.
+       Uses --warn accent when there's work to do so the number catches
+       the eye without shouting; empty string collapses when count is 0. */
+    .mw-icon-btn .mw-enrich-count {
+        font-size   : 12px;
+        font-weight : 600;
+        color       : var(--warn);
+    }
+    .mw-icon-btn.mw-has-pending:hover .mw-enrich-count {
+        color : var(--warn);
+    }
+    /* Separator inside nav-row gets a touch more breathing room on PC */
+    .mw-nav-row .mw-filter-sep {
+        height : 20px;
+        margin : 0 4px;
+    }
+    /* Arrow buttons that carry a label (Play / Shuffle) get proper
+       button-like framing on PC; the unlabeled ones stay borderless. */
+    .mw-arrow-btn:has(.mw-btn-label) {
+        padding       : 4px 10px 4px 8px;
+        border-radius : var(--radius-sm);
+    }
+    .mw-arrow-btn:has(.mw-btn-label):hover {
+        background : var(--bg-hover);
+    }
+    .mw-arrow-btn .mw-btn-label {
+        font-size   : 12px;
+        font-weight : 500;
+        color       : var(--text-secondary);
+    }
+    .mw-arrow-btn:hover .mw-btn-label {
+        color : var(--text-primary);
+    }
+    /* CN inside the unified segmented control — strip its own frame
+       on desktop so it reads as a 4th segment, matching the mt-btns.
+       The container (.mw-mode-toggle) provides the outer border; internal
+       dividers come from the adjacent-sibling border-left below. */
+    .mw-mode-toggle .mw-toggle-cn-btn {
+        background    : transparent;
+        border        : none;
+        border-left   : 1px solid var(--border);
+        border-radius : 0;
+        padding       : 6px 12px;
+        font-size     : 14px;
+        font-weight   : 400;
+        color         : var(--text-primary);
+    }
+    .mw-mode-toggle .mw-toggle-cn-btn:hover {
+        background : var(--bg-hover);
+        color      : var(--text-primary);
+    }
+    .mw-mode-toggle .mw-toggle-cn-btn.active {
+        background : var(--accent-bg);
+        color      : var(--accent-text);
+    }
+}
+
+/* Toolbar action group: Import / AI enrich / Paste back.
+   Sits inline with the search box, right-aligned. */
+.mw-toolbar-actions {
+    display     : flex;
+    align-items : center;
+    gap         : 4px;
+    flex-shrink : 0;
+}
+
+/* On mobile (narrow phones), compact layout overrides. */
+@media (max-width: 640px) {
+
+    /* --- Row 1: search + plus + 3 actions, all 40px tall.
+       Clear gap between + and first action icon so they don't touch;
+       consistent spacing between action icons for visual separation. */
+    /* Row 2 toolbar: search + + + 3 action icons.
+       6px gap gives clear visual separation without forcing overflow
+       at 400px viewport. The real fix for the + / Import overlap is
+       min-width: 0 on .mw-quick-input (above) — without it, the input
+       refuses to shrink below its placeholder's intrinsic width and
+       forces the + sibling to overflow its container. */
+    .mw-toolbar {
+        flex-wrap : nowrap;
+        gap       : 6px;
+    }
+    .mw-quick-add {
+        min-width : 0;
+        flex      : 1 1 0;
+    }
+    .mw-add-btn {
+        width      : 40px;
+        height     : 40px;
+        min-width  : 40px;
+        min-height : 40px;
+        font-size  : 22px;
+    }
+    .mw-toolbar-actions {
+        gap : 4px;
+    }
+    .mw-toolbar-actions .mw-icon-btn {
+        width    : 40px;     /* same as input/+ height for a clean square */
+        height   : 40px;
+        padding  : 0;
+        font-size: 16px;
+    }
+
+    /* Visual hint when there are incomplete words — subtle accent dot
+       on the AI enrich icon. Keeps the counter available as a tooltip. */
+    .mw-icon-btn.mw-has-pending {
+        position : relative;
+    }
+    .mw-icon-btn.mw-has-pending::after {
+        content       : '';
+        position      : absolute;
+        top           : 4px;
+        right         : 4px;
+        width         : 6px;
+        height        : 6px;
+        background    : var(--warn);
+        border-radius : 50%;
+    }
+
+    /* --- Filter pills: stretch evenly across row --- */
+    .mw-filter-row {
+        gap : 3px;
+    }
+    .mw-filter-pill {
+        flex            : 1 1 0;
+        justify-content : center;
+        padding         : 6px 4px;
+        min-width       : 0;
+    }
+
+    /* --- Edge padding: reclaim pixels on narrow viewports --- */
+    .app-main {
+        padding : 6px 4px 48px;
+    }
+
+    /* --- Row 3: unified segmented control (Card/List/Quiz/CN)
+       + nav arrows + Play/Shuffle (prominent).
+       The 4 view-mode buttons sit in ONE bordered container so their
+       heights are pixel-identical and they read as a single control.
+       Play/Shuffle are sized generously to use reclaimed space. */
+    .mw-nav-row {
+        gap         : 3px;
+        flex-wrap   : nowrap;
+        align-items : center;
+        min-width   : 0;
+    }
+
+    /* Unified 4-button segmented control: Card | List | Quiz | 中
+       The v21 diagnostic showed mt-btns rendering at 38px (because of
+       a min-height:38px rule under @media (pointer:coarse)) while CN
+       rendered at 30px (not in that rule's selector list). That height
+       mismatch made the control look uneven. Fix: stamp a fixed 38px
+       on both container and all four children, and add a min-height
+       override to beat the touch-device rule for uniform appearance. */
+    .mw-mode-toggle {
+        display       : inline-flex;
+        gap           : 0;
+        border        : 1px solid var(--border);
+        border-radius : var(--radius-sm);
+        overflow      : hidden;
+        flex          : 0 0 auto;
+        height        : 38px;
+    }
+    .mw-mode-toggle .mw-mt-btn,
+    .mw-mode-toggle .mw-toggle-cn-btn {
+        display         : flex;
+        align-items     : center;
+        justify-content : center;
+        width           : 32px;
+        height          : 38px;
+        min-height      : 38px;   /* beats the (pointer:coarse) 38px rule applied only to mt-btn */
+        padding         : 0;
+        margin          : 0;
+        background      : var(--bg-card);
+        border          : none;
+        border-radius   : 0;
+        font-size       : 14px;
+        font-weight     : 400;
+        line-height     : 1;
+        flex            : 0 0 auto;
+        box-sizing      : border-box;
+        text-align      : center;
+    }
+    /* Internal dividers between every adjacent pair (mt-mt and mt-cn) */
+    .mw-mode-toggle .mw-mt-btn + .mw-mt-btn,
+    .mw-mode-toggle .mw-mt-btn + .mw-toggle-cn-btn {
+        border-left : 1px solid var(--border);
+        margin-left : 0;
+    }
+    .mw-mode-toggle .mw-mt-btn.active,
+    .mw-mode-toggle .mw-toggle-cn-btn.active {
+        background   : var(--accent-bg);
+        color        : var(--accent-text);
+    }
+
+    .mw-group-info {
+        margin-left : 4px;
+    }
+    .mw-counter {
+        font-size   : 12px;
+        min-width   : 0;
+        padding     : 0 3px;
+        white-space : nowrap;
+        flex-shrink : 0;
+    }
+
+    /* Invisible flex spacer — pushes Play/Shuffle to the right edge */
+    .mw-filter-sep {
+        flex       : 1 1 auto;
+        background : transparent;
+        width      : auto;
+        height     : 0;
+        margin     : 0;
+    }
+
+    /* Prev/Next arrows: generous icon size with tight horizontal padding
+       so row 3 stays within viewport; vertical padding keeps tap area ≥32px. */
+    .mw-arrow-btn {
+        padding     : 4px 4px;
+        flex-shrink : 0;
+        font-size   : 16px;
+        background  : transparent;
+        border      : none;
+    }
+
+    /* Play & Shuffle: prominent primary actions. Sized to 36px square
+       so the emoji glyphs (▶️ and 🔀) nearly fill their containers.
+       Earlier tried 44px and 48px but the emoji glyphs occupy only
+       ~60% of their glyph box, leaving ~14px of apparent empty space
+       on each side — which made the pair look awkwardly separated
+       even with margin-left:-3px gap cancellation. 36px tightens the
+       visible spacing while still being prominent relative to the
+       32px segmented control on the left. */
+    #mw-autoplay,
+    #mw-shuffle {
+        width         : 36px;
+        height        : 36px;
+        padding       : 0;
+        background    : transparent;
+        border        : none;
+        border-radius : var(--radius-sm);
+        flex-shrink   : 0;
+        color         : var(--text-primary);
+    }
+    /* Keep the pair snug — negative margin cancels the nav-row 3px gap. */
+    #mw-autoplay + #mw-shuffle {
+        margin-left : -3px;
+    }
+    #mw-autoplay {
+        font-size : 22px;
+    }
+    #mw-shuffle {
+        font-size : 20px;
+    }
+    #mw-autoplay:hover,
+    #mw-shuffle:hover {
+        background : var(--bg-hover);
+    }
+    #mw-autoplay.mw-autoplay-on {
+        color      : var(--accent) !important;
+        background : var(--accent-bg) !important;
+    }
+    #mw-shuffle.mw-shuffle-on {
+        color      : var(--accent) !important;
+        background : var(--accent-bg) !important;
+    }
+}
+
+/* Autoplay button — active state + subtle pulse when playing */
+.mw-autoplay-on {
+    background   : var(--accent-bg) !important;
+    color        : var(--accent) !important;
+    border-color : var(--accent) !important;
+}
+.mw-autoplay-on::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    border: 1px solid var(--accent);
+    opacity: 0.5;
+    animation: mw-autoplay-pulse 1.4s ease-in-out infinite;
+    pointer-events: none;
+}
+@keyframes mw-autoplay-pulse {
+    0%, 100% { opacity: 0.5; transform: scale(1); }
+    50%      { opacity: 0;   transform: scale(1.15); }
+}
+
+/* Shuffle button — active (shuffled) state. Static highlight, no pulse:
+   it reflects a persistent mode, not transient playback. */
+.mw-shuffle-on {
+    background   : var(--accent-bg) !important;
+    color        : var(--accent) !important;
+    border-color : var(--accent) !important;
+}
+
+/* Card being played — subtle left-border accent */
+.mw-card-playing {
+    box-shadow : inset 4px 0 0 var(--accent), var(--shadow-sm);
+    transition : box-shadow 0.2s;
+}
+
+/* The specific collocation / example sentence currently being spoken.
+   Gives the user a clear visual anchor while autoplay reads through
+   multiple items on the same card. */
+.mw-speaking-now {
+    background   : var(--accent-bg) !important;
+    border-color : var(--accent) !important;
+    transition   : background 0.2s, border-color 0.2s;
+}
+
+/* Speaker icon for the English definition — matches collocation icon style.
+   The whole line is a .mw-speakable row (tap anywhere to speak). */
+.mw-en2 {
+    cursor : pointer;
+}
+.mw-en2:hover {
+    background : var(--bg-hover);
+}
+.mw-endef-icon {
+    display      : inline-block;
+    margin-right : 6px;
+    color        : var(--text-tertiary);
+    font-size    : 0.9em;
+    vertical-align : baseline;
+}
+.mw-en2.mw-speaking .mw-endef-icon,
+.mw-en2.mw-speaking-now .mw-endef-icon {
+    color : var(--accent);
+}
+
+/* Fix: in standalone mode, safe-area was being applied twice
+   (once on <html>, once on header padding-top). In PWA mode the
+   header IS the top of the viewport, so html's top inset is
+   enough — the header only needs its normal vertical padding. */
+@media (display-mode: standalone) {
+    .app-header {
+        padding-top : 6px;   /* override the doubled safe-area */
+    }
+}
+
+/* Sync indicator — visually distinct from other header buttons */
+#sync-indicator {
+    font-size : 15px;
+    /* When sync is active (cloud icon), use a subtle accent tint */
+    transition : background 0.2s, border-color 0.2s;
+}
+#sync-indicator:hover {
+    border-color : var(--accent);
+    color        : var(--accent);
+}
+#sync-indicator.syncing {
+    animation : sync-pulse 1.2s ease-in-out infinite;
+}
+@keyframes sync-pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.45; }
+}
+
+/* Header button row: ensure sync indicator doesn't push other
+   buttons off-screen on narrow phones. */
+@media (max-width: 420px) {
+    .header-right { gap: 3px; }
+    .header-btn   { width: 32px; height: 32px; }
+    #sync-indicator { width: 30px; height: 30px; font-size: 14px; }
+}
+
+/* Settings: Cloud Sync — clarify button grouping on mobile */
+@media (max-width: 640px) {
+    #btn-sync-push, #btn-sync-pull {
+        flex : 1 1 auto;       /* each takes half-width */
+        font-size : 13px;
+        padding   : 8px 10px;
+    }
+}
+
+/* Install prompt helper — reserve space so a browser-supplied
+   install button in the header doesn't overlap on desktop */
+@media (display-mode: browser) {
+    .app-header { padding-right : 16px; }
+}
+
+/* Better modal scroll inertia on iOS/Android for long settings */
+.modal-body {
+    overscroll-behavior : contain;
+}
+
+/* Toast: ensure it sits above everything and respects safe area */
+#toast-container {
+    z-index : 10000;
+    padding-bottom : env(safe-area-inset-bottom, 0px);
+}
+
+/* ============================================================
+   Spaced Repetition (SRS) — Session A additions
+   ============================================================
+   The Due filter pill gets a subtle accent so it stands out from
+   the focus pills (Core/Spell/etc) without being loud. The SRS
+   feedback row appears only inside the card when the Due filter
+   is active, so it doesn't disturb the regular browse layout.
+*/
+
+.mw-filter-pill-due {
+    background    : var(--bg-card);
+    border-color  : var(--accent);
+    color         : var(--accent);
+}
+.mw-filter-pill-due.active {
+    background   : var(--accent);
+    color        : #fff;
+    border-color : var(--accent);
+}
+.mw-filter-pill-due .mw-fpill-count {
+    opacity : 1;
+    color   : inherit;
+}
+
+.mw-srs-row {
+    display         : flex;
+    flex-direction  : column;
+    align-items     : center;
+    gap             : 6px;
+    margin-top      : 10px;
+    padding         : 10px 8px;
+    background      : var(--bg-surface);
+    border          : 1px dashed var(--border);
+    border-radius   : var(--radius-sm);
+}
+.mw-srs-prompt {
+    font-size : 12px;
+    color     : var(--text-tertiary);
+}
+.mw-srs-btns {
+    display : flex;
+    gap     : 6px;
+    flex-wrap : wrap;
+    justify-content : center;
+}
+.mw-srs-btn {
+    padding       : 6px 12px;
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-sm);
+    background    : var(--bg-card);
+    cursor        : pointer;
+    font-family   : var(--font-body);
+    font-size     : 13px;
+    color         : var(--text-primary);
+    transition    : all 0.12s;
+    white-space   : nowrap;
+    flex-shrink   : 0;
+    min-height    : 36px;
+}
+.mw-srs-btn:hover {
+    border-color : var(--accent);
+    background   : var(--bg-hover);
+}
+.mw-srs-btn:active {
+    transform : scale(0.97);
+}
+.mw-srs-wrong { border-color : #c0504d22; }
+.mw-srs-wrong:hover { border-color : #c0504d; background : #c0504d10; }
+.mw-srs-easy  { border-color : #2e8b5722; }
+.mw-srs-easy:hover  { border-color : #2e8b57; background : #2e8b5710; }
+
+/* Mobile: keep buttons usable but compact */
+@media (max-width: 480px) {
+    .mw-srs-btn {
+        padding   : 6px 8px;
+        font-size : 12px;
+    }
+    .mw-srs-prompt { font-size : 11px; }
+}
+
+/* ============================================================
+   Remove buttons — quiz card corner button + list-row button
+   ============================================================
+   Both surfaces re-use .mw-delete-btn class so the existing
+   click delegation handles them with no extra wiring.
+*/
+
+/* Quiz card needs to be a positioning context so the corner
+   button sits inside it. */
+.mw-quiz-card {
+    position : relative;
+}
+.mw-quiz-remove {
+    position      : absolute;
+    top           : 8px;
+    right         : 8px;
+    width         : 32px;
+    height        : 32px;
+    padding       : 0;
+    border        : 1px solid var(--border);
+    border-radius : 50%;
+    background    : var(--bg-card);
+    cursor        : pointer;
+    font-size     : 14px;
+    line-height   : 1;
+    color         : var(--text-tertiary);
+    transition    : all 0.12s;
+    z-index       : 2;
+    display       : flex;
+    align-items   : center;
+    justify-content : center;
+}
+.mw-quiz-remove:hover {
+    border-color : #c0504d;
+    color        : #c0504d;
+    background   : #c0504d10;
+}
+
+/* List-row remove sits at the right edge, marginal-left:auto
+   pushes it past the meaning text. */
+.mw-list-item {
+    /* The existing rule sets display: flex; we just need the gap and
+       a way for delete to push to the right. Not redefining base. */
+}
+.mw-list-delete {
+    margin-left   : auto;
+    width         : 28px;
+    height        : 28px;
+    padding       : 0;
+    border        : 1px solid transparent;
+    border-radius : var(--radius-sm);
+    background    : transparent;
+    cursor        : pointer;
+    font-size     : 13px;
+    line-height   : 1;
+    color         : var(--text-tertiary);
+    opacity       : 0.4;
+    flex-shrink   : 0;
+    transition    : all 0.12s;
+    display       : flex;
+    align-items   : center;
+    justify-content : center;
+}
+.mw-list-item:hover .mw-list-delete { opacity : 0.7; }
+.mw-list-delete:hover {
+    opacity      : 1 !important;
+    border-color : #c0504d;
+    color        : #c0504d;
+    background   : #c0504d10;
+}
+
+@media (max-width: 480px) {
+    .mw-list-delete { opacity : 0.6; }  /* always visible-ish on touch */
+    .mw-quiz-remove { width: 28px; height: 28px; font-size: 12px; }
+}
+
+/* ============================================================
+   Desktop toolbar polish (v=60)
+   ============================================================
+   Goals (desktop only — min-width: 769px):
+     1. Bolder top tab labels for clearer hierarchy.
+     2. Group label / arrows match Card/List/Quiz size (14px).
+     3. New | separator between group and position counter.
+     4. Uniform 30px row height for every third-row control,
+        all vertically centered, all line-height: 1.
+   Everything is wrapped in a min-width media query so the mobile
+   layout we previously stabilized is untouched.
+*/
+
+@media (min-width: 769px) {
+
+    /* 1. Top icon row — bolder labels */
+    .nav-tab          { font-weight : 700; }
+    .nav-label        { font-weight : 700; }
+
+    /* 2. Group label and group arrows — match third-row size */
+    .mw-grp-label {
+        font-size   : 14px;
+        line-height : 1;
+        padding     : 0 4px;
+    }
+    .mw-grp-btn {
+        font-size   : 14px;
+        padding     : 4px 6px;
+        line-height : 1;
+    }
+
+    /* 4. Uniform third-row height. All controls = 30px tall, all
+          centered. Specific selectors (no !important needed) so
+          they only win against the base rules, not against the
+          existing mobile media block. */
+    .mw-nav-row {
+        gap        : 6px;
+        min-height : 32px;
+    }
+    .mw-nav-row .mw-mt-btn,
+    .mw-nav-row .mw-toggle-cn-btn,
+    .mw-nav-row .mw-arrow-btn,
+    .mw-nav-row .mw-nav-btn,
+    .mw-nav-row .mw-grp-btn {
+        height          : 30px;
+        line-height     : 1;
+        display         : inline-flex;
+        align-items     : center;
+        justify-content : center;
+    }
+    .mw-nav-row .mw-counter,
+    .mw-nav-row .mw-grp-label {
+        height          : 30px;
+        line-height     : 30px;   /* vertical center for plain text */
+        display         : inline-flex;
+        align-items     : center;
+    }
+
+    /* 3. New separator between group and position counter — same
+          look as the existing one between counter and Play/Shuffle.
+          Hidden automatically when there's only one group (the group
+          div has display:none, and we hide our adjacent separator). */
+    .mw-sep-grp {
+        height : 18px;
+        margin : 0 4px;
+    }
+    .mw-group-info[style*="display: none"] + .mw-sep-grp,
+    .mw-group-info[style*="display:none"]  + .mw-sep-grp {
+        display : none;
+    }
+
+    /* The existing inline-only separator is fine, but with the new
+       larger group label it benefits from a touch more breathing
+       room on desktop. */
+    .mw-nav-row .mw-filter-sep {
+        margin : 0 4px;
+    }
+}
+
+/* ============================================================
+   Toolbar polish round 2 (v=61)
+   ============================================================
+   Three issues from the user-side review:
+     1. Play / Shuffle look detached on desktop — they're the only
+        controls in the third row without a visible frame, so they
+        read as floating text rather than buttons.
+     2. The mode buttons (Card / List / Quiz / CN) compress their
+        icon and label with no breathing room.
+     3. "Group 1/8" runs together — no gap between the word and
+        the number.
+*/
+
+@media (min-width: 769px) {
+
+    /* 1. Persistent frame on Play / Shuffle (and any future labelled
+          arrow-btn). The base rule already adds padding+radius via
+          :has(.mw-btn-label); we just add a visible border so the
+          buttons don't read as floating glyphs. Hover keeps the
+          existing background change for affordance. */
+    .mw-nav-row .mw-arrow-btn:has(.mw-btn-label) {
+        border       : 1px solid var(--border);
+        background   : var(--bg-card);
+        transition   : all 0.12s;
+    }
+    .mw-nav-row .mw-arrow-btn:has(.mw-btn-label):hover {
+        border-color : var(--accent);
+        color        : var(--accent);
+    }
+
+    /* 2. Breathing room between mode-button icon and label. The label
+          spans render with a leading space already, but a real gap
+          via flex+gap is more reliable across emoji widths. */
+    .mw-nav-row .mw-mt-btn,
+    .mw-nav-row .mw-toggle-cn-btn,
+    .mw-nav-row .mw-arrow-btn {
+        gap : 6px;
+    }
+    /* Strip the leading space inside the label spans so the gap
+       above is what controls spacing — not " List" with a leading
+       space that collapses inconsistently. */
+    .mw-nav-row .mw-btn-label {
+        margin-left : 0;
+    }
+
+    /* 3. Group label internal spacing. The structure is now:
+          [Group] [G-short] [1/8]
+          Only one of {Group, G-short} is visible at a time. We
+          add a gap between the visible word/letter and the number. */
+    .mw-grp-label {
+        display     : inline-flex;
+        align-items : center;
+        gap         : 6px;
+    }
+    .mw-grp-num {
+        font-family : var(--font-mono);
+    }
+}
+
+/* On mobile, the short "G" prefix appears (per existing CSS that
+   hides .mw-btn-label and shows .mw-grp-short). Keep a small gap
+   there too so "G1/8" doesn't collapse. */
+.mw-grp-label {
+    display     : inline-flex;
+    align-items : center;
+    gap         : 4px;
+}
+
+/* ============================================================
+   Drill review mode: navigation buttons + per-option "why" list
+   ============================================================
+   When a question is answered, the drill no longer auto-advances.
+   The user sees feedback, why-not explanations for each option,
+   and explicit Prev/Next buttons. Prev lets them revisit any
+   earlier answered question to study what they got wrong.
+*/
+
+.vd-nav-row {
+    display         : flex;
+    align-items     : center;
+    justify-content : space-between;
+    gap             : 8px;
+    margin-top      : 16px;
+    padding-top     : 12px;
+    border-top      : 1px solid var(--border);
+}
+.vd-nav-btn {
+    padding       : 8px 16px;
+    border        : 1px solid var(--border);
+    border-radius : var(--radius-sm);
+    background    : var(--bg-card);
+    cursor        : pointer;
+    font-family   : var(--font-body);
+    font-size     : 13px;
+    color         : var(--text-primary);
+    transition    : all 0.12s;
+    min-width     : 90px;
+}
+.vd-nav-btn:hover:not(:disabled) {
+    border-color : var(--accent);
+    color        : var(--accent);
+    background   : var(--bg-hover);
+}
+.vd-nav-btn:disabled {
+    opacity : 0.4;
+    cursor  : not-allowed;
+}
+.vd-nav-progress {
+    font-family : var(--font-mono);
+    font-size   : 12px;
+    color       : var(--text-tertiary);
+}
+
+/* Per-option explanations after answering. Bullet-less list with
+   visual marker on the user's picked option and the correct one. */
+.vd-why-list {
+    list-style : none;
+    padding    : 0;
+    margin     : 12px 0 0;
+    display    : flex;
+    flex-direction : column;
+    gap        : 6px;
+}
+.vd-why-item {
+    padding       : 8px 10px;
+    background    : var(--bg-surface);
+    border-radius : var(--radius-sm);
+    font-size     : 13px;
+    line-height   : 1.5;
+    color         : var(--text-secondary);
+    border-left   : 3px solid transparent;
+}
+.vd-why-item.vd-why-correct {
+    border-left-color : #2e8b57;
+    background        : #2e8b5710;
+    color             : var(--text-primary);
+}
+.vd-why-item.vd-why-wrong.vd-why-picked {
+    border-left-color : #c0504d;
+    background        : #c0504d10;
+}
+
+/* Save-to-notebook button placement */
+.vd-question-card .vd-save-btn {
+    margin-top : 10px;
+    align-self : flex-start;
+}
+
+/* Mobile: keep nav buttons readable but compact */
+@media (max-width: 480px) {
+    .vd-nav-btn {
+        padding   : 7px 10px;
+        font-size : 12px;
+        min-width : 78px;
+    }
+    .vd-why-item { font-size : 12px; padding : 7px 9px; }
+}
+
+/* ============================================================
+   Drill compaction (v=64) — desktop-only vertical compression
+   ============================================================
+   Goal: fit a full synonym drill question (4 options + feedback +
+   4 why-items + nav) on one ~720px desktop viewport without
+   scrolling. The single-column layout on mobile is kept intact.
+   
+   Strategy:
+     - Options laid out in a 2-column grid (was vertical column).
+     - Why-list also in a 2-column grid, matching the options grid
+       so each why-item visually pairs with the option above.
+     - Tighter card padding + smaller gaps between sections.
+     - Sentence box uses smaller line-height + less padding.
+     - Nav row pulled tighter against the why-list.
+*/
+
+@media (min-width: 769px) {
+
+    /* Card frame: less wasteful padding & gap. */
+    .vd-question-card {
+        padding : 16px 18px;
+        gap     : 10px;
+    }
+
+    /* Sentence box: less air around the text, but still readable. */
+    .vd-sentence {
+        font-size   : 15px;
+        line-height : 1.5;
+        padding     : 10px 14px;
+    }
+    .vd-collocation-word {
+        font-size : 17px;
+    }
+
+    /* Question prompt: trim the leading paragraph margin */
+    .vd-q-prompt {
+        margin    : 0;
+        font-size : 14px;
+    }
+
+    /* Register hint: keep on one line, compact spacing */
+    .vd-register-hint {
+        margin : 0;
+    }
+
+    /* The main ask: options in a 2-column grid. Each option
+       fills its column. Single-option drills (rare) still work
+       because grid auto-flow handles 1, 2, or 4 items cleanly. */
+    .vd-options {
+        display               : grid;
+        grid-template-columns : repeat(2, minmax(0, 1fr));
+        gap                   : 6px;
+    }
+    .vd-option {
+        padding : 9px 12px;
+        font-size : 14px;
+    }
+
+    /* Why-items also in a 2-column grid so they visually pair
+       with the option grid above. The user can see option A on
+       row 1 col 1 and its explanation on row 1 col 1 of the why-grid. */
+    .vd-why-list {
+        display               : grid;
+        grid-template-columns : repeat(2, minmax(0, 1fr));
+        gap                   : 6px;
+        margin-top            : 8px;
+    }
+    .vd-why-item {
+        padding     : 6px 9px;
+        font-size   : 12px;
+        line-height : 1.4;
+    }
+
+    /* Feedback strip: tighter, inline with content */
+    .vd-feedback-msg {
+        padding   : 8px 12px;
+        font-size : 13px;
+    }
+
+    /* Nav row: less margin/padding so it sits closer to content */
+    .vd-nav-row {
+        margin-top  : 8px;
+        padding-top : 8px;
+    }
+    .vd-nav-btn {
+        padding   : 6px 14px;
+        font-size : 12px;
+        min-width : 80px;
+    }
+}
+
+/* On wider desktops (≥1100px), let options pack into one row when
+   they fit. auto-fit + minmax(180px, 1fr) handles 2, 3, 4, or 6
+   options gracefully — the browser fits as many columns as the
+   container width allows, with a 180px floor. */
+@media (min-width: 1100px) {
+    .vd-options {
+        grid-template-columns : repeat(auto-fit, minmax(180px, 1fr));
+    }
+    .vd-why-list {
+        grid-template-columns : repeat(auto-fit, minmax(280px, 1fr));
+    }
+}

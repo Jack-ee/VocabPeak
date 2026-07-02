@@ -1,0 +1,1832 @@
+/* ═══════════════════════════════════════════════════════════════
+ *  Expression Coach — Styles
+ *  Designed to integrate with English Master Pro theme
+ * ═══════════════════════════════════════════════════════════════ */
+
+.ec-wrapper {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 0 12px;
+}
+
+/* ─── Compact Toolbar ─────────────────────────────────────── */
+.ec-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+    flex-wrap: wrap;
+}
+.ec-select {
+    padding: 5px 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-size: 0.82rem;
+    font-family: inherit;
+    cursor: pointer;
+    outline: none;
+}
+.ec-select:focus { border-color: var(--accent); }
+.ec-select-cat { min-width: 160px; }
+.ec-toolbar-stats {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+    align-items: center;
+}
+.ec-ts {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+.ec-ts-num { font-weight: 700; font-size: 0.88rem; }
+.ec-ts-num.ec-practiced { color: var(--accent); }
+.ec-ts-num.ec-mastered  { color: var(--success); }
+
+/* ─── Exercise area ───────────────────────────────────────── */
+.ec-exercise-area {
+    min-height: 120px;
+}
+.ec-start-prompt {
+    text-align: center;
+    padding: 24px 16px;
+    color: var(--text-secondary);
+}
+
+/* ─── Card ────────────────────────────────────────────────── */
+.ec-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    animation: ec-fadeIn 0.25s ease;
+}
+@keyframes ec-fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.ec-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    gap: 8px;
+}
+.ec-card-cat {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+    white-space: nowrap;
+}
+.ec-card-nav-inline {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.ec-nav-btn {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-card);
+    cursor: pointer;
+    font-size: 0.72rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+.ec-nav-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--text-primary); }
+.ec-nav-btn:disabled { opacity: 0.3; cursor: default; }
+.ec-nav-counter {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    min-width: 40px;
+    text-align: center;
+    font-family: var(--font-mono);
+}
+.ec-card-progress {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    font-size: 0.75rem;
+}
+.ec-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background 0.3s;
+}
+.ec-dot.filled {
+    background: var(--success);
+}
+.ec-card-nav {
+    display: flex;
+    justify-content: center;
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border);
+}
+
+/* ─── Prompt label ────────────────────────────────────────── */
+.ec-prompt-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ─── Fill-in-the-blank ───────────────────────────────────── */
+.ec-fill-sentence {
+    font-size: 0.95rem;
+    line-height: 2;
+    padding: 8px 12px;
+    background: var(--bg-surface);
+    border-radius: 7px;
+    margin-bottom: 8px;
+}
+.ec-blank {
+    display: inline-block;
+    min-width: 40px;
+    padding: 0 4px;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+/* ─── Word Bank & Slots ───────────────────────────────────── */
+.ec-slot {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 50px;
+    min-height: 28px;
+    padding: 1px 8px;
+    margin: 0 2px;
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg-surface);
+    cursor: pointer;
+    vertical-align: middle;
+    transition: all 0.2s;
+}
+.ec-slot:hover { border-color: var(--accent); }
+.ec-slot-num {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-tertiary);
+}
+.ec-slot-filled {
+    border-style: solid;
+    border-color: var(--accent);
+    background: var(--accent-bg);
+}
+.ec-slot-filled:hover { opacity: 0.8; }
+.ec-slot-word {
+    font-weight: 600;
+    color: var(--accent-text);
+    font-size: 0.85rem;
+}
+.ec-slot-correct {
+    border-color: var(--success) !important;
+    background: var(--success-bg) !important;
+}
+.ec-slot-correct .ec-slot-word { color: var(--success); }
+.ec-slot-wrong {
+    border-color: var(--danger) !important;
+    background: var(--danger-bg) !important;
+    animation: ec-shake 0.3s;
+}
+.ec-slot-wrong .ec-slot-word { color: var(--danger); }
+
+@keyframes ec-shake {
+    0%, 100% { transform: translateX(0); }
+    25%      { transform: translateX(-4px); }
+    75%      { transform: translateX(4px); }
+}
+
+.ec-word-bank {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 10px;
+    background: var(--bg-surface);
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+    justify-content: center;
+}
+.ec-chip {
+    padding: 4px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 16px;
+    background: var(--bg-card);
+    font-size: 0.82rem;
+    font-weight: 500;
+    font-family: inherit;
+    cursor: pointer;
+    color: var(--text-primary);
+    transition: all 0.2s;
+}
+.ec-chip:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: var(--accent-bg);
+    transform: translateY(-1px);
+}
+.ec-chip:active:not(:disabled) {
+    transform: scale(0.96);
+}
+.ec-chip-used {
+    opacity: 0.3;
+    border-style: dashed;
+    text-decoration: line-through;
+    pointer-events: none;
+}
+.ec-reveal-chip {
+    display: inline-block;
+    padding: 3px 10px;
+    background: var(--success-bg);
+    color: var(--success);
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.88rem;
+    margin: 2px 4px;
+}
+
+/* ─── Scenario ────────────────────────────────────────────── */
+.ec-scenario-context {
+    font-size: 0.88rem;
+    padding: 8px 12px;
+    background: var(--bg-surface);
+    border-radius: 7px;
+    margin-bottom: 8px;
+    line-height: 1.5;
+    font-style: italic;
+}
+.ec-scenario-options {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+.ec-option-btn {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 10px;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    background: var(--bg-card);
+    cursor: pointer;
+    text-align: left;
+    font-size: 0.84rem;
+    line-height: 1.45;
+    transition: all 0.2s;
+    color: var(--text-primary);
+}
+.ec-option-btn:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: var(--accent-bg);
+}
+.ec-option-btn:disabled { cursor: default; opacity: 0.8; }
+.ec-option-btn.ec-correct { border-color: var(--success); background: var(--success-bg); }
+.ec-option-btn.ec-wrong   { border-color: var(--danger);  background: var(--danger-bg); }
+.ec-option-letter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--bg-surface);
+    font-size: 0.72rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* ─── Rephrase ────────────────────────────────────────────── */
+.ec-rephrase-prompt {
+    font-size: 0.9rem;
+    line-height: 1.6;
+    padding: 8px 12px;
+    background: var(--bg-surface);
+    border-radius: 7px;
+    margin-bottom: 8px;
+    border-left: 3px solid var(--warn);
+    font-style: italic;
+    color: var(--text-primary);
+}
+.ec-rephrase-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 7px;
+    font-size: 0.88rem;
+    font-family: inherit;
+    resize: vertical;
+    margin-bottom: 8px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    box-sizing: border-box;
+}
+.ec-rephrase-input:focus { outline: none; border-color: var(--accent); }
+
+/* ─── Results ─────────────────────────────────────────────── */
+.ec-result { margin-top: 8px; }
+.ec-result-correct { font-weight: 600; color: var(--success); margin-bottom: 4px; font-size: 0.88rem; }
+.ec-result-wrong   { font-weight: 600; color: var(--danger);  margin-bottom: 4px; font-size: 0.88rem; }
+.ec-result-reveal .ec-reveal-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    margin-bottom: 3px;
+}
+.ec-result-expr {
+    font-size: 0.82rem;
+    line-height: 1.6;
+    padding: 6px 10px;
+    background: var(--bg-surface);
+    border-radius: 5px;
+    margin-top: 4px;
+}
+.ec-result-expr code {
+    font-size: 0.78rem;
+    padding: 1px 4px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+}
+.ec-result-original {
+    font-size: 0.8rem;
+    color: var(--text-tertiary);
+    margin-top: 4px;
+    line-height: 1.5;
+}
+
+/* ─── AI result ───────────────────────────────────────────── */
+.ec-ai-result {
+    padding: 10px;
+    background: var(--accent-bg);
+    border-radius: 7px;
+    margin-bottom: 6px;
+}
+.ec-ai-score { font-size: 0.9rem; margin-bottom: 4px; }
+.ec-ai-feedback { font-size: 0.84rem; line-height: 1.5; color: var(--text-primary); }
+.ec-ai-improved {
+    margin-top: 6px;
+    padding: 6px 10px;
+    background: var(--success-bg);
+    border-radius: 5px;
+    font-size: 0.82rem;
+    border-left: 3px solid var(--success);
+}
+.ec-loading { text-align: center; padding: 8px; color: var(--text-secondary); font-size: 0.84rem; }
+
+/* ─── Context hint ────────────────────────────────────────── */
+.ec-context-hint {
+    margin-top: 8px;
+    padding: 6px 10px;
+    background: var(--bg-surface);
+    border-radius: 6px;
+    border-left: 3px solid var(--accent);
+}
+.ec-hint-label { font-size: 0.72rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 2px; }
+.ec-hint-text { font-size: 0.82rem; line-height: 1.5; color: var(--text-primary); }
+.ec-hint-text code {
+    font-size: 0.78rem;
+    padding: 1px 4px;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+}
+
+/* ─── Buttons ─────────────────────────────────────────────── */
+.ec-btn-primary {
+    padding: 6px 14px;
+    border: none;
+    border-radius: 5px;
+    background: var(--accent);
+    color: var(--text-inverse);
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+.ec-btn-primary:hover { opacity: 0.85; }
+.ec-btn-primary:disabled { opacity: 0.5; cursor: default; }
+
+.ec-btn-secondary {
+    padding: 5px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 5px;
+    background: transparent;
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--text-primary);
+    transition: all 0.2s;
+}
+.ec-btn-secondary:hover { border-color: var(--accent); }
+
+.ec-btn-ghost {
+    padding: 5px 10px;
+    border: none;
+    background: transparent;
+    font-size: 0.78rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: color 0.2s;
+}
+.ec-btn-ghost:hover { color: var(--text-primary); }
+
+.ec-check-btn { width: 100%; }
+
+/* ─── Add expression section ──────────────────────────────── */
+.ec-add-section,
+.ec-browse-section {
+    margin-top: 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+.ec-add-toggle {
+    padding: 8px 12px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    cursor: pointer;
+    color: var(--text-primary);
+    list-style: none;
+}
+.ec-add-toggle::-webkit-details-marker { display: none; }
+.ec-add-toggle::before { content: '\25B8 '; }
+details[open] > .ec-add-toggle::before { content: '\25BE '; }
+
+.ec-add-form {
+    padding: 8px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+.ec-input {
+    padding: 6px 10px;
+    border: 1.5px solid var(--border);
+    border-radius: 5px;
+    font-size: 0.82rem;
+    font-family: inherit;
+    background: var(--bg-card);
+    color: var(--text-primary);
+}
+.ec-input:focus { outline: none; border-color: var(--accent); }
+.ec-feedback { font-size: 0.78rem; min-height: 1em; }
+
+/* ─── Browse list ─────────────────────────────────────────── */
+.ec-browse-list {
+    padding: 8px 12px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+.ec-browse-cat { margin-bottom: 10px; }
+.ec-browse-cat-title { font-size: 0.82rem; font-weight: 700; margin: 0 0 5px; }
+.ec-browse-item {
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    margin-bottom: 4px;
+    transition: all 0.2s;
+}
+.ec-browse-item.ec-mastered {
+    border-color: color-mix(in srgb, var(--success) 25%, transparent);
+    background: var(--success-bg);
+}
+.ec-browse-expr {
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1px;
+}
+.ec-browse-zh {
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+}
+.ec-browse-pattern { margin-top: 2px; }
+.ec-browse-pattern code {
+    font-size: 0.72rem;
+    padding: 1px 4px;
+    background: var(--bg-surface);
+    border-radius: 3px;
+}
+.ec-browse-meta {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    margin-top: 4px;
+}
+
+/* ─── Responsive ──────────────────────────────────────────── */
+@media (max-width: 480px) {
+    .ec-wrapper { padding: 10px; }
+    .ec-card    { padding: 14px; }
+    .ec-toolbar { gap: 6px; }
+    .ec-select { font-size: 0.78rem; padding: 4px 6px; }
+    .ec-fill-sentence { font-size: 0.95rem; }
+}
+
+/* ─── Sentence Drill target details ──────────────────────── */
+.sd-target-details {
+    margin-top: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.sd-target-item {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 0.82rem;
+    flex-wrap: wrap;
+    padding: 3px 8px;
+    background: var(--bg-surface);
+    border-radius: 5px;
+}
+.sd-target-item strong {
+    font-size: 0.88rem;
+    color: var(--text-primary);
+    min-width: 70px;
+}
+.sd-phonetic {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+}
+.sd-meaning {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+.sd-collo {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--accent);
+}
+.sd-save-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 6px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SENTENCES toolbar — stats chips + action buttons on a single line
+   ═══════════════════════════════════════════════════════════════ */
+
+.sd-toolbar {
+    align-items: center;
+    gap: 6px;
+    flex-wrap: nowrap;   /* override .ec-toolbar's wrap */
+}
+.sd-compact-stats {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: nowrap;
+    min-width: 0;
+    flex-shrink: 0;
+}
+/* Override stat chip to be compact: no "total" label, tighter spacing */
+.sd-compact-stats .ec-ts {
+    padding: 2px 6px;
+    background: var(--bg-surface, rgba(0, 0, 0, 0.03));
+    border-radius: 10px;
+    font-size: 0.75rem;
+    gap: 3px;
+}
+.sd-compact-stats .ec-ts-num {
+    font-size: 0.82rem;
+}
+.sd-toolbar-actions {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+/* Button labels visible on desktop, hidden on narrow mobile */
+@media (max-width: 600px) {
+    .sd-btn-label { display: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   LISTEN MODE (sentence-drill.js)
+   ═══════════════════════════════════════════════════════════════ */
+
+.sd-listen-card {
+    text-align: center;
+}
+
+.sd-listen-top {
+    align-items: center;
+    gap: 8px;
+}
+.sd-listen-badge {
+    font-size: 11px !important;
+    padding: 3px 8px !important;
+    white-space: nowrap;
+}
+.sd-listen-phase {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    letter-spacing: 0.02em;
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+.sd-listen-sentence {
+    font-size: 1.05rem;
+    line-height: 1.55;
+    color: var(--text-primary);
+    padding: 14px 12px;
+    margin: 12px 0 8px;
+    border-radius: 8px;
+    background: var(--surface-2, rgba(0, 0, 0, 0.02));
+    transition: background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sd-listen-cn {
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--text-secondary);
+    padding: 10px 12px;
+    margin: 6px 0 14px;
+    border-radius: 8px;
+    background: var(--surface-2, rgba(0, 0, 0, 0.02));
+    transition: background 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+
+.sd-listen-active {
+    background: var(--accent-bg, rgba(45, 90, 61, 0.08));
+    box-shadow: inset 0 0 0 1.5px var(--accent, #2d5a3d);
+}
+
+/* Muted Chinese text when CN playback is off — still visible, just quiet */
+.sd-listen-cn-muted {
+    opacity: 0.45;
+}
+
+/* Controls: single horizontal row, no wrapping */
+.sd-listen-controls {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+    margin-top: 16px;
+    padding-top: 16px;
+    padding-bottom: 4px;
+    border-top: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+}
+
+/* Unified icon-button style for the Listen control row */
+.sd-listen-ctrl {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 52px;
+    height: 48px;
+    padding: 0 10px;
+    font-size: 18px;
+    font-weight: 600;
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border, rgba(0, 0, 0, 0.12));
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.sd-listen-ctrl:hover {
+    background: var(--surface-2, rgba(0, 0, 0, 0.04));
+    color: var(--text-primary);
+}
+.sd-listen-ctrl:active {
+    transform: scale(0.95);
+}
+
+/* Primary pause/play button — visually prominent */
+.sd-listen-ctrl.sd-listen-playpause {
+    background: var(--accent, #2d5a3d);
+    color: #fff;
+    border-color: var(--accent, #2d5a3d);
+    min-width: 64px;
+    font-size: 22px;
+}
+.sd-listen-ctrl.sd-listen-playpause:hover {
+    opacity: 0.9;
+    background: var(--accent, #2d5a3d);
+    color: #fff;
+}
+
+/* CN toggle: on = accent color, off = muted */
+.sd-listen-ctrl.sd-listen-cn-toggle {
+    font-size: 15px;
+    color: var(--text-tertiary);
+}
+.sd-listen-ctrl.sd-listen-cn-toggle.sd-listen-cn-on {
+    background: var(--accent-bg, rgba(45, 90, 61, 0.1));
+    color: var(--accent, #2d5a3d);
+    border-color: var(--accent, #2d5a3d);
+}
+
+/* Exit: subtle danger tint on hover */
+.sd-listen-ctrl.sd-listen-exit:hover {
+    color: var(--danger, #c44);
+    border-color: var(--danger, #c44);
+}
+
+/* Narrow screens: keep controls large enough for comfortable tapping,
+   but slightly tighter gaps so all 6 buttons still fit on one row. */
+@media (max-width: 600px) {
+    .sd-listen-sentence { font-size: 0.98rem; padding: 12px 10px; }
+    .sd-listen-cn       { font-size: 0.88rem; padding: 8px 10px; }
+    .sd-listen-controls { gap: 5px; }
+    .sd-listen-ctrl {
+        min-width: 46px;
+        height: 46px;
+        padding: 0 6px;
+        font-size: 17px;
+    }
+    .sd-listen-ctrl.sd-listen-playpause {
+        min-width: 56px;
+        font-size: 20px;
+    }
+    .sd-listen-ctrl.sd-listen-cn-toggle {
+        font-size: 14px;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SENTENCE LIST (sentence-drill.js)
+   Two groups: Curated (full sentences) and From My Words (word-first).
+   Mobile: single column stacked. Desktop (≥900px): two columns.
+   ═══════════════════════════════════════════════════════════════ */
+
+.sd-list-wrap {
+    padding: 4px 0 16px;
+}
+.sd-list-cols {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+@media (min-width: 900px) {
+    .sd-list-cols {
+        flex-direction: row;
+        align-items: flex-start;
+    }
+    .sd-list-group {
+        flex: 1;
+        min-width: 0;
+    }
+}
+
+.sd-list-group {
+    background: var(--bg-card, #fff);
+    border: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.sd-list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: var(--bg-surface, rgba(0, 0, 0, 0.02));
+    border-bottom: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+}
+.sd-list-title {
+    margin: 0;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.sd-list-count {
+    font-size: 0.78rem;
+    font-family: var(--font-mono, monospace);
+    color: var(--text-tertiary);
+    background: var(--bg-card, #fff);
+    padding: 2px 8px;
+    border-radius: 10px;
+    border: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+}
+
+.sd-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-height: 60vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+@media (min-width: 900px) {
+    .sd-list { max-height: 70vh; }
+}
+
+.sd-list-row {
+    border-bottom: 1px solid var(--border, rgba(0, 0, 0, 0.05));
+}
+.sd-list-row:last-child { border-bottom: none; }
+
+.sd-list-main {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 10px 14px;
+    background: transparent;
+    border: none;
+    text-align: left;
+    font-family: inherit;
+    font-size: 0.88rem;
+    line-height: 1.4;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: background 0.12s ease;
+}
+.sd-list-main:hover {
+    background: var(--surface-2, rgba(45, 90, 61, 0.04));
+}
+
+.sd-list-tri {
+    font-size: 0.7rem;
+    color: var(--text-tertiary);
+    width: 10px;
+    flex-shrink: 0;
+    transition: transform 0.15s ease;
+}
+.sd-list-row.sd-list-open .sd-list-tri {
+    transform: rotate(90deg);
+    color: var(--accent);
+}
+
+.sd-list-text {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.sd-list-row.sd-list-open .sd-list-text {
+    white-space: normal;
+}
+
+.sd-list-word {
+    font-weight: 600;
+    color: var(--text-primary);
+}
+.sd-list-phon {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.78rem;
+    color: var(--text-tertiary);
+    margin-left: auto;
+    white-space: nowrap;
+}
+
+.sd-list-badge {
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.sd-list-details {
+    padding: 0 14px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease, padding 0.2s ease;
+}
+.sd-list-row.sd-list-open .sd-list-details {
+    padding: 4px 14px 12px;
+    max-height: 400px;
+}
+
+.sd-list-cn {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 6px;
+}
+.sd-list-meaning {
+    font-size: 0.78rem;
+    color: var(--text-tertiary);
+    margin-bottom: 4px;
+    font-style: italic;
+}
+.sd-list-context {
+    /* v74: flex row so the inline speaker sits to the left of the
+       sentence and the sentence wraps inside the remaining width. The
+       speaker is the standard .speak-btn (26px circle), top-aligned to
+       the first text line; the text occupies a min-width:0 flex child
+       so long sentences wrap correctly without pushing the layout. */
+    display      : flex;
+    align-items  : flex-start;
+    gap          : 8px;
+    font-size    : 0.88rem;
+    color        : var(--text-primary);
+    line-height  : 1.5;
+    margin-bottom: 6px;
+}
+.sd-context-speak {
+    flex-shrink  : 0;
+    margin-top   : 2px;
+}
+.sd-context-text {
+    flex         : 1;
+    min-width    : 0;
+}
+.sd-list-targets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 6px 0;
+}
+.sd-list-target {
+    font-size: 0.72rem;
+    padding: 2px 8px;
+    background: var(--accent-bg, rgba(45, 90, 61, 0.1));
+    color: var(--accent);
+    border-radius: 10px;
+    font-weight: 500;
+}
+.sd-list-actions {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-top: 6px;
+}
+.sd-list-actions button {
+    font-size: 0.8rem;
+    padding: 4px 10px;
+    white-space: nowrap;
+}
+
+.sd-list-empty {
+    padding: 20px 14px;
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+    font-style: italic;
+    text-align: center;
+}
+
+/* Listen source toggle button (new, in Listen card top row) */
+.sd-listen-source-btn {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    background: var(--bg-card, #fff);
+    color: var(--text-secondary);
+    border: 1px solid var(--border, rgba(0, 0, 0, 0.12));
+    border-radius: 12px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+}
+.sd-listen-source-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.sd-listen-source-btn:active {
+    transform: scale(0.95);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MY WORDS grid (replaces list layout for that group only)
+   ═══════════════════════════════════════════════════════════════ */
+
+.sd-mw-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    grid-auto-rows: 48px;       /* v70: fixed row height — every tile uniform */
+    align-content: start;       /* v70: stop rows from stretching to fill empty space */
+    gap: 6px;
+    padding: 12px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+@media (min-width: 900px) {
+    .sd-mw-grid {
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    }
+}
+
+.sd-mw-tile {
+    /* v70: flex centering so the word sits in the middle of the
+       fixed 48px row regardless of font metrics. */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    font-family: inherit;
+    color: #1a1916;  /* explicit fallback; var(--text-primary) resolves to this in light mode */
+    background: #fafaf7;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: center;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: all 0.12s ease;
+}
+@media (prefers-color-scheme: dark) {
+    .sd-mw-tile {
+        color: #e8e5df;
+        background: #252422;
+        border-color: rgba(255, 255, 255, 0.08);
+    }
+}
+.sd-mw-tile:hover {
+    background: var(--accent-bg, rgba(45, 90, 61, 0.08));
+    border-color: var(--accent);
+    color: var(--accent);
+}
+.sd-mw-tile-active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    font-weight: 600;
+}
+.sd-mw-tile-active:hover {
+    background: var(--accent);
+    color: #fff;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   A-Z filter bar (MyWords grid navigation)
+   ═══════════════════════════════════════════════════════════════ */
+
+.sd-az-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border, rgba(0, 0, 0, 0.05));
+    background: var(--bg-surface, rgba(0, 0, 0, 0.015));
+}
+.sd-az-btn {
+    flex: 1 0 auto;
+    min-width: 22px;
+    padding: 4px 2px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    font-family: var(--font-mono, inherit);
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    text-align: center;
+}
+.sd-az-btn:hover:not(:disabled) {
+    background: var(--accent-bg, rgba(45, 90, 61, 0.08));
+    color: var(--accent);
+}
+.sd-az-btn.sd-az-active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+}
+.sd-az-btn.sd-az-empty {
+    color: var(--text-tertiary);
+    opacity: 0.35;
+    cursor: default;
+}
+.sd-az-btn.sd-az-all {
+    min-width: 32px;
+    font-family: inherit;
+    font-size: 0.73rem;
+}
+@media (min-width: 900px) {
+    .sd-az-btn {
+        font-size: 0.78rem;
+        min-width: 24px;
+        padding: 4px 4px;
+    }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FLOATING detail panel — fixed at bottom of viewport/panel while
+   the word grid above scrolls freely. Stays visible until tapped
+   closed (× button) or tile re-tapped.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════
+   SPLIT LAYOUT — grid on top (scrollable), detail pane on bottom.
+   Both are wrapped in bordered card-style containers (mirroring the
+   My Words page aesthetic) and constrained to the app's --max-width
+   (840px) so their edges align with the top tab bar.
+
+   Chrome offset above panel: app header (~56px) + main tabs (~50px)
+   + sub-tabs (~38px) + padding (~12px) ≈ 156px on mobile.
+   ═══════════════════════════════════════════════════════════════ */
+#sc-panel-curated.active,
+#sc-panel-mine.active {
+    display: flex;
+    flex-direction: column;
+    height: calc(100dvh - 170px);  /* dvh = dynamic viewport height, accounts for mobile URL bar */
+    min-height: 420px;  /* floor for very short viewports */
+    gap: 8px;
+}
+@supports not (height: 100dvh) {
+    #sc-panel-curated.active,
+    #sc-panel-mine.active {
+        height: calc(100vh - 170px);
+    }
+}
+@media (min-width: 900px) {
+    #sc-panel-curated.active,
+    #sc-panel-mine.active {
+        height: calc(100dvh - 180px);
+    }
+}
+
+/* The ec-wrapper is the TOP card: holds the compact header + scrollable grid.
+   Uses the same bordered-box look as .mw-card on the My Words page,
+   and width matches the app shell (--max-width, ~840px). */
+#sc-panel-curated.active > .ec-wrapper,
+#sc-panel-mine.active    > .ec-wrapper {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    max-width: var(--max-width, 840px);
+    margin: 0 auto;
+    padding: 8px;
+    background: var(--bg-card, #fff);
+    border: 1px solid var(--border, rgba(0, 0, 0, 0.1));
+    border-radius: var(--radius-lg, 12px);
+    box-sizing: border-box;
+    overflow: hidden;  /* prevent children from breaking out of the card */
+}
+
+/* When the detail pane is visible, cap the top card so the grid
+   shrinks and the detail gets a guaranteed portion of the screen. */
+#sc-panel-curated.sd-panel-with-detail > .ec-wrapper,
+#sc-panel-mine.sd-panel-with-detail    > .ec-wrapper {
+    flex: 1 1 55%;
+}
+
+/* ─── Compact header row: count + filter/stats + action buttons ──
+   One row that replaces the old toolbar + separate A-Z filter bar.
+   Saves ~50px of vertical space. */
+.sd-az-header-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 4px;
+    margin-bottom: 6px;
+    border-bottom: 1px solid var(--border, rgba(0, 0, 0, 0.06));
+    flex-shrink: 0;  /* never let this row compress */
+}
+.sd-az-count-badge {
+    flex-shrink: 0;
+    padding: 4px 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-primary, #1a1916);
+    background: var(--bg-surface, #f5f3f0);
+    border-radius: 10px;
+    font-variant-numeric: tabular-nums;
+}
+.sd-az-filter-inline {
+    flex: 1 1 auto;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    min-width: 0;  /* allow flex shrink */
+}
+.sd-az-filter-inline .sd-az-btn {
+    flex: 0 1 auto;
+    min-width: 42px;
+    padding: 4px 6px;
+    font-size: 0.7rem;
+    font-family: inherit;
+    font-weight: 600;
+    background: transparent;
+    color: var(--text-secondary, #5c5952);
+    border: 1px solid transparent;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+}
+.sd-az-filter-inline .sd-az-btn.sd-az-active {
+    background: var(--accent, #2d5a3d);
+    color: #fff;
+    border-color: var(--accent, #2d5a3d);
+}
+.sd-az-filter-inline .sd-az-btn.sd-az-empty {
+    color: var(--text-tertiary, #8a857d);
+    opacity: 0.35;
+    cursor: default;
+}
+.sd-az-filter-inline .sd-az-btn.sd-az-all {
+    min-width: 34px;
+}
+.sd-az-filter-inline .sd-az-btn .sd-az-count {
+    font-size: 0.6rem;
+    opacity: 0.75;
+}
+.sd-az-filter-inline .sd-az-btn.sd-az-active .sd-az-count {
+    opacity: 1;
+    color: #fff;
+}
+.sd-az-listen-btn,
+.sd-az-drill-btn {
+    flex-shrink: 0;
+    padding: 6px 10px;
+    font-size: 0.85rem;
+}
+.sd-az-stats-inline {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex: 1 1 auto;
+    min-width: 0;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+/* Grids expand to fill the card and scroll internally. The key
+   flex: 1 1 0 + min-height: 0 combo is required for flex children
+   to scroll properly in Safari.
+
+   v69 fix: The Curated grid lives inside #sd-c-exercise-area (a
+   wrapper that drill mode also renders into). That wrapper was a
+   plain block, so .sd-c-grid's flex/min-height settings were not
+   honored — the grid expanded to natural height and never overflowed,
+   so the always-visible scrollbar never appeared. Make the wrapper
+   itself the flex-fill column so the chain reaches the grid.
+
+   v70: also add min-width: 0 + overflow-x: hidden so the wrapper
+   never gets pushed wider than its parent by long unbreakable
+   sentence text. Without min-width: 0 a flex item defaults to
+   min-width: auto, and a wide grid child can shove the whole
+   column past the card's right edge on narrow mobile viewports. */
+#sc-panel-curated.active #sd-c-exercise-area {
+    flex: 1 1 0;
+    min-height: 0;
+    min-width: 0;
+    overflow-x: hidden;
+    display: flex;
+    flex-direction: column;
+}
+#sc-panel-curated.active .sd-c-grid,
+#sc-panel-mine.active    .sd-mw-grid {
+    flex: 1 1 0;
+    min-height: 0;
+    max-height: none;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Guarantee tiles never compress below readable height, regardless of
+   what iOS does with viewport units. This was the root cause of the
+   "invisible text" bug — tiles were ~18px tall with clipped text. */
+.sd-mw-tile {
+    min-height: 36px;
+    box-sizing: border-box;
+}
+
+/* The detail pane is the BOTTOM card: same boxed look as the top,
+   same width constraint, so both feel like siblings stacked vertically
+   inside the app shell. Hidden when empty. */
+.sd-float-detail {
+    flex: 0 0 auto;
+    width: 100%;
+    max-width: var(--max-width, 840px);
+    margin: 0 auto;
+    box-sizing: border-box;
+    background: var(--bg-card, #fff);
+    border: 1px solid var(--border, rgba(0, 0, 0, 0.1));
+    border-radius: var(--radius-lg, 12px);
+    max-height: 45vh;
+    min-height: 180px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    display: none;  /* hidden by default, revealed when populated */
+}
+.sd-float-detail.sd-float-detail-visible {
+    display: block;
+}
+.sd-float-detail:empty {
+    display: none;
+}
+@media (max-width: 600px) {
+    .sd-float-detail {
+        min-height: 160px;
+    }
+    .sd-az-header-row {
+        gap: 4px;
+        padding: 4px 2px;
+    }
+    .sd-az-count-badge {
+        padding: 3px 8px;
+        font-size: 0.75rem;
+    }
+    .sd-az-filter-inline .sd-az-btn {
+        min-width: 38px;
+        padding: 3px 4px;
+        font-size: 0.65rem;
+    }
+}
+
+.sd-mw-detail-inner {
+    position: relative;
+    padding: 14px 40px 14px 14px;
+}
+.sd-float-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    background: transparent;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+    color: var(--text-tertiary);
+    transition: all 0.12s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.sd-float-close:hover {
+    background: var(--surface-2, rgba(0, 0, 0, 0.06));
+    color: var(--text-primary);
+}
+.sd-mw-detail-head {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+.sd-mw-detail-word {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+.sd-mw-detail-phon {
+    font-family: var(--font-mono, monospace);
+    font-size: 0.85rem;
+    color: var(--text-tertiary);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPACT SUB-TABS (6 sub-tabs under Expressions)
+   Icons always visible; labels hidden on narrow mobile to save space.
+   ═══════════════════════════════════════════════════════════════ */
+
+.sc-tabs-compact .sc-tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 8px 6px;
+    font-size: 12px;
+    min-width: 0;
+}
+.sc-tab-icon {
+    font-size: 15px;
+    line-height: 1;
+}
+.sc-tab-label {
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* Mobile: show icons only — keeps all 6 tabs on one row comfortably */
+@media (max-width: 600px) {
+    .sc-tabs-compact .sc-tab {
+        padding: 9px 4px;
+    }
+    .sc-tabs-compact .sc-tab-label { display: none; }
+    .sc-tabs-compact .sc-tab-icon  { font-size: 18px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   CURATED grid (replaces two-column list view)
+   Numbered tiles with a short preview of each sentence.
+   ═══════════════════════════════════════════════════════════════ */
+
+.sd-c-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 8px 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+@media (min-width: 720px) {
+    .sd-c-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+@media (min-width: 1200px) {
+    .sd-c-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.sd-c-tile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg-card, #fff);
+    border: 1px solid var(--border, rgba(0, 0, 0, 0.08));
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.86rem;
+    line-height: 1.4;
+    color: var(--text-primary);
+    text-align: left;
+    transition: all 0.12s ease;
+}
+.sd-c-tile:hover {
+    border-color: var(--accent);
+    background: var(--accent-bg, rgba(45, 90, 61, 0.04));
+}
+.sd-c-tile-active {
+    border-color: var(--accent);
+    background: var(--accent-bg, rgba(45, 90, 61, 0.1));
+    color: var(--accent);
+}
+.sd-c-tile-num {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 6px;
+    font-family: var(--font-mono, monospace);
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: var(--bg-surface, rgba(0, 0, 0, 0.04));
+    color: var(--text-secondary);
+    border-radius: 4px;
+}
+.sd-c-tile-active .sd-c-tile-num {
+    background: var(--accent);
+    color: #fff;
+}
+.sd-c-tile-text {
+    flex: 1;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.sd-c-tile-badge {
+    flex-shrink: 0;
+    font-size: 0.85rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RANGE FILTER extensions (6 ranges instead of 26 letters)
+   Buttons show "A-D" with a count suffix inside.
+   ═══════════════════════════════════════════════════════════════ */
+
+.sd-az-ranges {
+    gap: 4px;
+}
+.sd-az-ranges .sd-az-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    flex: 1 1 auto;
+    min-width: 50px;
+    padding: 6px 8px;
+    font-family: inherit;
+    font-size: 0.78rem;
+}
+.sd-az-count {
+    display: inline-block;
+    padding: 1px 5px;
+    font-size: 0.65rem;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    background: var(--bg-surface, rgba(0, 0, 0, 0.04));
+    border-radius: 8px;
+    font-family: var(--font-mono, monospace);
+}
+.sd-az-active .sd-az-count {
+    background: rgba(255, 255, 255, 0.25);
+    color: #fff;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DRILL exit button (back to Curated grid from exercise card)
+   ═══════════════════════════════════════════════════════════════ */
+
+.sd-drill-exit {
+    margin-left: auto;
+    color: var(--text-tertiary);
+}
+.sd-drill-exit:hover {
+    color: var(--danger, #c44);
+}
+
+/* ============================================================
+   Curated grid: equal-column fix (v=63)
+   ============================================================
+   The two-column grid uses repeat(2, 1fr) which mathematically
+   gives equal widths. However, when the grid has a vertical
+   scrollbar (overflow-y: auto), the scrollbar consumes pixels
+   from the right edge — visually narrowing the right column's
+   text area without affecting the grid's column algorithm.
+   
+   Fix: reserve the scrollbar gutter symmetrically so both
+   columns have identical text-rendering width. Also enforce
+   minmax(0, 1fr) so the columns can't be pushed wider than
+   their share by long unbreakable text.
+*/
+
+.sd-c-grid {
+    /* minmax(0, 1fr) prevents grid items from forcing the column
+       wider than its 1fr share. Without this, an overflowing tile
+       can stretch its column and shrink the other. */
+    grid-template-columns: minmax(0, 1fr);
+    /* Reserve scrollbar gutter on both edges so layout doesn't
+       shift when content grows past one screen, and the right
+       column doesn't lose visible width to the scrollbar. */
+    scrollbar-gutter: stable;
+}
+@media (min-width: 720px) {
+    .sd-c-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+@media (min-width: 1200px) {
+    .sd-c-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+/* Belt-and-suspenders: make every tile own exactly its column's
+   content-box width, so no tile can push past it. */
+.sd-c-tile {
+    width      : 100%;
+    box-sizing : border-box;
+    min-width  : 0;
+}
+
+/* ============================================================
+   Sentence list scrollbar + detail panel navigation (v=65)
+   ============================================================
+   Two issues from mobile testing:
+     1. The sentence grid scrolls but its scrollbar auto-hides
+        on mobile WebKit/Chromium, making the list look complete
+        when there's more below the fold.
+     2. The detail panel (bottom card) has no quick way to advance
+        to the next sentence — the user has to scroll back up to
+        the grid and tap a different tile.
+
+   Fix:
+     1. Force a thin always-visible scrollbar on the grid.
+     2. Add prev/next nav arrows (◀ ▶ filled triangles) in the
+        detail panel header, flanking the position indicator.
+*/
+
+/* 1. Visible scrollbar for the sentence grid on every platform.
+   Thicker thumb (10px wide, no inset border) so it's obvious there
+   is content below the fold even when only a few rows of overflow. */
+.sd-c-grid,
+.sd-mw-grid {
+    /* Firefox + standard */
+    scrollbar-width : thin;
+    scrollbar-color : rgba(45, 90, 61, 0.6) rgba(0, 0, 0, 0.04);
+}
+.sd-c-grid::-webkit-scrollbar,
+.sd-mw-grid::-webkit-scrollbar {
+    width  : 10px;
+    height : 10px;
+}
+.sd-c-grid::-webkit-scrollbar-track,
+.sd-mw-grid::-webkit-scrollbar-track {
+    background    : rgba(0, 0, 0, 0.04);
+    border-radius : 5px;
+}
+.sd-c-grid::-webkit-scrollbar-thumb,
+.sd-mw-grid::-webkit-scrollbar-thumb {
+    background    : rgba(45, 90, 61, 0.6);
+    border-radius : 5px;
+}
+.sd-c-grid::-webkit-scrollbar-thumb:hover,
+.sd-mw-grid::-webkit-scrollbar-thumb:hover {
+    background : rgba(45, 90, 61, 0.85);
+}
+
+/* 2. Detail panel header layout and nav arrows */
+.sd-mw-detail-head {
+    display     : flex;
+    align-items : center;
+    gap         : 10px;
+    flex-wrap   : wrap;
+}
+.sd-detail-nav {
+    display         : inline-flex;
+    align-items     : center;
+    justify-content : center;
+    width           : 32px;
+    height          : 32px;
+    padding         : 0;
+    border          : 1px solid var(--border, rgba(0, 0, 0, 0.1));
+    border-radius   : 50%;
+    background      : var(--bg-card, #fff);
+    color           : var(--accent, #2d5a3d);
+    font-size       : 12px;
+    line-height     : 1;
+    cursor          : pointer;
+    transition      : all 0.12s ease;
+    flex-shrink     : 0;
+}
+.sd-detail-nav:hover:not(:disabled) {
+    background   : var(--accent, #2d5a3d);
+    color        : #fff;
+    border-color : var(--accent, #2d5a3d);
+}
+.sd-detail-nav:active:not(:disabled) {
+    transform : scale(0.92);
+}
+.sd-detail-nav:disabled {
+    opacity : 0.3;
+    cursor  : not-allowed;
+}
+
+/* On mobile, slightly larger touch targets */
+@media (max-width: 600px) {
+    .sd-detail-nav {
+        width  : 36px;
+        height : 36px;
+        font-size : 13px;
+    }
+}
+
+/* ============================================================
+   Detail panel reliability fix (v=66)
+   ============================================================
+   The bottom detail panel sometimes failed to appear visibly on
+   Mine after clicking a word, even though the panel innerHTML
+   was set and the visible class was applied. Two contributing
+   factors and fixes:
+   
+   1. The panel's bottom edge could fall below the active sub-panel's
+      fixed height when wrappers didn't shrink in time. Add explicit
+      flex-shrink: 0 on the detail itself + bumped min-height.
+   2. Without a visual cue, a user who didn't notice the panel below
+      the grid might think the click did nothing. Add a brief slide-up
+      animation when the panel first becomes visible.
+*/
+
+.sd-float-detail.sd-float-detail-visible {
+    flex-shrink : 0;
+    min-height  : 200px;
+    /* Slide-up + fade-in to draw attention to the new panel */
+    animation   : sdDetailSlideIn 0.22s ease-out;
+}
+@keyframes sdDetailSlideIn {
+    from {
+        transform : translateY(10px);
+        opacity   : 0.4;
+    }
+    to {
+        transform : translateY(0);
+        opacity   : 1;
+    }
+}
+
+/* When a detail is open, make sure the wrapper actually leaves room.
+   Reduce the wrapper to 50% (was 55%) so the detail gets at least
+   half the available vertical space — guarantees it's visible. */
+#sc-panel-curated.sd-panel-with-detail > .ec-wrapper,
+#sc-panel-mine.sd-panel-with-detail    > .ec-wrapper {
+    flex      : 1 1 50%;
+    max-height: 50%;
+}
+
+/* ============================================================
+   Detail panel visibility fallback (v=68)
+   ============================================================
+   Bulletproof rules to guarantee the detail panel appears when
+   visible, regardless of flex layout state.
+*/
+
+.sd-float-detail.sd-float-detail-visible {
+    /* Belt-and-suspenders: explicit display + minimum sizing.
+       If something else removes display:block, this re-applies it. */
+    display     : block !important;
+    min-height  : 200px !important;
+    flex-shrink : 0 !important;
+    /* Make the panel visually distinct from the grid above so it
+       can't be confused for empty space at the bottom of the list. */
+    border-top  : 2px solid var(--accent, #2d5a3d);
+    margin-top  : 8px;
+    background  : var(--bg-card, #fff);
+    box-shadow  : 0 -2px 8px rgba(0, 0, 0, 0.06);
+    /* Pop into view */
+    animation   : sdDetailSlideIn 0.22s ease-out;
+    /* Make absolutely sure it's positioned correctly */
+    position    : relative;
+    z-index     : 5;
+}
+
+/* Make the inner content more visually obvious — accent the head row */
+.sd-float-detail.sd-float-detail-visible .sd-mw-detail-head {
+    padding       : 10px 14px;
+    background    : var(--accent-bg, rgba(45, 90, 61, 0.08));
+    border-radius : 8px;
+    margin-bottom : 8px;
+}
+
+/* ============================================================
+   v73 — Mine detail panel: nav row + title row + focus toggles
+   ============================================================
+   Previously the head packed [◀ word phonetic ▶] in one wrapping
+   flex row. On narrow viewports (mobile) the long phonetic shoved
+   the next-button onto a new line, so prev and next sat on
+   different rows. Restructured: nav row holds prev/counter/next
+   only (compact, never wraps); a separate title row carries the
+   word + phonetic; the action row picks up three Core/Pron/Spell
+   toggle buttons next to the existing playback buttons. */
+
+.sd-float-detail.sd-float-detail-visible .sd-mw-detail-head {
+    /* Override the wrap-prone default: nav row is always 3 small
+       items — keep them inline and centered, never wrap. */
+    flex-wrap       : nowrap;
+    justify-content : center;
+    gap             : 14px;
+}
+.sd-mw-detail-counter {
+    font-family : var(--font-mono, monospace);
+    font-size   : 0.85rem;
+    color       : var(--text-secondary);
+    min-width   : 56px;
+    text-align  : center;
+}
+
+/* Title row holds the word and phonetic on one line; allowed to
+   wrap on truly narrow viewports (so a very long phonetic doesn't
+   blow out the layout) but free of the prev/next buttons that
+   were causing the original split. */
+.sd-mw-detail-title {
+    display     : flex;
+    align-items : baseline;
+    flex-wrap   : wrap;
+    gap         : 10px;
+    margin-bottom : 6px;
+}
+
+/* Focus toggles in the Mine detail action row. Visually small
+   pill matching the style of the existing .sd-list-play buttons,
+   plus a clear "active" state when the word is in the group. */
+.sd-mw-focus-btn {
+    font-family   : inherit;
+    font-size     : 0.8rem;
+    padding       : 4px 10px;
+    background    : var(--bg-card, #fff);
+    border        : 1px solid var(--border, rgba(0, 0, 0, 0.12));
+    border-radius : 14px;
+    color         : var(--text-secondary);
+    white-space   : nowrap;
+    cursor        : pointer;
+    transition    : all 0.12s ease;
+    flex-shrink   : 0;
+}
+.sd-mw-focus-btn:hover {
+    border-color : var(--accent);
+    color        : var(--accent);
+}
+.sd-mw-focus-btn.sd-mw-focus-active {
+    background   : var(--accent);
+    border-color : var(--accent);
+    color        : #fff;
+    font-weight  : 500;
+}

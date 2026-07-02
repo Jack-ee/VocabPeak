@@ -1,0 +1,20 @@
+{
+    "name"             : "VocabPeak",
+    "short_name"       : "VocabPeak",
+    "id"               : "/VocabPeak/",
+    "description"      : "高考英语核心词汇 · 记忆与复习",
+    "start_url"        : "./index.html",
+    "scope"            : "./",
+    "display"          : "standalone",
+    "orientation"      : "any",
+    "background_color" : "#0e213c",
+    "theme_color"      : "#16324f",
+    "lang"             : "zh-CN",
+    "categories"       : ["education"],
+    "icons": [
+        { "src": "./icon-192.png",          "sizes": "192x192", "type": "image/png", "purpose": "any" },
+        { "src": "./icon-512.png",          "sizes": "512x512", "type": "image/png", "purpose": "any" },
+        { "src": "./icon-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+        { "src": "./icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    ]
+}

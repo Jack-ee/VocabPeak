@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#16324f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="apple-touch-icon" href="icon-512.png">
+    <title>VocabPeak · 高考英语词汇</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=DM+Serif+Display&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- =========================================================
+         Cache-busting version: bump the suffix on every deploy to
+         force the browser to refetch all local CSS/JS files.
+         In VS Code: Ctrl+H, find "?v=N" with the current N, replace
+         with "?v=N+1" across this file. Then bump CACHE_NAME in
+         sw.js to match (e.g. 'hsv-vN+1').
+         Current version: v=106
+         ========================================================= -->
+    <link rel="stylesheet" href="style.css?v=106">
+    <link rel="stylesheet" href="expressions-coach.css?v=106">
+</head>
+<body>
+
+<header class="app-header">
+    <div class="header-left">
+        <h1 class="app-title"><span class="title-accent">V</span>ocab<span class="title-pro">Peak</span></h1>
+        <div class="header-stats">
+            <span class="header-stat">&#x1F525; <span class="hs-val" id="stat-streak">0</span></span>
+            <span class="header-stat">&#x1F4D5; <span class="hs-val" id="stat-notebook">0</span></span>
+        </div>
+    </div>
+    <div class="header-right">
+        <button class="header-btn" id="btn-notebook" title="生词本">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+            <span class="badge" id="notebook-badge" style="display:none">0</span>
+        </button>
+        <button class="header-btn" id="btn-settings" title="设置">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+    </div>
+</header>
+
+<main class="app-main">
+    <nav class="app-nav">
+        <button class="nav-tab active" data-nav="my-words"><span class="nav-icon">&#x1F4D6;</span><span class="nav-label">单词</span></button>
+        <button class="nav-tab" data-nav="speaking-coach" style="display:none"><span class="nav-icon">&#x1F5E3;&#xFE0F;</span><span class="nav-label">Expressions</span></button>
+        <button class="nav-tab" data-nav="vocab-drill"><span class="nav-icon">&#x1F3AF;</span><span class="nav-label">训练</span></button>
+        <button class="nav-tab" data-nav="writing-lab" style="display:none"><span class="nav-icon">&#x270D;&#xFE0F;</span><span class="nav-label">Writing</span></button>
+        <button class="nav-tab" data-nav="reader"><span class="nav-icon">&#x1F4DA;</span><span class="nav-label">阅读</span></button>
+    </nav>
+
+    <!-- ===== MY WORDS (primary) ===== -->
+    <div class="app-view active" id="view-my-words">
+        <div class="mw-container">
+            <div class="mw-toolbar">
+                <div class="mw-quick-add">
+                    <input type="text" id="mw-single-input" class="mw-quick-input" placeholder="&#x1F50D; 搜索或添加单词..." autocomplete="off">
+                    <button class="mw-add-btn" id="mw-add-single" title="添加为新单词">+</button>
+                    <div class="mw-search-dropdown" id="mw-search-dropdown"></div>
+                </div>
+                <div class="mw-toolbar-actions">
+                    <button class="mw-icon-btn" id="mw-import-btn" onclick="document.getElementById('mw-import-modal').classList.add('open')" title="导入">&#x1F4E5;<span class="mw-btn-label"> 导入</span></button>
+                    <button class="mw-icon-btn" id="mw-batch-enrich" title="批量丰富">&#x2728;<span class="mw-btn-label"> AI丰富</span><span class="mw-enrich-count" id="mw-enrich-count"></span></button>
+                    <button class="mw-icon-btn" id="mw-batch-paste" title="粘贴回填">&#x1F4CB;<span class="mw-btn-label"> 回填</span></button>
+                    <button class="mw-icon-btn" id="mw-cloze-btn" title="本组巩固短文">&#x1F4D6;<span class="mw-btn-label"> 短文</span></button>
+                </div>
+            </div>
+            <div class="mw-filter-row" id="mw-filter-row">
+                <button class="mw-filter-pill active" data-filter="all">全部 <span class="mw-fpill-count" id="mw-fc-all"></span></button>
+                <button class="mw-filter-pill" data-filter="due">&#x1F501;<span class="mw-fpill-label"> 复习</span> <span class="mw-fpill-count" id="mw-fc-due"></span></button>
+                <button class="mw-filter-pill" data-filter="core">&#x2B50;<span class="mw-fpill-label"> 核心</span> <span class="mw-fpill-count" id="mw-fc-core"></span></button>
+                <button class="mw-filter-pill" data-filter="pronunciation">&#x1F50A;<span class="mw-fpill-label"> 发音</span> <span class="mw-fpill-count" id="mw-fc-pronunciation"></span></button>
+                <button class="mw-filter-pill" data-filter="spelling">&#x270F;&#xFE0F;<span class="mw-fpill-label"> 拼写</span> <span class="mw-fpill-count" id="mw-fc-spelling"></span></button>
+                <button class="mw-filter-pill" data-filter="weak">&#x274C;<span class="mw-fpill-label"> 薄弱</span> <span class="mw-fpill-count" id="mw-fc-weak"></span></button>
+            </div>
+            <div class="mw-nav-row">
+                <div class="mw-mode-toggle">
+                    <button class="mw-mt-btn active" id="mw-dm-cards" title="卡片视图">&#x1F4C4;<span class="mw-btn-label"> 卡片</span></button>
+                    <button class="mw-mt-btn" id="mw-dm-list" title="列表视图">&#x2630;<span class="mw-btn-label"> 列表</span></button>
+                    <button class="mw-mt-btn" id="mw-dm-quiz" title="测验">&#x2753;<span class="mw-btn-label"> 测验</span></button>
+                    <button class="mw-toggle-cn-btn" id="mw-toggle-cn" title="显示/隐藏中文">&#x4E2D;<span class="mw-btn-label"> 中文</span></button>
+                </div>
+                <div class="mw-group-info" id="mw-group-info" style="display:none"></div>
+                <span class="mw-filter-sep mw-sep-grp"></span>
+                <button class="mw-arrow-btn" id="mw-prev" title="上一个">&#x25C0;</button>
+                <span class="mw-counter" id="mw-counter">0</span>
+                <button class="mw-arrow-btn" id="mw-next" title="下一个">&#x25B6;</button>
+                <span class="mw-filter-sep"></span>
+                <button class="mw-arrow-btn" id="mw-autoplay" title="自动播放发音">&#x25B6;&#xFE0F;<span class="mw-btn-label"> 播放</span></button>
+                <button class="mw-arrow-btn" id="mw-shuffle" title="打乱">&#x1F500;<span class="mw-btn-label"> 打乱</span></button>
+            </div>
+            <div class="mw-area" id="mw-area"></div>
+        </div>
+    </div>
+
+    <!-- ===== EXPRESSIONS (unified: drill + speak + reference) ===== -->
+    <div class="app-view" id="view-speaking-coach">
+        <div class="sc-container">
+            <div class="sc-tabs sc-tabs-compact">
+                <button class="sc-tab active" data-panel="sc-panel-curated"><span class="sc-tab-icon">&#x1F4D8;</span><span class="sc-tab-label">Core</span></button>
+                <button class="sc-tab" data-panel="sc-panel-mine"><span class="sc-tab-icon">&#x1F4DA;</span><span class="sc-tab-label">Mine</span></button>
+                <button class="sc-tab" data-panel="sc-panel-drill"><span class="sc-tab-icon">&#x1F4AC;</span><span class="sc-tab-label">Phrases</span></button>
+                <button class="sc-tab" data-panel="sc-panel-scenarios"><span class="sc-tab-icon">&#x1F3AD;</span><span class="sc-tab-label">Scenarios</span></button>
+                <button class="sc-tab" data-panel="sc-panel-freeform"><span class="sc-tab-icon">&#x2728;</span><span class="sc-tab-label">Native</span></button>
+                <button class="sc-tab" data-panel="sc-panel-reference"><span class="sc-tab-icon">&#x1F4D6;</span><span class="sc-tab-label">Ref</span></button>
+            </div>
+            <div class="sc-panel active" id="sc-panel-curated"></div>
+            <div class="sc-panel" id="sc-panel-mine"></div>
+            <div class="sc-panel" id="sc-panel-drill"></div>
+            <div class="sc-panel" id="sc-panel-scenarios">
+                <div class="sc-scenarios" id="sc-scenarios"><div class="sc-scenario-grid"></div></div>
+                <div class="sc-scenario-practice" id="sc-scenario-practice"></div>
+            </div>
+            <div class="sc-panel" id="sc-panel-freeform">
+                <div class="wl-input-area">
+                    <textarea id="sc-freeform-input" rows="3" placeholder="Type what you'd say &#x2014; Claude shows the native version..." spellcheck="true"></textarea>
+                    <div class="wl-input-footer">
+                        <span class="wl-char-count" style="font-style:italic;color:var(--text-tertiary)">Write naturally</span>
+                        <button class="wl-btn-primary" id="sc-freeform-submit">Native version</button>
+                    </div>
+                </div>
+                <div id="sc-freeform-result"></div>
+            </div>
+            <div class="sc-panel" id="sc-panel-reference"><div class="sc-phrasing-ref" id="sc-phrasing-ref"></div></div>
+        </div>
+    </div>
+
+    <!-- ===== VOCAB DRILL ===== -->
+    <div class="app-view" id="view-vocab-drill">
+        <div class="vd-container">
+            <div class="vd-header" id="vd-header"><div class="vd-header-row"><div class="vd-drill-btns">
+                <button class="vd-start-btn" id="vd-start-synonym">&#x1F500; 近义词</button>
+                <button class="vd-start-btn" id="vd-start-collocation">&#x1F9E9; 搭配</button>
+                <button class="vd-start-btn" id="vd-start-ai-drill">&#x1F916; AI训练</button>
+            </div></div></div>
+            <div class="vd-results" id="vd-results"></div>
+        </div>
+    </div>
+
+    <!-- ===== WRITING LAB ===== -->
+    <div class="app-view" id="view-writing-lab">
+        <div class="wl-container">
+            <div class="wl-modes-wrapper"><div class="wl-modes" id="wl-modes"></div></div>
+            <div class="wl-input-area">
+                <textarea id="wl-input" placeholder="Type or paste English text to polish, transform, or check..." rows="5" spellcheck="true"></textarea>
+                <div class="wl-input-footer">
+                    <span class="wl-char-count" id="wl-char-count">0 characters</span>
+                    <div class="wl-input-actions">
+                        <button class="wl-btn-secondary" id="wl-clear">Clear</button>
+                        <button class="wl-btn-secondary" id="wl-history-toggle">History</button>
+                        <button class="wl-btn-primary" id="wl-submit">Analyze <kbd>Ctrl+Enter</kbd></button>
+                    </div>
+                </div>
+            </div>
+            <div class="wl-history-panel" id="wl-history-panel"><h3>Recent sessions</h3><div class="wl-history-list" id="wl-history-list"></div></div>
+            <div class="wl-results" id="wl-results"></div>
+        </div>
+    </div>
+
+    <!-- ===== READER ===== -->
+    <div class="app-view" id="view-reader">
+        <div class="rd-container">
+            <div class="rd-controls"><div class="rd-control-row">
+                <label class="rd-label">难度 <select id="rd-level" class="rd-select"><option value="advanced" selected>高级</option><option value="intermediate">中级</option><option value="academic">学术</option></select></label>
+                <label class="rd-label">侧重 <select id="rd-focus" class="rd-select"><option value="all" selected>全部</option><option value="academic">学术</option><option value="idioms">习语</option><option value="technical">专业</option></select></label>
+            </div></div>
+            <div class="wl-input-area">
+                <textarea id="rd-input" placeholder="粘贴一篇文章，提取生词..." rows="6" spellcheck="false"></textarea>
+                <div class="wl-input-footer">
+                    <span class="wl-char-count" id="rd-word-count">0 词</span>
+                    <div class="wl-input-actions">
+                        <button class="wl-btn-secondary" id="rd-clear">清空</button>
+                        <button class="wl-btn-primary" id="rd-extract">提取 <kbd>Ctrl+Enter</kbd></button>
+                    </div>
+                </div>
+            </div>
+            <div class="rd-results" id="rd-results"></div>
+        </div>
+    </div>
+
+</main>
+
+<!-- ===== IMPORT MODAL ===== -->
+<div class="modal-overlay" id="mw-import-modal">
+    <div class="modal-card">
+        <div class="modal-header"><h2>导入单词表</h2><button class="modal-close" id="mw-import-close" onclick="document.getElementById('mw-import-modal').classList.remove('open')">&times;</button></div>
+        <div class="modal-body">
+            <p class="settings-hint" style="margin:0 0 8px">内置高中核心词汇（开箱即用，含中文释义）：</p>
+            <div style="display:flex;gap:8px;margin-bottom:14px">
+                <button class="wl-btn-primary" id="mw-load-core" style="flex:1">载入核心词</button>
+                <button class="wl-btn-secondary" id="mw-load-all" style="flex:1">载入全部</button>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,0.10);margin:0 0 14px"></div>
+            <p class="settings-hint">或粘贴你自己的单词表 —— 任意常见格式均可：</p>
+            <pre class="mw-import-format">eloquent, manifest, scrutinize, caveat
+eloquent; manifest; scrutinize; caveat
+eloquent manifest scrutinize caveat
+单词 | 中文释义
+单词 | 释义 | 用法说明
+每行一个单词或短语</pre>
+            <button class="wl-btn-secondary" id="mw-import-paste" style="margin-bottom:8px">&#x1F4CB; 从剪贴板粘贴</button>
+            <textarea id="mw-import-input" class="mw-import-textarea" rows="10" placeholder="eloquent, manifest, scrutinize&#10;或：bear with me; shed light on; caveat&#10;或：单词 | &#x4E2D;&#x6587; | 说明（每行一个）&#10;或：粘贴带 WORD:/PHONETIC: 的丰富格式"></textarea>
+            <button class="wl-btn-primary" id="mw-import-submit" style="width:100%;margin-top:10px">导入单词</button>
+        </div>
+    </div>
+</div>
+
+<!-- ===== SETTINGS MODAL ===== -->
+<div class="modal-overlay" id="settings-modal">
+    <div class="modal-card modal-settings modal-wide">
+        <div class="modal-header"><h2>设置</h2><button class="modal-close" id="settings-close">&times;</button></div>
+        <div class="modal-body">
+            <div class="set-tabs">
+                <button class="set-tab active" data-setpanel="set-general">通用</button>
+                <button class="set-tab" data-setpanel="set-voice">语音</button>
+                <button class="set-tab" data-setpanel="set-ai">AI</button>
+                <button class="set-tab" data-setpanel="set-sync">同步</button>
+                <button class="set-tab" data-setpanel="set-data">数据</button>
+            </div>
+
+            <!-- ===== GENERAL ===== -->
+            <div class="set-panel active" id="set-general">
+                <section class="settings-section">
+                    <h3>档案</h3>
+                    <label style="font-size:11px;color:var(--text-tertiary);display:block;margin-bottom:3px">你的名字</label>
+                    <input type="text" id="settings-profile-name" class="settings-input" maxlength="40" placeholder="你的名字" style="width:100%">
+                    <p style="font-size:10px;color:var(--text-tertiary);margin-top:4px">这个安装的显示名。数据与同步绑定在独立的隐藏 ID 上，改名始终安全。</p>
+                </section>
+                <section class="settings-section">
+                    <h3>学习</h3>
+                    <div style="margin-bottom:8px">
+                        <label style="font-size:11px;color:var(--text-tertiary);display:block;margin-bottom:3px">每组单词数</label>
+                        <div style="display:flex;align-items:center;gap:8px">
+                            <input type="number" id="settings-group-size" min="5" max="100" value="50" class="settings-input" style="width:70px;text-align:center">
+                            <span style="font-size:11px;color:var(--text-tertiary)">个 / 每个学习组</span>
+                        </div>
+                    </div>
+                    <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--text-secondary)">
+                        <input type="checkbox" id="settings-show-cn"> 默认显示中文
+                    </label>
+                </section>
+                <section class="settings-section" id="install-section">
+                    <h3>安装为应用</h3>
+                    <button class="wl-btn-primary" id="btn-install-app" onclick="window.promptInstall()" style="display:none;padding:8px 14px">&#x1F4F1; 安装到本设备</button>
+                    <p id="install-hint" style="font-size:10px;color:var(--text-tertiary);margin-top:4px">安卓 Chrome：菜单 &rarr; “安装应用” 或 “添加到主屏幕”。iOS Safari：分享 &rarr; “添加到主屏幕”。</p>
+                </section>
+            </div>
+
+            <!-- ===== VOICE ===== -->
+            <div class="set-panel" id="set-voice">
+                <section class="settings-section">
+                    <h3>语音</h3>
+                    <select id="settings-voice" class="rd-select" style="width:100%;margin-bottom:6px"></select>
+                    <div style="display:flex;align-items:center;gap:6px" title="Playback speed for vocabulary autoplay and Sentences Listen mode">
+                        <span style="font-size:11px;color:var(--text-tertiary)">语速</span>
+                        <input type="range" id="settings-speed" min="0.6" max="1.3" step="0.05" value="0.9" style="flex:1">
+                        <span id="settings-speed-val" style="font-family:var(--font-mono);font-size:11px;min-width:28px">0.90</span>
+                    </div>
+                    <div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)">
+                        <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:4px">语音引擎</div>
+                        <select id="settings-tts-engine" class="rd-select" style="width:100%;margin-bottom:6px">
+                            <option value="native">设备语音 &mdash; 离线、即时</option>
+                            <option value="neural">神经语音 &mdash; OpenAI，更自然（联网）</option>
+                        </select>
+                        <div id="settings-neural-box" style="display:none">
+                            <select id="settings-neural-voice" class="rd-select" style="width:100%;margin-bottom:6px"></select>
+                            <input type="password" id="settings-tts-key" placeholder="OpenAI 密钥 &mdash; sk-...（留空则用 AI 提供商密钥）" class="settings-input" style="width:100%;margin-bottom:6px">
+                            <input type="text" id="settings-tts-proxy" placeholder="TTS 代理地址 &mdash; https://...workers.dev" class="settings-input" style="width:100%;margin-bottom:6px">
+                            <button id="settings-tts-test" class="wl-btn-primary" style="width:100%">测试神经语音</button>
+                            <div id="settings-tts-status" style="font-family:var(--font-mono);font-size:10px;color:var(--text-secondary);margin-top:5px;min-height:13px"></div>
+                            <p style="font-size:10px;color:var(--text-tertiary);margin-top:4px">需要你的 Cloudflare Worker 地址 &mdash; OpenAI 禁止浏览器直连。音频首次获取后会缓存。</p>
+                        </div>
+                    </div>
+                    <div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)">
+                        <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:4px">离线音频包 <span style="color:var(--text-secondary)">（离线发音）</span></div>
+                        <div style="font-size:10px;color:var(--text-tertiary);margin-bottom:3px">要生成并轮换的音色</div>
+                        <div id="settings-pack-voices" style="display:flex;flex-wrap:wrap;gap:4px 12px;margin-bottom:6px"></div>
+                        <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:4px 10px;margin-bottom:6px">
+                            <span id="settings-pack-coverage" style="font-family:var(--font-mono);font-size:10px;color:var(--text-secondary);flex:1;min-width:120px"></span>
+                            <label style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-tertiary);white-space:nowrap">范围
+                                <input type="text" id="settings-pack-range" placeholder="all" inputmode="numeric" class="settings-input" style="width:68px;text-align:center">
+                            </label>
+                        </div>
+                        <div style="display:flex;gap:6px">
+                            <button id="settings-pack-export" class="wl-btn-secondary" style="flex:1;justify-content:center">导出单词表</button>
+                            <button id="settings-pack-download" class="wl-btn-primary" style="flex:1;justify-content:center">下载音频包</button>
+                        </div>
+                        <div id="settings-pack-status" style="font-family:var(--font-mono);font-size:10px;color:var(--text-secondary);margin-top:5px;min-height:13px"></div>
+                        <p style="font-size:10px;color:var(--text-tertiary);margin-top:4px">导出单词表，提交为 tools/wordlist.txt，等云端构建完成后点下载。范围按序号构建一批，如 1-50、再 51-100 —— 留空则全部构建。</p>
+                    </div>
+                    <div style="margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)">
+                        <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:4px">Auto-pronounce <span style="color:var(--text-secondary)">（单词始终开启）</span></div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px 12px">
+                            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--text-secondary)">
+                                <input type="checkbox" id="settings-autoplay-endef" checked> 英文释义
+                            </label>
+                            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--text-secondary)">
+                                <input type="checkbox" id="settings-autoplay-cn" checked> 中文释义
+                            </label>
+                            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--text-secondary)">
+                                <input type="checkbox" id="settings-autoplay-collo" checked> 搭配 / 短语
+                            </label>
+                            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;color:var(--text-secondary)">
+                                <input type="checkbox" id="settings-autoplay-sent" checked> 例句
+                            </label>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ===== AI ===== -->
+            <div class="set-panel" id="set-ai">
+                <section class="settings-section">
+                    <h3>AI 提供商</h3>
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+                        <select id="settings-ai-provider" class="rd-select" style="min-width:140px"></select>
+                        <select id="settings-ai-model" class="rd-select" style="min-width:160px"></select>
+                    </div>
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                        <span style="font-size:11px;color:var(--text-tertiary)" id="api-key-label">API 密钥</span>
+                        <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." class="settings-input" style="flex:1;min-width:120px">
+                        <button class="wl-btn-primary" id="btn-save-api-key" style="padding:6px 10px">保存</button>
+                        <button class="wl-btn-secondary" id="btn-test-api" style="padding:6px 8px">测试</button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ===== SYNC ===== -->
+            <div class="set-panel" id="set-sync">
+                <section class="settings-section">
+                    <h3>云同步</h3>
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                        <span style="font-size:11px;color:var(--text-tertiary)">GitHub 令牌</span>
+                        <input type="password" id="sync-github-token" placeholder="ghp_..." class="settings-input" style="flex:1;min-width:120px">
+                        <button class="wl-btn-primary" id="btn-save-sync-token" style="padding:6px 10px">保存</button>
+                    </div>
+                    <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+                        <button class="wl-btn-secondary" id="btn-sync-push" style="padding:6px 10px">&#x2601;&#xFE0F; 立即上传</button>
+                        <button class="wl-btn-secondary" id="btn-sync-pull" style="padding:6px 10px">&#x2B07;&#xFE0F; 立即下载</button>
+                    </div>
+                    <p style="font-size:10px;color:var(--text-tertiary);margin-top:4px">在 github.com/settings/tokens 创建 &rarr; 权限只勾 <strong>gist</strong>。每台设备活跃时每 30 秒、聚焦时、数据变动时自动同步。</p>
+                </section>
+            </div>
+
+            <!-- ===== DATA ===== -->
+            <div class="set-panel" id="set-data">
+                <section class="settings-section">
+                    <h3>数据</h3>
+                    <div class="settings-btn-row">
+                        <button class="wl-btn-secondary" id="btn-export">导出</button>
+                        <button class="wl-btn-secondary" id="btn-import">导入</button>
+                        <button class="wl-btn-secondary" id="btn-clear-words" style="color:var(--danger)">清空单词</button>
+                        <button class="wl-btn-danger" id="btn-factory-reset">全部重置</button>
+                    </div>
+                    <p style="font-size:10px;color:var(--text-tertiary);margin-top:6px">导出会保存一份备份文件。清空单词只清空生词本。全部重置会抹掉本设备上所有设置和数据。</p>
+                    <div class="settings-btn-row" style="margin-top:10px">
+                        <button class="wl-btn-secondary" id="btn-merge-forms">&#x1F517; 合并词形</button>
+                    </div>
+                    <p style="font-size:10px;color:var(--text-tertiary);margin-top:4px">找出生词本里同一个词的不同形态（cap / capping / caps）并合并为一个。每组都会先让你确认再改动。</p>
+                </section>
+                <section class="settings-section" id="developer-section">
+                    <h3>开发者</h3>
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+                        <input type="checkbox" id="pref-debug-panel" style="width:16px;height:16px;cursor:pointer">
+                        <span>显示调试面板（右下角 <strong>DBG</strong> 按钮）</span>
+                    </label>
+                    <p style="font-size:10px;color:var(--text-tertiary);margin-top:4px">开启后右下角会出现一个悬浮诊断面板，含布局测量、PWA 状态、图标探测和实时日志。正常使用请关闭。</p>
+                </section>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== NOTEBOOK MODAL ===== -->
+<div class="modal-overlay" id="notebook-modal">
+    <div class="modal-card modal-notebook">
+        <div class="modal-header"><h2>生词本</h2><button class="modal-close" id="notebook-close">&times;</button></div>
+        <div class="modal-body">
+            <input type="text" id="notebook-search" class="settings-input" placeholder="搜索单词..." style="margin-bottom:12px">
+            <div class="notebook-list" id="notebook-list"></div>
+        </div>
+    </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="config.js?v=106"></script>
+<script src="dictionary.js?v=106"></script>
+<script src="vocab-hs-data.js?v=106"></script>
+<script src="db.js?v=106"></script>
+<script src="ai-engine.js?v=106"></script>
+<script src="my-words.js?v=106"></script>
+<script src="cloze.js?v=106"></script>
+<script src="writing-lab.js?v=106"></script>
+<script src="vocab-drill.js?v=106"></script>
+<script src="reader.js?v=106"></script>
+<script src="speaking-coach.js?v=106"></script>
+<script src="expressions-data.js?v=106"></script>
+<script src="expressions-coach.js?v=106"></script>
+<script src="sentence.js?v=106"></script>
+<script src="sentence-drill.js?v=106"></script>
+<script src="sync.js?v=106"></script>
+<script src="tts-pack.js?v=106"></script>
+<script src="app.js?v=106"></script>
+<!-- Debug panel — hidden by default, toggled via Settings → Developer.
+     Script always loads so console-log capture is active even when UI
+     is hidden, enabling post-mortem inspection of recent errors. -->
+<script src="debug-panel.js?v=106"></script>
+<script>
+// --- PWA install: capture the browser's install prompt ---
+// Chrome fires beforeinstallprompt when install criteria are met.
+// We stash the event and expose an explicit "Install app" button in
+// Settings, because the passive install bubble is easy to miss.
+window.deferredInstallPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    window.deferredInstallPrompt = e;
+    const btn = document.getElementById('btn-install-app');
+    if (btn) btn.style.display = '';
+    console.log('[PWA] Install prompt available');
+});
+window.addEventListener('appinstalled', () => {
+    console.log('[PWA] App installed');
+    window.deferredInstallPrompt = null;
+    const btn = document.getElementById('btn-install-app');
+    if (btn) btn.style.display = 'none';
+    window.App?.showToast?.('App installed!');
+});
+window.promptInstall = async function() {
+    if (!window.deferredInstallPrompt) {
+        window.App?.showToast?.('Install not available. Try Chrome menu → "Install app" or "Add to Home Screen".');
+        return;
+    }
+    window.deferredInstallPrompt.prompt();
+    const { outcome } = await window.deferredInstallPrompt.userChoice;
+    console.log('[PWA] Install choice:', outcome);
+    window.deferredInstallPrompt = null;
+};
+
+// Register Service Worker for PWA
+if ('serviceWorker' in navigator) {
+    // Whether a SW was already controlling this page at load time. On the
+    // very first visit there is none, so the install → activate → claim
+    // sequence fires controllerchange even though no *update* happened.
+    // Reloading in that case is a pointless flash on first launch.
+    const hadControllerAtLoad = !!navigator.serviceWorker.controller;
+
+    // updateViaCache:'none' — never let the browser HTTP cache serve a
+    // stale sw.js on the update check. Without this a CDN cache (GitHub
+    // Pages sends max-age) could keep handing back an old worker, so a
+    // new deploy is never detected and the app stays pinned to an old
+    // version.
+    navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' }).then(reg => {
+        console.log('[PWA] Service worker registered, scope:', reg.scope);
+
+        // Check for updates every 60s while the page is open
+        setInterval(() => reg.update().catch(() => {}), 60000);
+
+        // When a new SW is waiting, tell it to activate immediately
+        reg.addEventListener('updatefound', () => {
+            const nw = reg.installing;
+            if (!nw) return;
+            nw.addEventListener('statechange', () => {
+                if (nw.state === 'installed' && navigator.serviceWorker.controller) {
+                    console.log('[PWA] New version installed — activating');
+                    nw.postMessage('SKIP_WAITING');
+                }
+            });
+        });
+    }).catch(err => {
+        console.warn('[PWA] SW registration failed:', err);
+    });
+
+    // Auto-reload once when the new SW takes control. Defer the reload
+    // while an interactive session is running (autoplay, drilling, TTS in
+    // flight) so a fresh deploy doesn't yank the user out of mid-session.
+    // We re-check every 30s and reload as soon as the session ends.
+    let reloaded = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (reloaded) return;
+        // First-visit claim, not an update — nothing to refresh for.
+        if (!hadControllerAtLoad) return;
+        reloaded = true;
+
+        const tryReload = () => {
+            const busy = (() => {
+                try { return Boolean(window.App?.isStudySessionActive?.()); }
+                catch { return false; }
+            })();
+            if (busy) {
+                console.log('[PWA] Update ready, but a study session is active — deferring reload');
+                setTimeout(tryReload, 30000);
+                return;
+            }
+            console.log('[PWA] Controller changed — reloading for fresh assets');
+            location.reload();
+        };
+        tryReload();
+    });
+}
+// Initialize sync after app boots
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => window.SyncManager?.init?.(), 500);
+});
+</script>
+</body>
+</html>

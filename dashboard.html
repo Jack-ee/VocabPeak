@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e213c">
+<title>VocabPeak 家长后台</title>
+<style>
+  :root{
+    --sky:#0e213c;          /* 深夜蓝底 */
+    --sky-2:#0b1a30;
+    --panel:#16324f;        /* 面板 */
+    --panel-2:#1b3a5c;
+    --line:#23486e;         /* 描边 */
+    --ink:#eef4fb;          /* 主文字 */
+    --muted:#8ba3c0;        /* 次要文字 */
+    --gold:#f0b429;         /* 金（山顶的太阳）*/
+    --gold-soft:#f3c766;
+    --green:#3ec98a;        /* 正确率 */
+    --red:#e2664f;          /* 薄弱/错误 */
+    /* 热力图强度：从暗到金，像夜空里逐个亮起的灯 */
+    --h0:#132a45;
+    --h1:#5c4a1e;
+    --h2:#8a6a1c;
+    --h3:#c28f1e;
+    --h4:#f0b429;
+    --radius:14px;
+    --font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:var(--font);
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 600px at 78% -8%, rgba(240,180,41,.10), transparent 60%),
+      linear-gradient(180deg,var(--sky) 0%,var(--sky-2) 100%);
+    background-attachment:fixed;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:22px 18px 60px}
+
+  /* ---- 品牌行 ---- */
+  .brand{display:flex;align-items:center;gap:11px;margin-bottom:22px}
+  .brand .peak{width:30px;height:30px;flex:0 0 auto}
+  .brand h1{font-size:19px;margin:0;font-weight:700;letter-spacing:.3px}
+  .brand h1 span{color:var(--gold)}
+  .brand .tag{margin-left:auto;font-size:12.5px;color:var(--muted)}
+
+  /* ---- 连接界面 ---- */
+  .card{
+    background:linear-gradient(180deg,var(--panel) 0%,var(--panel-2) 140%);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:22px;
+  }
+  .connect{max-width:440px;margin:6vh auto 0}
+  .connect h2{margin:0 0 6px;font-size:22px;letter-spacing:.3px}
+  .connect p.lead{margin:0 0 20px;color:var(--muted);font-size:14px}
+  label.f{display:block;font-size:13px;color:var(--muted);margin:14px 0 6px}
+  input[type=text],input[type=password]{
+    width:100%;padding:12px 13px;border-radius:10px;
+    background:var(--sky-2);border:1px solid var(--line);color:var(--ink);
+    font-size:15px;font-family:var(--font);outline:none;transition:border-color .15s,box-shadow .15s;
+  }
+  input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(240,180,41,.18)}
+  .hint{font-size:12px;color:var(--muted);margin-top:6px;line-height:1.55}
+  .hint a{color:var(--gold-soft)}
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    width:100%;margin-top:20px;padding:13px 16px;border:none;border-radius:11px;
+    background:var(--gold);color:#31240a;font-weight:700;font-size:15.5px;
+    font-family:var(--font);cursor:pointer;transition:transform .12s,filter .15s;
+  }
+  .btn:hover{filter:brightness(1.05)}
+  .btn:active{transform:translateY(1px)}
+  .btn:disabled{opacity:.6;cursor:default}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--muted);width:auto;padding:8px 14px;font-size:13px;font-weight:600;margin:0}
+  .btn.ghost:hover{color:var(--ink);border-color:var(--gold)}
+  .msg{margin-top:16px;padding:11px 13px;border-radius:10px;font-size:13.5px;display:none}
+  .msg.err{display:block;background:rgba(226,102,79,.12);border:1px solid rgba(226,102,79,.4);color:#f4b3a5}
+  .msg.info{display:block;background:rgba(240,180,41,.10);border:1px solid rgba(240,180,41,.3);color:var(--gold-soft)}
+
+  /* ---- 仪表盘头部 ---- */
+  .dhead{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+  .dhead .who{font-size:20px;font-weight:700}
+  .dhead .who small{display:block;font-size:12.5px;color:var(--muted);font-weight:400;margin-top:2px}
+  .dhead .tools{margin-left:auto;display:flex;gap:8px}
+
+  /* ---- 数据卡片网格 ---- */
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:15px 16px}
+  .stat .k{font-size:12.5px;color:var(--muted);margin-bottom:8px;letter-spacing:.2px}
+  .stat .v{font-size:30px;font-weight:750;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:.5px}
+  .stat .v small{font-size:14px;font-weight:600;color:var(--muted);margin-left:3px}
+  .stat .sub{font-size:12px;color:var(--muted);margin-top:8px;font-variant-numeric:tabular-nums}
+  .stat .sub b{color:var(--ink);font-weight:600}
+  .stat.hot .v{color:var(--gold)}
+  .bars{display:flex;height:6px;border-radius:4px;overflow:hidden;margin-top:10px;background:var(--sky-2)}
+  .bars i{display:block;height:100%}
+
+  /* ---- 区块 ---- */
+  .section{margin-bottom:22px}
+  .section > h3{font-size:14px;letter-spacing:.4px;margin:0 0 12px;color:var(--ink);display:flex;align-items:center;gap:8px}
+  .section > h3 .note{font-size:12px;color:var(--muted);font-weight:400;margin-left:auto}
+
+  /* ---- 热力图（签名元素）---- */
+  .heat-outer{overflow-x:auto;padding-bottom:4px}
+  .heat{display:inline-grid;grid-template-columns:auto 1fr;gap:6px;min-width:min-content}
+  .heat .months{grid-column:2;display:flex;font-size:10.5px;color:var(--muted);margin-bottom:2px}
+  .heat .months span{flex:0 0 auto}
+  .heat .body{display:flex;gap:3px}
+  .heat .wdays{display:grid;grid-template-rows:repeat(7,12px);gap:3px;font-size:10px;color:var(--muted);padding-right:2px;align-self:end}
+  .heat .wdays span{line-height:12px;height:12px}
+  .heat .weeks{display:grid;grid-auto-flow:column;grid-auto-columns:12px;grid-template-rows:repeat(7,12px);gap:3px}
+  .cell{width:12px;height:12px;border-radius:3px;background:var(--h0);transition:transform .1s}
+  .cell[data-l="1"]{background:var(--h1)} .cell[data-l="2"]{background:var(--h2)}
+  .cell[data-l="3"]{background:var(--h3)} .cell[data-l="4"]{background:var(--h4)}
+  .cell.on:hover{transform:scale(1.35);outline:1px solid var(--gold-soft)}
+  .cell.empty{background:transparent}
+  .legend{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);margin-top:10px}
+  .legend .cell{width:11px;height:11px}
+  .heat-detail{margin-top:12px;font-size:13px;color:var(--muted);min-height:20px}
+  .heat-detail b{color:var(--ink)}
+
+  /* ---- 明细表 ---- */
+  table{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
+  th,td{text-align:right;padding:9px 10px;border-bottom:1px solid var(--line)}
+  th:first-child,td:first-child{text-align:left}
+  th{color:var(--muted);font-weight:600;font-size:12.5px}
+  td.date{color:var(--ink)}
+  td.acc-good{color:var(--green)} td.acc-mid{color:var(--gold-soft)} td.acc-low{color:var(--red)}
+  .dim{color:var(--muted)}
+
+  /* ---- 薄弱词 ---- */
+  .weak-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:9px}
+  .wchip{background:var(--sky-2);border:1px solid var(--line);border-radius:11px;padding:10px 12px;display:flex;align-items:baseline;gap:8px}
+  .wchip .w{font-weight:700;font-size:15px}
+  .wchip .m{font-size:12.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+  .wchip .x{font-size:11.5px;color:var(--red);flex:0 0 auto;font-variant-numeric:tabular-nums}
+  .empty-state{color:var(--muted);font-size:13.5px;padding:8px 0}
+
+  .foot{text-align:center;color:var(--muted);font-size:11.5px;margin-top:34px}
+
+  @media (max-width:640px){
+    .grid{grid-template-columns:repeat(2,1fr)}
+    .stat .v{font-size:26px}
+    .wrap{padding:18px 14px 50px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    *{transition:none!important}
+    .cell.on:hover{transform:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand">
+    <svg class="peak" viewBox="0 0 64 64" aria-hidden="true">
+      <circle cx="46" cy="19" r="8" fill="#f0b429"/>
+      <path d="M2 56 L22 24 L34 42 L44 28 L62 56 Z" fill="#eef4fb"/>
+      <path d="M22 24 L34 42 L27 42 L18 30 Z" fill="#9db6d4"/>
+    </svg>
+    <h1>Vocab<span>Peak</span> 家长后台</h1>
+    <span class="tag" id="brand-tag">学习记录总览</span>
+  </div>
+
+  <!-- ===== 连接界面 ===== -->
+  <div id="connect-view" class="connect card">
+    <h2>连接孩子的学习数据</h2>
+    <p class="lead">后台从孩子 App 同步用的 GitHub Gist 读取记录，只读、不改动任何数据。</p>
+
+    <label class="f" for="in-token">GitHub 访问令牌</label>
+    <input id="in-token" type="password" autocomplete="off" spellcheck="false" placeholder="ghp_… 或 github_pat_…">
+    <div class="hint">用孩子 App 同步所用的同一个 GitHub 账号的令牌（需要能读取 Gist 的权限）。令牌只保存在本机浏览器，只发送给 GitHub。</div>
+
+    <label class="f" for="in-profile">档案 ID</label>
+    <input id="in-profile" type="text" autocomplete="off" spellcheck="false" placeholder="kid" value="kid">
+    <div class="hint">与孩子 App 里 config.js 的 PROFILE_ID 一致（默认 kid）。</div>
+
+    <button class="btn" id="btn-connect">连接并查看</button>
+    <div class="msg" id="connect-msg"></div>
+    <div class="hint" style="margin-top:16px">中国大陆访问 GitHub 需要科学上网，否则会连接失败。</div>
+  </div>
+
+  <!-- ===== 仪表盘 ===== -->
+  <div id="dash-view" style="display:none">
+
+    <div class="dhead">
+      <div class="who" id="d-who">—</div>
+      <div class="tools">
+        <button class="btn ghost" id="btn-refresh">刷新</button>
+        <button class="btn ghost" id="btn-logout">断开</button>
+      </div>
+    </div>
+
+    <div class="grid" id="d-stats"></div>
+
+    <div class="section">
+      <h3>学习足迹 <span class="note" id="heat-range"></span></h3>
+      <div class="heat-outer">
+        <div class="heat" id="heat"></div>
+      </div>
+      <div class="legend">
+        <span>少</span>
+        <span class="cell" data-l="0"></span>
+        <span class="cell" data-l="1"></span>
+        <span class="cell" data-l="2"></span>
+        <span class="cell" data-l="3"></span>
+        <span class="cell" data-l="4"></span>
+        <span>多</span>
+      </div>
+      <div class="heat-detail" id="heat-detail">把鼠标移到某一天，查看当天详情。</div>
+    </div>
+
+    <div class="section">
+      <h3>近 30 天明细</h3>
+      <div class="card" style="padding:6px 14px">
+        <table id="d-table"><tbody></tbody></table>
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>薄弱词 <span class="note" id="weak-note"></span></h3>
+      <div id="d-weak"></div>
+    </div>
+
+  </div>
+
+  <div class="foot">VocabPeak · 数据只读自 GitHub Gist</div>
+</div>
+
+<script>
+"use strict";
+/* VocabPeak 家长后台 —— 只读展示孩子 App 同步到 GitHub Gist 的学习记录。
+   与 config.js 保持一致：存储前缀固定为 hsv_（若你改了 STORAGE_PREFIX，这里同步改）。 */
+const PREFIX  = "hsv_";
+const API     = "https://api.github.com";
+const LSK     = { token:"vpdash_token", profile:"vpdash_profile", gist:"vpdash_gist_id" };
+
+const $ = (id) => document.getElementById(id);
+
+/* ---------- 本机设置存取（家长自己的浏览器，vpdash_ 前缀，不碰 hsv_）---------- */
+const getLS = (k) => { try { return localStorage.getItem(k) || ""; } catch(e){ return ""; } };
+const setLS = (k,v) => { try { v ? localStorage.setItem(k,v) : localStorage.removeItem(k); } catch(e){} };
+
+/* ---------- 日期工具（家长本地时区）---------- */
+function ymd(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,"0"), da=String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${da}`;
+}
+function parseYmd(s){ const p=String(s).split("-"); return new Date(+p[0], +p[1]-1, +p[2]); }
+const MONTHS = ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"];
+
+/* ---------- GitHub 读取 ---------- */
+async function ghGet(path, token){
+  const resp = await fetch(API + path, {
+    headers:{ "Authorization":`Bearer ${token}`, "Accept":"application/vnd.github+json" }
+  });
+  if(resp.status===401) throw new Error("AUTH");
+  if(resp.status===403) throw new Error("RATE");
+  if(resp.status===404) throw new Error("NOTFOUND");
+  if(!resp.ok) throw new Error("HTTP_"+resp.status);
+  return resp.json();
+}
+
+async function findGistId(token, profile){
+  const filename = `${PREFIX.replace(/_+$/,"")}-sync-${profile}.json`; // hsv-sync-{profile}.json
+  const list = await ghGet(`/gists?per_page=100`, token);
+  for(const g of list){
+    if(g.files && g.files[filename]) return g.id;
+  }
+  return "";
+}
+
+async function loadPayload(token, profile){
+  const filename = `${PREFIX.replace(/_+$/,"")}-sync-${profile}.json`;
+  let gistId = getLS(LSK.gist);
+  let gist = null;
+
+  async function fetchGist(id){ return ghGet(`/gists/${id}`, token); }
+
+  if(gistId){
+    try { gist = await fetchGist(gistId); }
+    catch(e){ gistId = ""; }                 // 存的 id 失效则重新查找
+  }
+  if(!gistId){
+    gistId = await findGistId(token, profile);
+    if(!gistId) throw new Error("NOGIST");
+    setLS(LSK.gist, gistId);
+    gist = await fetchGist(gistId);
+  }
+
+  const file = gist.files && gist.files[filename];
+  if(!file) throw new Error("NOGIST");
+
+  let content = file.content;
+  if(file.truncated && file.raw_url){        // 超大文件（词汇文本极少触发）
+    const r = await fetch(file.raw_url, { headers:{ "Authorization":`Bearer ${token}` } });
+    content = await r.text();
+  }
+  let payload;
+  try { payload = JSON.parse(content); }
+  catch(e){ throw new Error("BADDATA"); }
+  if(!payload || !payload.data) throw new Error("BADDATA");
+  return payload;
+}
+
+/* ---------- 解析 payload → 天记录 / 生词本 / 统计 ---------- */
+function parseData(payload, profile){
+  const data = payload.data || {};
+  const base = `${PREFIX}${profile}_`;
+  const days = [];
+  let notebook = [], stats = {};
+  for(const k in data){
+    let val;
+    if(k.startsWith(base+"day_")){
+      try { val = JSON.parse(data[k]); if(val && val.date) days.push(val); } catch(e){}
+    } else if(k === base+"notebook"){
+      try { notebook = JSON.parse(data[k]) || []; } catch(e){}
+    } else if(k === base+"stats"){
+      try { stats = JSON.parse(data[k]) || {}; } catch(e){}
+    }
+  }
+  days.sort((a,b)=> a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
+  return {
+    days, notebook, stats,
+    meta:{ syncTime:payload._syncTime, device:payload._device, profile:payload._profile || profile }
+  };
+}
+
+const dayTotal = (d) => (d.newWords||0)+(d.reviewed||0)+(d.quizTotal||0);
+function bucket(t){ if(t<=0)return 0; if(t<5)return 1; if(t<10)return 2; if(t<20)return 3; return 4; }
+
+/* ---------- 统计 ---------- */
+function computeStats(model){
+  const { days, notebook, stats } = model;
+  const byDate = {}; days.forEach(d=> byDate[d.date]=d);
+
+  const today = ymd(new Date());
+  const t = byDate[today] || { newWords:0, reviewed:0, quizTotal:0, quizCorrect:0 };
+
+  // 近 7 天
+  const wk = { newWords:0, reviewed:0, quizTotal:0, quizCorrect:0 };
+  for(let i=0;i<7;i++){
+    const dt=new Date(); dt.setDate(dt.getDate()-i);
+    const r=byDate[ymd(dt)]; if(!r) continue;
+    wk.newWords+=r.newWords||0; wk.reviewed+=r.reviewed||0;
+    wk.quizTotal+=r.quizTotal||0; wk.quizCorrect+=r.quizCorrect||0;
+  }
+
+  // 掌握分布（依据 srsLevel，与 App 内 getReviewStats 一致）
+  let mastered=0, learning=0, fresh=0;
+  notebook.forEach(w=>{
+    const lv=Number(w.srsLevel)||0;
+    if(lv>=5) mastered++; else if(lv>0) learning++; else fresh++;
+  });
+
+  const acc = (c,tot)=> tot>0 ? Math.round(c/tot*100) : null;
+  return {
+    streak: stats.streakDays||0,
+    lastActive: stats.lastActiveDate||"",
+    today:{ ...t, acc:acc(t.quizCorrect,t.quizTotal) },
+    week:{ ...wk, acc:acc(wk.quizCorrect,wk.quizTotal) },
+    vocab: notebook.length,
+    mastered, learning, fresh
+  };
+}
+
+/* ---------- 薄弱词 ---------- */
+function weakWords(notebook){
+  const rows = notebook.map(w=>({
+    word:w.word||"",
+    meaning:w.meaning||"",
+    mistakes:Number(w.mistakeCount||w.wrongCount||0),
+    flagged:Array.isArray(w.focus) && w.focus.includes("weak")
+  })).filter(w=> w.flagged || w.mistakes>0);
+  rows.sort((a,b)=> (b.flagged-a.flagged) || (b.mistakes-a.mistakes));
+  return rows;
+}
+
+/* ================= 渲染 ================= */
+function render(model){
+  const s = computeStats(model);
+
+  // 头部
+  const name = model.meta.profile;
+  let sub = "";
+  if(model.meta.syncTime){
+    const dt = new Date(model.meta.syncTime);
+    sub = `最近同步 ${dt.toLocaleString("zh-CN",{month:"numeric",day:"numeric",hour:"2-digit",minute:"2-digit"})}`;
+    if(model.meta.device) sub += ` · ${model.meta.device}`;
+  }
+  $("d-who").innerHTML = `档案：${escapeHtml(name)}<small>${escapeHtml(sub)}</small>`;
+
+  // 数据卡片
+  const accTxt = (a)=> a==null ? '<span class="dim">—</span>' : a+"%";
+  const masteryTotal = Math.max(1, s.mastered+s.learning+s.fresh);
+  const pct = (n)=> (n/masteryTotal*100).toFixed(1)+"%";
+  $("d-stats").innerHTML = `
+    <div class="stat hot">
+      <div class="k">连续学习</div>
+      <div class="v">${s.streak}<small>天</small></div>
+      <div class="sub">${s.lastActive ? "最近："+s.lastActive : "还没有记录"}</div>
+    </div>
+    <div class="stat">
+      <div class="k">今日</div>
+      <div class="v">${dayTotal(s.today)}<small>次</small></div>
+      <div class="sub">新词 <b>${s.today.newWords||0}</b> · 复习 <b>${s.today.reviewed||0}</b> · 测验 <b>${s.today.quizTotal||0}</b>（${accTxt(s.today.acc)}）</div>
+    </div>
+    <div class="stat">
+      <div class="k">近 7 天</div>
+      <div class="v">${dayTotal(s.week)}<small>次</small></div>
+      <div class="sub">新词 <b>${s.week.newWords}</b> · 复习 <b>${s.week.reviewed}</b> · 测验正确率 <b>${accTxt(s.week.acc)}</b></div>
+    </div>
+    <div class="stat">
+      <div class="k">词汇量</div>
+      <div class="v">${s.vocab}</div>
+      <div class="sub">已掌握 <b>${s.mastered}</b> · 学习中 <b>${s.learning}</b> · 新词 <b>${s.fresh}</b></div>
+      <div class="bars" title="已掌握 ${pct(s.mastered)} / 学习中 ${pct(s.learning)} / 新词 ${pct(s.fresh)}">
+        <i style="width:${pct(s.mastered)};background:var(--green)"></i>
+        <i style="width:${pct(s.learning)};background:var(--gold)"></i>
+        <i style="width:${pct(s.fresh)};background:var(--line)"></i>
+      </div>
+    </div>`;
+
+  renderHeatmap(model);
+  renderTable(model);
+  renderWeak(model);
+}
+
+/* ---- 热力图：最近 18 周 ---- */
+function renderHeatmap(model){
+  const byDate = {}; model.days.forEach(d=> byDate[d.date]=d);
+  const weeks = 18;
+  const end = new Date();
+  const start = new Date(end);
+  start.setDate(end.getDate() - (weeks*7 - 1));
+  start.setDate(start.getDate() - start.getDay());   // 对齐到周日
+
+  const cells = [];
+  const monthMarks = [];
+  let lastMonth = -1, weekIdx = 0;
+  const cur = new Date(start);
+  while(cur <= end){
+    // 每逢周日记录该列的月份（用于顶部月份标签）
+    if(cur.getDay()===0){
+      const m = cur.getMonth();
+      if(m!==lastMonth){ monthMarks.push({col:weekIdx, label:MONTHS[m]}); lastMonth=m; }
+      weekIdx++;
+    }
+    const key = ymd(cur);
+    const rec = byDate[key];
+    const tot = rec ? dayTotal(rec) : 0;
+    const future = cur > end;
+    cells.push({ key, tot, lv:bucket(tot), rec, future });
+    cur.setDate(cur.getDate()+1);
+  }
+
+  const cellHtml = cells.map(c=>{
+    if(c.future) return `<div class="cell empty"></div>`;
+    const title = `${c.key}：新词 ${c.rec?c.rec.newWords||0:0} · 复习 ${c.rec?c.rec.reviewed||0:0} · 测验 ${c.rec?c.rec.quizTotal||0:0}`;
+    return `<div class="cell ${c.tot>0?'on':''}" data-l="${c.lv}" data-key="${c.key}" title="${title}"></div>`;
+  }).join("");
+
+  // 月份标签：按列宽 15px（12 格 + 3 间距）估算定位
+  const colW = 15;
+  const monthsHtml = monthMarks.map((mk,i)=>{
+    const nextCol = (i+1<monthMarks.length) ? monthMarks[i+1].col : weekIdx;
+    const w = Math.max(1,(nextCol-mk.col))*colW;
+    return `<span style="width:${w}px">${mk.label}</span>`;
+  }).join("");
+
+  $("heat").innerHTML = `
+    <div class="months" style="grid-column:2">${monthsHtml}</div>
+    <div class="wdays"><span></span><span>周一</span><span></span><span>周三</span><span></span><span>周五</span><span></span></div>
+    <div class="weeks">${cellHtml}</div>`;
+
+  $("heat-range").textContent = `${start.getMonth()+1}月${start.getDate()}日 – 至今`;
+
+  // 悬停/点击查看当天
+  const detail = $("heat-detail");
+  const show = (el)=>{
+    const key = el.getAttribute("data-key"); if(!key) return;
+    const r = byDate[key];
+    if(!r){ detail.innerHTML = `<b>${key}</b>　当天没有学习记录`; return; }
+    const acc = (r.quizTotal>0) ? Math.round((r.quizCorrect||0)/r.quizTotal*100)+"%" : "—";
+    detail.innerHTML = `<b>${key}</b>　新词 <b>${r.newWords||0}</b>　复习 <b>${r.reviewed||0}</b>　测验 <b>${r.quizTotal||0}</b> 题（正确率 ${acc}）`;
+  };
+  $("heat").querySelectorAll(".cell.on").forEach(el=>{
+    el.addEventListener("mouseenter", ()=>show(el));
+    el.addEventListener("click", ()=>show(el));
+  });
+}
+
+/* ---- 近 30 天明细 ---- */
+function renderTable(model){
+  const rows = model.days.filter(d=> dayTotal(d)>0).slice(-30).reverse();
+  const body = $("d-table").querySelector("tbody");
+  if(!rows.length){
+    body.innerHTML = `<tr><td colspan="5" class="empty-state">还没有学习记录。等孩子开始学习后，这里会按天出现足迹。</td></tr>`;
+    return;
+  }
+  const head = `<tr><th>日期</th><th>新词</th><th>复习</th><th>测验</th><th>正确率</th></tr>`;
+  const trs = rows.map(d=>{
+    let acc="—", cls="";
+    if(d.quizTotal>0){ const a=Math.round((d.quizCorrect||0)/d.quizTotal*100); acc=a+"%"; cls=a>=80?"acc-good":a>=60?"acc-mid":"acc-low"; }
+    return `<tr>
+      <td class="date">${d.date}</td>
+      <td>${d.newWords||0}</td>
+      <td>${d.reviewed||0}</td>
+      <td>${d.quizTotal||0}</td>
+      <td class="${cls}">${acc}</td>
+    </tr>`;
+  }).join("");
+  body.innerHTML = head + trs;
+}
+
+/* ---- 薄弱词 ---- */
+function renderWeak(model){
+  const rows = weakWords(model.notebook);
+  const box = $("d-weak");
+  $("weak-note").textContent = rows.length ? `共 ${rows.length} 个` : "";
+  if(!rows.length){
+    box.innerHTML = `<div class="empty-state">还没有标记的薄弱词。孩子在测验或复习中答错的词会自动出现在这里。</div>`;
+    return;
+  }
+  const shown = rows.slice(0,40);
+  box.innerHTML = `<div class="weak-list">` + shown.map(w=>`
+    <div class="wchip">
+      <span class="w">${escapeHtml(w.word)}</span>
+      <span class="m">${escapeHtml(w.meaning)}</span>
+      ${w.mistakes>0?`<span class="x">✗${w.mistakes}</span>`:``}
+    </div>`).join("") + `</div>` +
+    (rows.length>40 ? `<div class="hint" style="margin-top:10px">仅显示错得最多的前 40 个。</div>` : ``);
+}
+
+function escapeHtml(s){
+  return String(s==null?"":s).replace(/[&<>"']/g, m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));
+}
+
+/* ================= 连接流程 ================= */
+function showConnect(msg, kind){
+  $("connect-view").style.display="";
+  $("dash-view").style.display="none";
+  $("brand-tag").textContent="学习记录总览";
+  const el=$("connect-msg");
+  if(msg){ el.className="msg "+(kind||"err"); el.textContent=msg; }
+  else { el.className="msg"; el.textContent=""; }
+}
+function showDash(){
+  $("connect-view").style.display="none";
+  $("dash-view").style.display="";
+  $("brand-tag").textContent="";
+}
+
+const ERR = {
+  AUTH:"令牌无效或权限不足，请检查后重试。",
+  RATE:"GitHub 请求次数超限，请过一会儿再试。",
+  NOGIST:"没找到该档案的同步数据。确认档案 ID 与孩子 App 里一致，且孩子的 App 已至少同步过一次。",
+  NOTFOUND:"没找到对应的 Gist，可能已被删除。",
+  BADDATA:"同步数据无法解析，可能已损坏。",
+  NET:"连接失败。中国大陆访问 GitHub 需要科学上网，请检查网络后重试。"
+};
+function errText(e){
+  const c=(e&&e.message)||"";
+  if(ERR[c]) return ERR[c];
+  if(c.startsWith("HTTP_")) return "GitHub 返回错误（"+c.slice(5)+"），请稍后重试。";
+  return ERR.NET;
+}
+
+async function connect(opts){
+  const token = ($("in-token").value||"").trim();
+  const profile = ($("in-profile").value||"").trim() || "kid";
+  if(!token){ showConnect("请先填写 GitHub 令牌。"); return; }
+
+  const btn=$("btn-connect");
+  btn.disabled=true; btn.textContent="连接中…";
+  showConnect(); // 清除旧错误
+  try{
+    const payload = await loadPayload(token, profile);
+    const model = parseData(payload, profile);
+    // 连接成功，保存本机设置（下次自动加载）
+    setLS(LSK.token, token);
+    setLS(LSK.profile, profile);
+    showDash();
+    render(model);
+  }catch(e){
+    if(!opts||!opts.silent) showConnect(errText(e));
+    else showConnect(""); // 自动加载失败则安静回到连接界面
+  }finally{
+    btn.disabled=false; btn.textContent="连接并查看";
+  }
+}
+
+function logout(){
+  setLS(LSK.token,""); setLS(LSK.gist,"");
+  $("in-token").value="";
+  showConnect();
+}
+
+/* 绑定 */
+$("btn-connect").addEventListener("click", ()=>connect());
+$("btn-refresh").addEventListener("click", ()=>connect());
+$("btn-logout").addEventListener("click", logout);
+$("in-token").addEventListener("keydown", e=>{ if(e.key==="Enter") connect(); });
+$("in-profile").addEventListener("keydown", e=>{ if(e.key==="Enter") connect(); });
+
+/* 启动：若本机存过令牌，自动加载 */
+(function init(){
+  const savedProfile = getLS(LSK.profile); if(savedProfile) $("in-profile").value = savedProfile;
+  const savedToken = getLS(LSK.token);
+  if(savedToken){ $("in-token").value = savedToken; connect({silent:true}); }
+})();
+</script>
+</body>
+</html>
