@@ -126,6 +126,16 @@
 //        after an older copy was accidentally republished; cache bumped so
 //        the corrected files refresh cleanly on every device.
 
+// v107 — batch-2 fixes:
+//   • sync: local-only day logs are no longer deleted by whole-snapshot
+//     pulls (day_ keys are add-only in the merge; the union is pushed
+//     back after a pull that preserved any);
+//   • unbiased Fisher-Yates shuffles for quiz/drill options (was the
+//     biased sort(random) pattern in my-words + vocab-drill);
+//   • data-changed event renamed emp:datachanged → hsv:datachanged;
+//   • import button reduced to a single listener; backup filename is
+//     now vocabpeak-backup-*.json.
+
 // v106 — batch-1 fixes (see repo notes):
 //   • enrichment merge no longer wipes SRS state / builtin metadata;
 //   • AI paste-back orphans no longer inflate the daily new-word count;
@@ -137,7 +147,7 @@
 
 // 缓存名与 EMPro 隔离：Cache Storage 也是按 origin 共享的，两个应用
 // 的 CACHE_NAME 必须不同，否则会互相删除对方的缓存。
-const CACHE_NAME = 'hsv-v9';
+const CACHE_NAME = 'hsv-v10';
 const ASSETS = [
     './',
     './index.html',

@@ -11,6 +11,17 @@ window.VocabDrill = (function() {
     let drillTotal      = 0;
     let isProcessing    = false;
 
+    // 无偏洗牌（Fisher–Yates，返回新数组）。sort(() => Math.random()-0.5)
+    // 分布有偏，训练题目与选项会偏向固定槽位。与 my-words 的 _shuffle 同实现。
+    function _shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    }
+
     // --- Pre-built synonym groups for instant drills (no API needed) ---
     const SYNONYM_BANK = [
         {
@@ -175,7 +186,7 @@ window.VocabDrill = (function() {
     // =====================================================
 
     function startSynonymDrill() {
-        const shuffled = [...SYNONYM_BANK].sort(() => Math.random() - 0.5);
+        const shuffled = _shuffle(SYNONYM_BANK);
         drillQueue     = [];
         drillIndex     = 0;
         drillScore     = 0;
@@ -188,11 +199,11 @@ window.VocabDrill = (function() {
             const [targetWord, targetData] = entries[Math.floor(Math.random() * entries.length)];
 
             // Build options: the correct answer + 3 distractors from same group
-            const others  = entries.filter(([w]) => w !== targetWord).sort(() => Math.random() - 0.5).slice(0, 3);
-            const options = [
+            const others  = _shuffle(entries.filter(([w]) => w !== targetWord)).slice(0, 3);
+            const options = _shuffle([
                 { word: targetWord, correct: true, register: targetData.register },
                 ...others.map(([w, d]) => ({ word: w, correct: false, register: d.register }))
-            ].sort(() => Math.random() - 0.5);
+            ]);
 
             drillQueue.push({
                 type     : 'synonym',
@@ -214,17 +225,17 @@ window.VocabDrill = (function() {
     // =====================================================
 
     function startCollocationDrill() {
-        const shuffled = [...COLLOCATION_BANK].sort(() => Math.random() - 0.5);
+        const shuffled = _shuffle(COLLOCATION_BANK);
         drillQueue     = [];
         drillIndex     = 0;
         drillScore     = 0;
         drillTotal     = 0;
 
         for (const item of shuffled.slice(0, 10)) {
-            const options = [
+            const options = _shuffle([
                 { text: item.correct, correct: true },
                 ...item.wrong.map(w => ({ text: w, correct: false }))
-            ].sort(() => Math.random() - 0.5);
+            ]);
 
             drillQueue.push({
                 type    : 'collocation',
@@ -265,7 +276,7 @@ window.VocabDrill = (function() {
         const notebook = window.DB.loadNotebook();
         let wordHint   = '';
         if (notebook.length >= 5) {
-            const sample = [...notebook].sort(() => Math.random() - 0.5).slice(0, 10).map(w => w.word);
+            const sample = _shuffle(notebook).slice(0, 10).map(w => w.word);
             wordHint = `\n\nOptionally incorporate some of these words the user is learning: ${sample.join(', ')}`;
         }
 

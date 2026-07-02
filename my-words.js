@@ -191,7 +191,7 @@ window.MyWords = (function() {
         // Re-pull notebook from storage and re-render if MyWords is the
         // active tab. If the user is on a different tab, the next time
         // they open MyWords they'll see fresh data via the normal init.
-        window.addEventListener('emp:datachanged', () => {
+        window.addEventListener('hsv:datachanged', () => {
             const isOnMyWordsTab = document.getElementById('view-my-words')?.classList.contains('active');
             refreshStudyList();
             window.App?.updateNotebookBadge?.();
@@ -210,9 +210,11 @@ window.MyWords = (function() {
     }
 
     function bindEvents() {
-        // Import
+        // Import — 单一 addEventListener。旧版是三重绑定（HTML 内联
+        // onclick + onclick 属性 + 监听器），点击一次触发两遍；开弹窗
+        // 幂等所以看不出来，但掩盖了真实的处理链路。
         const importBtn = document.getElementById('mw-import-btn');
-        if (importBtn) { importBtn.addEventListener('click', openImportModal); importBtn.onclick = openImportModal; }
+        if (importBtn) importBtn.addEventListener('click', openImportModal);
         document.getElementById('mw-import-close')?.addEventListener('click', closeImportModal);
         document.getElementById('mw-import-submit')?.addEventListener('click', handleImport);
         document.getElementById('mw-import-paste')?.addEventListener('click', pasteFromClipboard);
@@ -382,6 +384,18 @@ window.MyWords = (function() {
         const a = arr.slice();
         for (let i = a.length - 1; i > 0; i--) {
             const j = Math.floor(rng() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    }
+
+    // 无偏洗牌（Fisher–Yates，返回新数组，不动原数组）。
+    // sort(() => Math.random() - 0.5) 的比较器不满足一致性要求，多数引擎
+    // 下分布明显有偏——测验的正确选项会偏向固定槽位，学生可能学会"猜位置"。
+    function _shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
             [a[i], a[j]] = [a[j], a[i]];
         }
         return a;
@@ -1547,10 +1561,10 @@ IMPORTANT:
 
         const correctMeaning = w.meaning || w.enDef || '(no definition)';
         const distractors    = buildDistractors(currentIdx, 3);
-        const options = [
+        const options = _shuffle([
             { text: correctMeaning, correct: true },
             ...distractors.map(d => ({ text: d, correct: false }))
-        ].sort(() => Math.random() - 0.5);
+        ]);
 
         area.innerHTML = `
             <div class="mw-card mw-quiz-card">
@@ -1604,7 +1618,7 @@ IMPORTANT:
         }
         let pad = 1;
         while (pool.length < count) pool.push(`\uFF08\u5E72\u6270\u9879 ${pad++}\uFF09`);
-        return pool.sort(() => Math.random() - 0.5).slice(0, count);
+        return _shuffle(pool).slice(0, count);
     }
 
     function handleQuizAnswer(btn) {

@@ -328,10 +328,22 @@ window.SyncManager = (function() {
             });
 
             // Remove local keys that no longer exist in remote
-            // (so deletions on another device propagate correctly)
+            // (so deletions on another device propagate correctly).
+            //
+            // 例外：按天日志（day_YYYY-MM-DD）只增不删。设备 A 离线学习几天
+            // 后，若设备 B 先推送了不含那几天的快照，A 拉取时按原逻辑会把
+            // 自己独有的日志当成"远端已删除"而抹掉。day 键天然按日隔离，
+            // 本地又有 _pruneDayLog(400) 各自兜底，保留没有膨胀风险；这些
+            // 键随本机下次推送并回云端（pull() 看到 preservedDayKeys>0 会
+            // 主动补一次防抖推送，家长后台才能看到离线期间的记录）。
+            // 注意：同一天两台设备各自离线学习仍是后写覆盖（同键 LWW），
+            // day 键解决的是"跨天互删"，不做同日计数合并。
+            let preservedDayKeys = 0;
+            const dayPrefix = prefix + 'day_';
             if (localKeys.size > 0) {
-                changed = true;
                 localKeys.forEach(k => {
+                    if (k.startsWith(dayPrefix)) { preservedDayKeys++; return; }
+                    changed = true;
                     if (requiresReload(k)) configChanged = true;
                     else                   dataChangeCount++;
                     localStorage.removeItem(k);
@@ -339,7 +351,7 @@ window.SyncManager = (function() {
             }
 
             setLastPull(payload._syncTime || Date.now());
-            return { applied: true, changed, configChanged, dataChangeCount };
+            return { applied: true, changed, configChanged, dataChangeCount, preservedDayKeys };
         } finally {
             suspendHooks = false;
         }
@@ -384,6 +396,16 @@ window.SyncManager = (function() {
             if (shouldApply && remoteTime > 0) {
                 const result = mergeSyncData(payload) || {};
 
+                // 合并保留了本地独有的按天日志（day_ 例外，见 mergeSyncData）
+                // → 远端还缺这几天，安排一次防抖推送把并集补上云。不会形成
+                // 推拉循环：push 成功后 lastPull 会推进到自己的 _syncTime，
+                // 下一次轮询判定为无变化；另一台设备拉到并集后 preserved=0。
+                if (result.preservedDayKeys > 0) {
+                    console.log('[Sync] Preserved ' + result.preservedDayKeys +
+                                ' local-only day log(s) — scheduling push to upload the union');
+                    triggerSave();
+                }
+
                 // If the merge applied but no actual content changed (e.g. we
                 // just pulled back our own push, or another tab pushed the
                 // identical state), there is nothing to refresh — skip the
@@ -401,7 +423,7 @@ window.SyncManager = (function() {
                 //     emp_api_key — the AI engine reads it once at boot).
                 //   • Data changes (notebook, history, progress) apply
                 //     silently. Modules that need to re-render to show
-                //     fresh data listen for the 'emp:datachanged' event
+                //     fresh data listen for the 'hsv:datachanged' event
                 //     dispatched below.
                 //   • A small toast tells the user something arrived.
                 // This means: editing on phone → opening laptop won't
@@ -422,7 +444,7 @@ window.SyncManager = (function() {
                     // without a page reload. Each module decides whether
                     // to act on this (e.g. MyWords re-renders, Drill ignores).
                     try {
-                        window.dispatchEvent(new CustomEvent('emp:datachanged', {
+                        window.dispatchEvent(new CustomEvent('hsv:datachanged', {
                             detail: { source: 'sync-pull', count: n }
                         }));
                     } catch {}

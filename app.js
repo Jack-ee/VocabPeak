@@ -1164,7 +1164,7 @@
                 const url  = URL.createObjectURL(blob);
                 const a    = document.createElement('a');
                 a.href     = url;
-                a.download = `english-master-pro-backup-${new Date().toISOString().slice(0, 10)}.json`;
+                a.download = `vocabpeak-backup-${new Date().toISOString().slice(0, 10)}.json`;
                 document.body.appendChild(a);
                 a.click();
                 setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 100);
