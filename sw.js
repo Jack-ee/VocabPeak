@@ -1,5 +1,13 @@
 // sw.js — VocabPeak Service Worker
 
+// hsv-v13 (?v=110) — 课文精读: 应用内导入课文 (Windows 端粘贴):
+//   • 课程列表新增「导入课文」: 复制识别提示词 → 粘贴 AI 输出的
+//     JSON → 规范化(全角标点/弯引号/围栏剥离) → 校验报告 → 预览
+//     确认入库。词-句关联与全部 ID 由导入器自动生成。
+//   • 导入课存 hsv_{pid}_lessons_user, 随整档快照同步到平板;
+//     内置课只读, 导入课卡片可删除(进度记录一并清除)。
+//   • docs/lesson-import-prompt.md 入预缓存, 供应用内一键复制。
+
 // hsv-v12 (?v=109) — 课文精读: 填空页体验改进 (实测反馈):
 //   • 填空支持上一题/下一题自由导航, 可跳过可回看; 已答题回显
 //     选项着色与反馈; 「交卷」出结果, 未答完不刷新最佳成绩且可
@@ -164,7 +172,7 @@
 
 // 缓存名与 EMPro 隔离：Cache Storage 也是按 origin 共享的，两个应用
 // 的 CACHE_NAME 必须不同，否则会互相删除对方的缓存。
-const CACHE_NAME = 'hsv-v12';
+const CACHE_NAME = 'hsv-v13';
 const ASSETS = [
     './',
     './index.html',
@@ -177,6 +185,7 @@ const ASSETS = [
     './lessons-data.js',
     './lessons.js',
     './lessons.css',
+    './docs/lesson-import-prompt.md',
     './db.js',
     './ai-engine.js',
     './my-words.js',

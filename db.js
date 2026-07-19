@@ -305,6 +305,16 @@
         saveNotebook: function(arr) {
             localStorage.setItem(key('notebook'), JSON.stringify(arr || []));
         },
+
+        // ─── 课文精读: 用户导入的课 ────────────────────────
+        // 键 hsv_{pid}_lessons_user, 与生词本同前缀, 自动进入
+        // 整档同步快照 (sync.js 按前缀收集), 平板端拉取后即可见。
+        loadUserLessons: function() {
+            return safeJSON(localStorage.getItem(key('lessons_user')), []);
+        },
+        saveUserLessons: function(arr) {
+            localStorage.setItem(key('lessons_user'), JSON.stringify(arr || []));
+        },
         upsertNotebookWord: function(entry, opts) {
             const nb       = this.loadNotebook();
             const wLow     = String(entry.word || '').trim().toLowerCase();

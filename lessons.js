@@ -34,8 +34,16 @@ window.Lessons = (function () {
     }
     function toast(msg) { window.App?.showToast?.(msg); }
     function speak(text, onEnd) { window.App?.speak?.(text, null, onEnd); }
-    function lessons() { return Array.isArray(window.HSV_LESSONS) ? window.HSV_LESSONS : []; }
-    function lessonById(id) { return lessons().find(l => l.id === id) || null; }
+
+    // 语料合并层: 内置课 (lessons-data.js, ID 前缀 L, 只读) +
+    // 用户导入课 (DB 'lessons_user' 键, ID 前缀 U, 可删除)。
+    // 不做缓存 —— 同步拉取会整体替换 localStorage, 每次现读保证一致,
+    // 几十 KB 的 JSON.parse 在交互路径上开销可忽略。
+    function builtinLessons() { return Array.isArray(window.HSV_LESSONS) ? window.HSV_LESSONS : []; }
+    function userLessons()    { return window.DB?.loadUserLessons?.() || []; }
+    function lessons()        { return builtinLessons().concat(userLessons()); }
+    function isUserLesson(id) { return /^U\d+$/.test(String(id || '')); }
+    function lessonById(id)   { return lessons().find(l => l.id === id) || null; }
 
     // Fisher-Yates —— 全模块唯一的洗牌实现，禁止 sort(random) 偏差写法。
     function shuffle(arr) {
@@ -155,18 +163,30 @@ window.Lessons = (function () {
             if (p.listened)              badges.push('<span class="ls-badge ls-badge-done">\u542C\u8BFB \u2713</span>');
             if (p.clozeBest != null)     badges.push('<span class="ls-badge">\u586B\u7A7A\u6700\u4F73 ' + p.clozeBest + '%</span>');
             if (p.matchDone)             badges.push('<span class="ls-badge ls-badge-done">\u77ED\u8BED \u2713</span>');
+            const del = isUserLesson(l.id)
+                ? `<button class="ls-card-del" data-del="${esc(l.id)}" title="\u5220\u9664\u8FD9\u8BFE">\u00d7</button>`
+                : '';
             return `
-            <button class="ls-card" data-lesson="${esc(l.id)}">
+            <div class="ls-card" data-lesson="${esc(l.id)}">
+                ${del}
                 <div class="ls-card-title">${esc(l.title)}</div>
                 <div class="ls-card-sub">${esc(l.titleZh || '')} \u00b7 ${wordN} \u8BCD</div>
                 <div class="ls-card-badges">${badges.join('') || '<span class="ls-badge ls-badge-empty">\u672A\u5F00\u59CB</span>'}</div>
-            </button>`;
+            </div>`;
         }).join('');
         root.innerHTML = `
             <div class="ls-home">
-                <div class="ls-home-title">\u8BFE\u6587\u7CBE\u8BFB</div>
-                <div class="ls-home-sub">\u542C\u8BFB \u2192 \u70B9\u8BCD \u2192 \u586B\u7A7A \u2192 \u77ED\u8BED\uFF0C\u4E00\u8BFE\u56DB\u6B65\u5403\u900F\u8BFE\u6587\u8BCD\u6C47\u3002</div>
+                <div class="ls-home-head">
+                    <div>
+                        <div class="ls-home-title">\u8BFE\u6587\u7CBE\u8BFB</div>
+                        <div class="ls-home-sub">\u542C\u8BFB \u2192 \u70B9\u8BCD \u2192 \u586B\u7A7A \u2192 \u77ED\u8BED\uFF0C\u4E00\u8BFE\u56DB\u6B65\u5403\u900F\u8BFE\u6587\u8BCD\u6C47\u3002</div>
+                    </div>
+                    <button class="wl-btn-secondary ls-import-btn" id="ls-import-open">\uFF0B \u5BFC\u5165\u8BFE\u6587</button>
+                </div>
                 <div class="ls-card-list">${cards || '<div class="ls-empty">\u6682\u65E0\u8BFE\u6587\u3002</div>'}</div>
+            </div>
+            <div class="ls-sheet-overlay" id="ls-import-overlay">
+                <div class="ls-sheet ls-import-sheet" id="ls-import-sheet"></div>
             </div>`;
     }
 
@@ -713,6 +733,271 @@ window.Lessons = (function () {
         matchState = null;
     }
 
+    // ════════════════════════════════════════════════════════
+    // 导入课文 (Windows 端粘贴 AI 识别的 JSON)
+    // 设计原则: AI 只产出内容, 不产出任何 ID 和交叉引用 ——
+    // 词-句关联由这里按「surface 首次精确出现的句子」自动建立,
+    // 消灭视觉识别最易出错的编号/引用错误类。
+    // ════════════════════════════════════════════════════════
+
+    let importText = '';   // 校验失败返回修改时保留粘贴内容
+
+    // 英文文本规范化: 拍照识别的三类脏数据 —— 全角标点、弯引号、
+    // 空白。中文字段 (zh/titleZh) 不经过此函数。
+    function normEn(s) {
+        let t = String(s == null ? '' : s);
+        const map = {
+            '\uFF0C': ',', '\u3002': '.', '\uFF1B': ';', '\uFF1A': ':',
+            '\uFF1F': '?', '\uFF01': '!', '\u3001': ',',
+            '\u2018': "'", '\u2019': "'", '\u201C': '"', '\u201D': '"',
+            '\uFF08': '(', '\uFF09': ')'
+        };
+        t = t.replace(/[\uFF0C\u3002\uFF1B\uFF1A\uFF1F\uFF01\u3001\u2018\u2019\u201C\u201D\uFF08\uFF09]/g, ch => map[ch]);
+        // 标点后紧跟字母时补空格 (数字如 1,000 不受影响)
+        t = t.replace(/([,;:?!])(?=[A-Za-z])/g, '$1 ');
+        t = t.replace(/\s+/g, ' ').trim();
+        return t;
+    }
+
+    // 剥离 AI 常见的输出包装: ```json 围栏、JSON 前后的说明文字。
+    function stripFences(s) {
+        let t = String(s || '').trim();
+        t = t.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '');
+        const a = t.indexOf('{');
+        const b = t.lastIndexOf('}');
+        if (a >= 0 && b > a && (a > 0 || b < t.length - 1)) t = t.slice(a, b + 1);
+        return t;
+    }
+
+    function nextUserLessonId() {
+        let max = 0;
+        userLessons().forEach(l => {
+            const m = /^U(\d+)$/.exec(l.id || '');
+            if (m) max = Math.max(max, parseInt(m[1], 10));
+        });
+        return 'U' + String(max + 1).padStart(2, '0');
+    }
+
+    // 解析 + 规范化 + 校验 + 自动关联。纯函数 (不落盘), 供预览和测试。
+    // 返回 { ok, lesson, errors, warnings, stats }。
+    function parseImport(jsonText) {
+        const errors   = [];
+        const warnings = [];
+        let raw;
+        try { raw = JSON.parse(stripFences(jsonText)); }
+        catch (e) {
+            return { ok: false, lesson: null, warnings: [], stats: null,
+                     errors: ['JSON \u89E3\u6790\u5931\u8D25: ' + e.message] };
+        }
+        if (!raw || typeof raw !== 'object') {
+            return { ok: false, lesson: null, warnings: [], stats: null,
+                     errors: ['\u9876\u5C42\u4E0D\u662F JSON \u5BF9\u8C61'] };
+        }
+
+        const id      = nextUserLessonId();
+        const title   = normEn(raw.title);
+        const titleZh = String(raw.titleZh || '').trim();
+        if (!title) errors.push('\u7F3A\u5C11 title (\u82F1\u6587\u6807\u9898)');
+        if (lessons().some(l => (l.title || '').toLowerCase() === title.toLowerCase())) {
+            warnings.push('\u5DF2\u5B58\u5728\u540C\u540D\u8BFE\u6587\u300C' + title + '\u300D\uFF0C\u786E\u8BA4\u4E0D\u662F\u91CD\u590D\u5BFC\u5165');
+        }
+
+        // 段落与句子
+        const paras = [];
+        const rawParas = Array.isArray(raw.paras) ? raw.paras : [];
+        if (!rawParas.length) errors.push('paras \u4E3A\u7A7A: \u6CA1\u6709\u8BC6\u522B\u5230\u6BB5\u843D');
+        rawParas.forEach((p, pi) => {
+            const pid  = `${id}-P${pi + 1}`;
+            const sens = [];
+            (Array.isArray(p && p.sentences) ? p.sentences : []).forEach((s, si) => {
+                const text = normEn(s && s.text);
+                if (!text) { errors.push(`\u7B2C ${pi + 1} \u6BB5\u7B2C ${si + 1} \u53E5\u4E3A\u7A7A`); return; }
+                sens.push({ id: `${pid}-S${si + 1}`, hard: !!(s && s.hard), text: text });
+            });
+            if (!sens.length) errors.push(`\u7B2C ${pi + 1} \u6BB5\u6CA1\u6709\u53E5\u5B50`);
+            paras.push({ id: pid, sentences: sens });
+        });
+        const flatSents = paras.reduce((a, p) => a.concat(p.sentences), []);
+
+        // 词条: 规范化 + 查重 + 自动关联句子
+        const words    = [];
+        const seenSurf = new Set();
+        const rawWords = Array.isArray(raw.words) ? raw.words : [];
+        if (!rawWords.length) errors.push('words \u4E3A\u7A7A: \u6CA1\u6709\u8BC6\u522B\u5230\u8BCD\u6C47');
+        rawWords.forEach((w, wi) => {
+            const label   = `\u8BCD ${wi + 1}`;
+            const surface = normEn(w && w.surface);
+            const lemma   = normEn(w && w.lemma) || surface;
+            const pos     = String(w && w.pos || '').trim();
+            const zh      = String(w && w.zh || '').trim().replace(/\s+/g, ' ');
+            if (!surface) { errors.push(`${label}: \u7F3A surface`); return; }
+            if (/[&<>"']/.test(surface) || /[&<>"']/.test(lemma)) {
+                errors.push(`${label} (${surface}): surface/lemma \u542B\u7279\u6B8A\u5B57\u7B26`); return;
+            }
+            if (!zh) errors.push(`${label} (${surface}): \u7F3A\u4E2D\u6587\u91CA\u4E49 zh`);
+            if (!pos) warnings.push(`${label} (${surface}): \u7F3A\u8BCD\u6027 pos`);
+            const dupKey = surface.toLowerCase() + '|' + lemma.toLowerCase();
+            if (seenSurf.has(dupKey)) {
+                errors.push(`${label} (${surface}): \u8BCD\u6761\u91CD\u590D`); return;
+            }
+            seenSurf.add(dupKey);
+
+            // 自动关联: surface 首次精确出现的句子
+            const hit = flatSents.find(s => s.text.indexOf(surface) >= 0);
+            if (!hit) {
+                const ci = flatSents.find(s => s.text.toLowerCase().indexOf(surface.toLowerCase()) >= 0);
+                errors.push(ci
+                    ? `${label} (${surface}): \u6B63\u6587\u4E2D\u4EC5\u6709\u5927\u5C0F\u5199\u4E0D\u4E00\u81F4\u7684\u5F62\u5F0F\uFF0C\u8BF7\u6838\u5BF9 surface`
+                    : `${label} (${surface}): \u5728\u6B63\u6587\u4EFB\u4F55\u53E5\u5B50\u4E2D\u627E\u4E0D\u5230\uFF0C\u8BF7\u6838\u5BF9\u62FC\u5199/\u6807\u70B9`);
+            }
+
+            const phrases = [];
+            (Array.isArray(w && w.phrases) ? w.phrases : []).forEach((ph, pj) => {
+                const en = normEn(ph && ph.en);
+                const cn = String(ph && ph.zh || '').trim();
+                if (!en && !cn) return;                       // 整条为空直接丢弃
+                if (!en || !cn) { errors.push(`${label} (${surface}): \u7B2C ${pj + 1} \u4E2A\u77ED\u8BED\u4E2D\u82F1\u4E0D\u6210\u5BF9`); return; }
+                phrases.push({ en: en, zh: cn });
+            });
+
+            words.push({
+                id      : `${id}-W${String(wi + 1).padStart(2, '0')}`,
+                lemma   : lemma,
+                surface : surface,
+                pos     : pos,
+                zh      : zh,
+                sent    : hit ? hit.id : '',
+                phrases : phrases
+            });
+        });
+
+        if (jsonText.length > 300000) errors.push('\u5185\u5BB9\u8FC7\u5927 (>300KB)\uFF0C\u8BF7\u6309\u8BFE\u62C6\u5206\u5BFC\u5165');
+        if (words.length > 200)       warnings.push('\u8BCD\u6761\u8D85\u8FC7 200 \u4E2A\uFF0C\u786E\u8BA4\u662F\u5426\u4E00\u8BFE\u7684\u91CF');
+
+        const stats = {
+            paraN   : paras.length,
+            sentN   : flatSents.length,
+            hardN   : flatSents.filter(s => s.hard).length,
+            wordN   : words.length,
+            phraseN : words.reduce((n, w) => n + w.phrases.length, 0)
+        };
+        const lesson = {
+            id: id, title: title || '\u672A\u547D\u540D\u8BFE\u6587', titleZh: titleZh,
+            paras: paras, words: words
+        };
+        return { ok: errors.length === 0, lesson: lesson, errors: errors, warnings: warnings, stats: stats };
+    }
+
+    // ─── 导入 UI ────────────────────────────────────────────
+    function openImport() {
+        importText = '';
+        renderImportPaste();
+        root.querySelector('#ls-import-overlay')?.classList.add('open');
+    }
+    function closeImport() {
+        root.querySelector('#ls-import-overlay')?.classList.remove('open');
+    }
+
+    function renderImportPaste() {
+        const sheet = root.querySelector('#ls-import-sheet');
+        if (!sheet) return;
+        sheet.innerHTML = `
+            <div class="ls-sheet-head">
+                <div class="ls-sheet-word">\u5BFC\u5165\u8BFE\u6587</div>
+                <button class="ls-sheet-close" id="ls-import-close">\u00d7</button>
+            </div>
+            <div class="ls-import-steps">\u2460 \u62CD\u8BFE\u6587\u7167\u7247 \u2192 \u2461 \u628A\u63D0\u793A\u8BCD\u548C\u7167\u7247\u53D1\u7ED9 AI \u2192 \u2462 \u628A AI \u8F93\u51FA\u7684 JSON \u7C98\u5230\u4E0B\u9762</div>
+            <button class="wl-btn-secondary" id="ls-import-copy-prompt">\u{1F4CB} \u590D\u5236\u8BC6\u522B\u63D0\u793A\u8BCD</button>
+            <textarea class="ls-import-textarea" id="ls-import-json"
+                placeholder='\u7C98\u8D34 AI \u8F93\u51FA\u7684 JSON\uFF08\u5E26 \u0060\u0060\u0060 \u56F4\u680F\u6216\u5939\u6742\u8BF4\u660E\u6587\u5B57\u4E5F\u80FD\u81EA\u52A8\u5904\u7406\uFF09'>${esc(importText)}</textarea>
+            <div class="ls-import-btn-row">
+                <button class="wl-btn-primary" id="ls-import-validate">\u6821\u9A8C\u5E76\u9884\u89C8</button>
+            </div>`;
+    }
+
+    function renderImportPreview(res) {
+        const sheet = root.querySelector('#ls-import-sheet');
+        if (!sheet) return;
+        const st   = res.stats;
+        const errs = res.errors.map(e => `<div class="ls-issue ls-issue-err">\u2717 ${esc(e)}</div>`).join('');
+        const wrns = res.warnings.map(w => `<div class="ls-issue ls-issue-warn">\u26A0 ${esc(w)}</div>`).join('');
+        sheet.innerHTML = `
+            <div class="ls-sheet-head">
+                <div class="ls-sheet-word">\u5BFC\u5165\u9884\u89C8</div>
+                <button class="ls-sheet-close" id="ls-import-close">\u00d7</button>
+            </div>
+            <div class="ls-import-preview-title">${esc(res.lesson?.title || '')}
+                <span class="ls-import-preview-zh">${esc(res.lesson?.titleZh || '')}</span>
+                <span class="ls-import-preview-id">${esc(res.lesson?.id || '')}</span>
+            </div>
+            ${st ? `<div class="ls-import-stats">${st.paraN} \u6BB5 \u00b7 ${st.sentN} \u53E5\uFF08\u96BE\u53E5 ${st.hardN}\uFF09\u00b7 ${st.wordN} \u8BCD \u00b7 ${st.phraseN} \u77ED\u8BED</div>` : ''}
+            ${errs}${wrns}
+            ${res.ok ? '<div class="ls-issue ls-issue-ok">\u2713 \u6821\u9A8C\u901A\u8FC7\u3002\u5BFC\u5165\u540E\u8BB0\u5F97: \u8BBE\u7F6E \u2192 \u5BFC\u51FA\u8BCD\u8868 \u2192 \u66F4\u65B0\u97F3\u9891\u5305\uFF0C\u65B0\u8BFE\u53E5\u5B50\u624D\u80FD\u79BB\u7EBF\u6717\u8BFB\u3002</div>' : ''}
+            <div class="ls-import-btn-row">
+                <button class="wl-btn-secondary" id="ls-import-back">\u2190 \u8FD4\u56DE\u4FEE\u6539</button>
+                <button class="wl-btn-primary" id="ls-import-confirm"${res.ok ? '' : ' disabled'}>\u2714 \u786E\u8BA4\u5BFC\u5165</button>
+            </div>`;
+        sheet._pendingLesson = res.ok ? res.lesson : null;
+    }
+
+    function validateImport() {
+        const ta = root.querySelector('#ls-import-json');
+        importText = ta ? ta.value : '';
+        if (!importText.trim()) { toast('\u5148\u7C98\u8D34 JSON'); return; }
+        renderImportPreview(parseImport(importText));
+    }
+
+    function confirmImport() {
+        const sheet  = root.querySelector('#ls-import-sheet');
+        const lesson = sheet && sheet._pendingLesson;
+        if (!lesson || !window.DB?.saveUserLessons) return;
+        const arr = userLessons();
+        arr.push(lesson);
+        window.DB.saveUserLessons(arr);
+        closeImport();
+        renderHome();
+        toast('\u2713 \u5DF2\u5BFC\u5165\u300C' + lesson.title + '\u300D');
+    }
+
+    async function copyImportPrompt() {
+        let text = '';
+        try {
+            const r = await fetch('docs/lesson-import-prompt.md');
+            if (r.ok) text = await r.text();
+        } catch (e) {}
+        if (!text) { toast('\u63D0\u793A\u8BCD\u6587\u4EF6\u8BFB\u53D6\u5931\u8D25'); return; }
+        // 只复制两条分隔线之间的提示词正文
+        const parts = text.split(/^-{20,}\s*$/m);
+        const body  = (parts.length >= 3 ? parts[1] : text).trim();
+        let ok = false;
+        try { await navigator.clipboard.writeText(body); ok = true; }
+        catch (e) {
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = body;
+                document.body.appendChild(ta);
+                ta.select();
+                ok = document.execCommand('copy');
+                ta.remove();
+            } catch (e2) {}
+        }
+        toast(ok ? '\u{1F4CB} \u63D0\u793A\u8BCD\u5DF2\u590D\u5236\uFF0C\u53BB\u7C98\u7ED9 AI \u5427' : '\u590D\u5236\u5931\u8D25\uFF0C\u8BF7\u6253\u5F00 docs/lesson-import-prompt.md \u624B\u52A8\u590D\u5236');
+    }
+
+    function deleteUserLesson(id) {
+        const l = lessonById(id);
+        if (!l || !isUserLesson(id)) return;
+        if (!confirm('\u5220\u9664\u8BFE\u6587\u300C' + l.title + '\u300D\uFF1F\u5B66\u4E60\u8FDB\u5EA6\u8BB0\u5F55\u4E00\u5E76\u6E05\u9664\u3002')) return;
+        window.DB?.saveUserLessons?.(userLessons().filter(x => x.id !== id));
+        const p = loadProgress();
+        if (p[id]) { delete p[id]; saveProgress(p); }
+        try {
+            if (window.DB?.getPref?.('lesson_last', '') === id) window.DB?.setPref?.('lesson_last', '');
+        } catch (e) {}
+        renderHome();
+        toast('\u5DF2\u5220\u9664\u300C' + l.title + '\u300D');
+    }
+
     // ─── Events (单一委托监听，root 内所有交互都走这里) ─────
     function onClick(e) {
         const t = e.target;
@@ -720,6 +1005,18 @@ window.Lessons = (function () {
         // 通用: 任何带 data-say 的小喇叭
         const sayBtn = t.closest('[data-say]');
         if (sayBtn) { e.stopPropagation(); speak(sayBtn.dataset.say); return; }
+
+        // 导入课文 / 删除导入课 (删除按钮在卡片内, 必须先判)
+        const delBtn = t.closest('.ls-card-del');
+        if (delBtn) { deleteUserLesson(delBtn.dataset.del); return; }
+        if (t.closest('#ls-import-open'))         { openImport(); return; }
+        if (t.closest('#ls-import-close'))        { closeImport(); return; }
+        if (t.closest('#ls-import-copy-prompt'))  { copyImportPrompt(); return; }
+        if (t.closest('#ls-import-validate'))     { validateImport(); return; }
+        if (t.closest('#ls-import-back'))         { renderImportPaste(); return; }
+        if (t.closest('#ls-import-confirm') && !t.closest('#ls-import-confirm').disabled) { confirmImport(); return; }
+        const impOverlay = t.closest('#ls-import-overlay');
+        if (impOverlay && t === impOverlay) { closeImport(); return; }
 
         // 课程列表
         const card = t.closest('.ls-card');
@@ -806,6 +1103,7 @@ window.Lessons = (function () {
     return {
         init          : init,
         stopPlay      : stopPlay,
-        speechEntries : speechEntries
+        speechEntries : speechEntries,
+        parseImport   : parseImport    // 纯函数, 供测试/调试
     };
 })();
