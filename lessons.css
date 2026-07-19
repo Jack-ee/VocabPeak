@@ -77,12 +77,67 @@
 }
 .ls-back:hover { background: var(--bg-hover); }
 .ls-head-text  { flex: 1; min-width: 0; }
+.ls-head-switch {
+    display     : flex;
+    align-items : center;
+    gap         : 6px;
+    max-width   : 100%;
+    background  : none;
+    border      : none;
+    padding     : 0;
+    cursor      : pointer;
+    color       : var(--text-primary);
+    text-align  : left;
+}
+.ls-head-switch:hover .ls-head-title { color: var(--accent); }
+.ls-switch-caret {
+    font-size   : 11px;
+    color       : var(--text-tertiary);
+    flex-shrink : 0;
+    transition  : transform 0.15s ease;
+}
+.ls-head-switch.open .ls-switch-caret { transform: rotate(180deg); }
 .ls-head-title {
     font-size     : 16px;
     font-weight   : 600;
     white-space   : nowrap;
     overflow      : hidden;
     text-overflow : ellipsis;
+}
+.ls-switch-menu {
+    display       : none;
+    background    : var(--bg-card);
+    border        : 1px solid var(--bg-accent);
+    border-radius : 12px;
+    padding       : 6px;
+    margin        : -6px 0 12px;
+    box-shadow    : 0 6px 24px rgba(0, 0, 0, 0.10);
+}
+.ls-switch-menu.open { display: block; }
+.ls-switch-item {
+    display       : block;
+    width         : 100%;
+    text-align    : left;
+    background    : none;
+    border        : none;
+    border-radius : 9px;
+    padding       : 9px 12px;
+    cursor        : pointer;
+}
+.ls-switch-item:hover { background: var(--bg-hover); }
+.ls-switch-item.cur   { background: var(--accent-bg); }
+.ls-switch-en {
+    display     : block;
+    font-size   : 14.5px;
+    font-weight : 600;
+    color       : var(--text-primary);
+}
+.ls-switch-item.cur .ls-switch-en { color: var(--accent-text); }
+.ls-switch-meta {
+    display   : block;
+    font-size : 12px;
+    color     : var(--text-secondary);
+    margin-top: 1px;
 }
 .ls-head-sub  { font-size: 12px; color: var(--text-secondary); }
 .ls-head-prog {

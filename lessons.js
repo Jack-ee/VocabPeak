@@ -215,13 +215,17 @@ window.Lessons = (function () {
         root.innerHTML = `
             <div class="ls-lesson">
                 <div class="ls-head">
-                    <button class="ls-back" id="ls-back">\u2190</button>
+                    <button class="ls-back" id="ls-back" title="\u5168\u90E8\u8BFE\u6587">\u2190</button>
                     <div class="ls-head-text">
-                        <div class="ls-head-title">${esc(l.title)}</div>
+                        <button class="ls-head-switch" id="ls-lesson-switch" title="\u5207\u6362\u8BFE\u6587">
+                            <span class="ls-head-title">${esc(l.title)}</span>
+                            <span class="ls-switch-caret">\u25BE</span>
+                        </button>
                         <div class="ls-head-sub">${esc(l.titleZh || '')}</div>
                     </div>
                     <div class="ls-head-prog" id="ls-head-prog"></div>
                 </div>
+                <div class="ls-switch-menu" id="ls-switch-menu">${switchMenuHtml(l.id)}</div>
                 <div class="ls-tabs">
                     <button class="ls-tab" data-lstab="read">\u{1F4D6} \u8BFE\u6587</button>
                     <button class="ls-tab" data-lstab="cloze">\u270F\uFE0F \u586B\u7A7A</button>
@@ -231,6 +235,25 @@ window.Lessons = (function () {
             </div>`;
         renderHeaderProgress();
         switchTab(curTab);
+    }
+
+    // 课程切换下拉: 课内页点标题展开, 点选切课并保持当前学习步骤。
+    function switchMenuHtml(currentId) {
+        return lessons().map(l => {
+            const cur = l.id === currentId;
+            return `<button class="ls-switch-item${cur ? ' cur' : ''}" data-switch="${esc(l.id)}">
+                <span class="ls-switch-en">${esc(l.title)}</span>
+                <span class="ls-switch-meta">${esc(l.titleZh || '')} \u00b7 ${(l.words || []).length} \u8BCD${cur ? ' \u00b7 \u5F53\u524D' : ''}</span>
+            </button>`;
+        }).join('');
+    }
+
+    function toggleSwitchMenu(force) {
+        const m = root.querySelector('#ls-switch-menu');
+        if (!m) return;
+        const open = (force != null) ? force : !m.classList.contains('open');
+        m.classList.toggle('open', open);
+        root.querySelector('#ls-lesson-switch')?.classList.toggle('open', open);
     }
 
     function renderHeaderProgress() {
@@ -760,6 +783,55 @@ window.Lessons = (function () {
 
     let importText = '';   // 校验失败返回修改时保留粘贴内容
 
+    // 识别提示词全文内嵌 —— 复制按钮的关键路径不依赖网络/缓存文件。
+    // 与 docs/lesson-import-prompt.md 保持同步; 改动提示词时两处同改。
+    const IMPORT_PROMPT = `你是英语教材语料录入助手。我会上传若干张教材课文照片（可能分段拍摄，段落有 Para. N 标号）。
+请识别并只输出一个 JSON 对象——不要任何解释文字，不要 Markdown 代码块标记。
+
+转写规则:
+
+1. 逐字转写英文原文，忠实于照片，保持原有段落划分。每段拆分为句子数组，一句一条。
+2. 标点规范化: 英文文本中的全角标点（，。；：？！""''）一律转为对应的半角英文标点;
+   撇号和引号统一用直引号 ' 和 "。数字、缩写（如 Dr. / Mass.）保持原样。
+3. 教材中蓝色（或高亮）标注的词汇逐个列出，按课文出现顺序排列:
+   - surface: 课文中的原样形式，大小写和屈折形式与正文完全一致（如 injuries、published、Race）
+   - lemma: 词典原型（injuries → injury, published → publish, lengthening → lengthen）;
+     短语动词和固定短语整体作为一个词条（contributing to 的 lemma 为 contribute to,
+     at all times 原样即 lemma）
+4. 正文中带波浪下划线或标有「难句」记号的句子，hard 设为 true; 其余为 false。
+5. pos 词性缩写: n. / v. / adj. / adv. / prep. / conj. / pron. / phr. / phr. v.，
+   多词性用 " / " 连接（如 "n. / v."）。
+6. zh 为符合中国高中教材口径的中文释义，多义项用 "; " 分隔;
+   多词性时按词性分组（如 "n. 益处; 好处  v. 使受益"）。
+7. phrases 为该词 1-3 个高考高频搭配，优先收录课文原文中实际出现的搭配，
+   每条含 en 和 zh。确无合适搭配时用空数组 []。
+8. 照片中未拍到或无法辨认的内容不要臆造; 无法确认的词条省略并在
+   JSON 的 "notes" 字段中用中文说明。
+
+输出格式（严格遵守，只输出这个 JSON）:
+
+{
+  "title": "课文英文标题（照片中没有标题时根据内容拟一个简短的）",
+  "titleZh": "中文标题",
+  "paras": [
+    { "sentences": [
+        { "text": "First sentence of the paragraph.", "hard": false },
+        { "text": "A sentence marked as difficult.",  "hard": true }
+    ] }
+  ],
+  "words": [
+    { "surface": "injuries", "lemma": "injury", "pos": "n.",
+      "zh": "受伤; 伤害",
+      "phrases": [ { "en": "suffer an injury", "zh": "受伤" } ] }
+  ],
+  "notes": ""
+}
+
+输出前自检:
+- 每个 surface 必须能在某个句子的 text 中原样找到（区分大小写、含空格的短语完整匹配）
+- 英文句子中不残留任何全角标点或弯引号
+- 词条无重复，短语的 en 和 zh 成对出现`;
+
     // 英文文本规范化: 拍照识别的三类脏数据 —— 全角标点、弯引号、
     // 空白。中文字段 (zh/titleZh) 不经过此函数。
     function normEn(s) {
@@ -977,29 +1049,46 @@ window.Lessons = (function () {
         toast('\u2713 \u5DF2\u5BFC\u5165\u300C' + lesson.title + '\u300D');
     }
 
-    async function copyImportPrompt() {
-        let text = '';
-        try {
-            const r = await fetch('docs/lesson-import-prompt.md');
-            if (r.ok) text = await r.text();
-        } catch (e) {}
-        if (!text) { toast('\u63D0\u793A\u8BCD\u6587\u4EF6\u8BFB\u53D6\u5931\u8D25'); return; }
-        // 只复制两条分隔线之间的提示词正文
-        const parts = text.split(/^-{20,}\s*$/m);
-        const body  = (parts.length >= 3 ? parts[1] : text).trim();
+    function copyImportPrompt() {
+        // 同步 execCommand 优先: 在用户手势内执行, 兼容性最好;
+        // 失败再试异步 clipboard API; 双路都不行则展示手动复制视图。
         let ok = false;
-        try { await navigator.clipboard.writeText(body); ok = true; }
-        catch (e) {
-            try {
-                const ta = document.createElement('textarea');
-                ta.value = body;
-                document.body.appendChild(ta);
-                ta.select();
-                ok = document.execCommand('copy');
-                ta.remove();
-            } catch (e2) {}
+        try {
+            const ta = document.createElement('textarea');
+            ta.value = IMPORT_PROMPT;
+            ta.style.position = 'fixed';
+            ta.style.opacity  = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            ok = document.execCommand('copy');
+            ta.remove();
+        } catch (e) {}
+        if (ok) { toast('\u{1F4CB} \u63D0\u793A\u8BCD\u5DF2\u590D\u5236\uFF0C\u53BB\u7C98\u7ED9 AI \u5427'); return; }
+        if (navigator.clipboard?.writeText) {
+            navigator.clipboard.writeText(IMPORT_PROMPT)
+                .then(() => toast('\u{1F4CB} \u63D0\u793A\u8BCD\u5DF2\u590D\u5236\uFF0C\u53BB\u7C98\u7ED9 AI \u5427'))
+                .catch(() => renderImportPromptView());
+        } else {
+            renderImportPromptView();
         }
-        toast(ok ? '\u{1F4CB} \u63D0\u793A\u8BCD\u5DF2\u590D\u5236\uFF0C\u53BB\u7C98\u7ED9 AI \u5427' : '\u590D\u5236\u5931\u8D25\uFF0C\u8BF7\u6253\u5F00 docs/lesson-import-prompt.md \u624B\u52A8\u590D\u5236');
+    }
+
+    // 兜底: 弹层内直接显示提示词全文并自动全选, 手动 Ctrl+C。
+    function renderImportPromptView() {
+        const sheet = root.querySelector('#ls-import-sheet');
+        if (!sheet) return;
+        sheet.innerHTML = `
+            <div class="ls-sheet-head">
+                <div class="ls-sheet-word">\u8BC6\u522B\u63D0\u793A\u8BCD</div>
+                <button class="ls-sheet-close" id="ls-import-close">\u00d7</button>
+            </div>
+            <div class="ls-import-steps">\u81EA\u52A8\u590D\u5236\u4E0D\u53EF\u7528\uFF0C\u5DF2\u5168\u9009\u4E0B\u6587 \u2014\u2014 \u6309 Ctrl+C \u590D\u5236\u540E\u53D1\u7ED9 AI\u3002</div>
+            <textarea class="ls-import-textarea ls-prompt-view" id="ls-prompt-text" readonly></textarea>
+            <div class="ls-import-btn-row">
+                <button class="wl-btn-secondary" id="ls-import-back">\u2190 \u8FD4\u56DE</button>
+            </div>`;
+        const ta = sheet.querySelector('#ls-prompt-text');
+        if (ta) { ta.value = IMPORT_PROMPT; ta.focus(); ta.select(); }
     }
 
     function deleteUserLesson(id) {
@@ -1023,6 +1112,15 @@ window.Lessons = (function () {
         // 通用: 任何带 data-say 的小喇叭
         const sayBtn = t.closest('[data-say]');
         if (sayBtn) { e.stopPropagation(); speak(sayBtn.dataset.say); return; }
+
+        // 课程切换下拉
+        if (t.closest('#ls-lesson-switch')) { toggleSwitchMenu(); return; }
+        const swItem = t.closest('.ls-switch-item');
+        if (swItem) { openLesson(swItem.dataset.switch, curTab); return; }
+        // 点菜单外任意处收起 (不 return, 继续处理本次点击)
+        if (root.querySelector('#ls-switch-menu.open') && !t.closest('#ls-switch-menu')) {
+            toggleSwitchMenu(false);
+        }
 
         // 导入课文 / 删除导入课 (删除按钮在卡片内, 必须先判)
         const delBtn = t.closest('.ls-card-del');
@@ -1117,6 +1215,8 @@ window.Lessons = (function () {
         if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
 
         if (e.key === 'Escape') {
+            const sm = root.querySelector('#ls-switch-menu.open');
+            if (sm) { toggleSwitchMenu(false); e.preventDefault(); return; }
             const ws = root.querySelector('#ls-sheet-overlay.open');
             if (ws) { closeWordSheet(); e.preventDefault(); return; }
             const io = root.querySelector('#ls-import-overlay.open');

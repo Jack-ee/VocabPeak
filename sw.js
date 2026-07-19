@@ -1,5 +1,17 @@
 // sw.js — VocabPeak Service Worker
 
+// hsv-v16 (?v=113) — 课文精读: 修复「复制识别提示词」:
+//   • 提示词全文内嵌 lessons.js 常量, 关键路径不再 fetch 线上
+//     docs 文件 (未部署即 404), 也不再受 await 后用户手势过期影响。
+//   • 复制改为同步 execCommand 优先 + clipboard API 兜底; 双路
+//     失败时弹层内展示全文并自动全选, 手动 Ctrl+C。
+//   • docs/lesson-import-prompt.md 移出预缓存 (仅作仓库文档)。
+
+// hsv-v15 (?v=112) — 课文精读: 课内切换课文:
+//   • 课内页标题变为下拉入口 (标题+▾): 展开全部课程菜单, 点选
+//     直接切课并保持当前学习步骤 (课文/填空/短语); 当前课高亮。
+//   • 点菜单外收起, Esc 收起; 返回按钮加「全部课文」提示。
+
 // hsv-v14 (?v=111) — 课文精读: 键盘快捷键 + 匹配乱序修正:
 //   • 填空题目页快捷键 (桌面): ←/→ 切换题目、1-4 选择选项 (选项带
 //     序号角标)、回车下一题、Esc 关闭弹层; 拼写输入框聚焦时不拦截。
@@ -179,7 +191,7 @@
 
 // 缓存名与 EMPro 隔离：Cache Storage 也是按 origin 共享的，两个应用
 // 的 CACHE_NAME 必须不同，否则会互相删除对方的缓存。
-const CACHE_NAME = 'hsv-v14';
+const CACHE_NAME = 'hsv-v16';
 const ASSETS = [
     './',
     './index.html',
@@ -192,7 +204,6 @@ const ASSETS = [
     './lessons-data.js',
     './lessons.js',
     './lessons.css',
-    './docs/lesson-import-prompt.md',
     './db.js',
     './ai-engine.js',
     './my-words.js',
