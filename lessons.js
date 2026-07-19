@@ -55,6 +55,18 @@ window.Lessons = (function () {
         return a;
     }
 
+    // Sattolo 单圈置换: j 严格小于 i, 产生零不动点的错位排列。
+    // 匹配练习的中文列必须用它 —— 普通洗牌平均留 1 个不动点,
+    // 首行对首行 20% 概率直接命中, 用户会感觉「根本没打乱」。
+    function sattolo(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * i);
+            const t = a[i]; a[i] = a[j]; a[j] = t;
+        }
+        return a;
+    }
+
     function allSentences(lesson) {
         const out = [];
         (lesson.paras || []).forEach(p => (p.sentences || []).forEach(s => out.push(s)));
@@ -422,14 +434,15 @@ window.Lessons = (function () {
             if (!st.opts[w.id]) {
                 st.opts[w.id] = shuffle([w].concat(pickDistractors(w, 3))).map(o => o.id);
             }
-            const btns = st.opts[w.id].map(oid => {
+            const btns = st.opts[w.id].map((oid, oi) => {
                 const o   = wordById(curLesson, oid);
                 let   cls = 'ls-opt';
                 if (ans) {
                     if (oid === w.id)            cls += ' ok';
                     else if (oid === ans.pickedId) cls += ' bad';
                 }
-                return `<button class="${cls}" data-opt="${esc(oid)}"${ans ? ' disabled' : ''}>${esc(o.surface.toLowerCase())}</button>`;
+                return `<button class="${cls}" data-opt="${esc(oid)}"${ans ? ' disabled' : ''}>`
+                     + `<span class="ls-opt-num">${oi + 1}</span>${esc(o.surface.toLowerCase())}</button>`;
             }).join('');
             body = `<div class="ls-opts">${btns}</div>`;
         } else {
@@ -473,6 +486,7 @@ window.Lessons = (function () {
                 ${st.showZh ? `<div class="ls-zh-hint">\u91CA\u4E49: ${esc(w.zh)}</div>` : ''}
                 ${body}
                 <div class="ls-cloze-feedback" id="ls-cloze-feedback">${feedback}</div>
+                <div class="ls-kbd-hint">\u5FEB\u6377\u952E: \u2190 \u2192 \u5207\u6362\u9898\u76EE${st.mode === 'choice' ? ' \u00b7 1-4 \u9009\u62E9\u9009\u9879' : ''} \u00b7 \u56DE\u8F66\u4E0B\u4E00\u9898</div>
             </div>`;
         const inp = panel.querySelector('#ls-spell-input');
         if (inp && !ans) {
@@ -650,7 +664,10 @@ window.Lessons = (function () {
         const st = matchState;
         if (!st) return;
         if (!st.remaining.length) { renderMatchDone(); return; }
-        st.round = st.remaining.splice(0, MATCH_ROUND_SIZE);
+        // 收尾轮若只剩 1 对, 必然左右对齐无练习价值 —— 并入本轮。
+        let take = MATCH_ROUND_SIZE;
+        if (st.remaining.length - take === 1) take += 1;
+        st.round = st.remaining.splice(0, take);
         st.selEn = null;
         st.selZh = null;
         renderMatchRound();
@@ -662,7 +679,8 @@ window.Lessons = (function () {
         if (!st || !panel) return;
         const ens = st.round.map((p, i) =>
             `<button class="ls-match-item" data-men="${i}">${esc(p.en)}</button>`).join('');
-        const zhs = shuffle(st.round.map((p, i) => ({ i: i, zh: p.zh }))).map(o =>
+        // 错位排列 (sattolo): 保证任何一行中文都不与左列英文对齐。
+        const zhs = sattolo(st.round.map((p, i) => ({ i: i, zh: p.zh }))).map(o =>
             `<button class="ls-match-item" data-mzh="${o.i}">${esc(o.zh)}</button>`).join('');
         panel.innerHTML = `
             <div class="ls-match">
@@ -1089,11 +1107,52 @@ window.Lessons = (function () {
         if (mZh) { pickMatch('zh', Number(mZh.dataset.mzh), mZh); return; }
     }
 
+    // ─── 键盘快捷键 (桌面端) ────────────────────────────────
+    // 仅在课文视图可见时生效。填空题目页: ←/→ 切题、1-4 选项、
+    // 回车下一题; 拼写输入框聚焦且可编辑时不拦截方向键/回车,
+    // 保证光标移动与输入框自身的回车提交不受影响。Esc 关闭弹层。
+    function onKeyDown(e) {
+        const view = document.getElementById('view-lessons');
+        if (!view || !view.classList.contains('active')) return;
+        if (e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+
+        if (e.key === 'Escape') {
+            const ws = root.querySelector('#ls-sheet-overlay.open');
+            if (ws) { closeWordSheet(); e.preventDefault(); return; }
+            const io = root.querySelector('#ls-import-overlay.open');
+            if (io) { closeImport(); e.preventDefault(); return; }
+            return;
+        }
+
+        // 其余快捷键只作用于填空的题目页 (结果页/设置页不响应)
+        if (curTab !== 'cloze' || !clozeState || !root.querySelector('.ls-cloze')) return;
+        const st     = clozeState;
+        const tag    = (e.target && e.target.tagName) || '';
+        const typing = (tag === 'INPUT' || tag === 'TEXTAREA') && !e.target.disabled;
+        if (typing) return;
+
+        if (e.key === 'ArrowLeft')  { clozeGoPrev(); e.preventDefault(); return; }
+        if (e.key === 'ArrowRight') { clozeGoNext(); e.preventDefault(); return; }
+        if (e.key === 'Enter') {
+            if (st.answers[st.queue[st.idx].id]) { clozeGoNext(); e.preventDefault(); }
+            return;
+        }
+        if (/^[1-4]$/.test(e.key) && st.mode === 'choice') {
+            const w = st.queue[st.idx];
+            if (!st.answers[w.id] && st.opts[w.id]) {
+                const oid = st.opts[w.id][Number(e.key) - 1];
+                if (oid) { submitChoice(oid); e.preventDefault(); }
+            }
+            return;
+        }
+    }
+
     // ─── Init ───────────────────────────────────────────────
     function init() {
         root = document.getElementById('ls-root');
         if (!root) return;
         root.addEventListener('click', onClick);
+        document.addEventListener('keydown', onKeyDown);
         // 记住上次打开的课 —— 同步重载/刷新后回到原处
         const last = window.DB?.getPref?.('lesson_last', '');
         if (last && lessonById(last)) openLesson(last);
@@ -1104,6 +1163,7 @@ window.Lessons = (function () {
         init          : init,
         stopPlay      : stopPlay,
         speechEntries : speechEntries,
-        parseImport   : parseImport    // 纯函数, 供测试/调试
+        parseImport   : parseImport,   // 纯函数, 供测试/调试
+        _sattolo      : sattolo        // 供测试: 错位排列不变量
     };
 })();
