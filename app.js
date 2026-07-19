@@ -702,6 +702,10 @@
             add(it.context);
             (it.collo || '').split(/\s*·\s*/).forEach(add);
         });
+        // 课文精读语料 (lessons-data.js): 词条原型/课文词形/短语/整句。
+        // 这些条目也进音频包，让课文页在无网络、无英文系统语音的
+        // 平板上照样能整篇朗读。
+        (window.Lessons?.speechEntries?.() || []).forEach(add);
         return out;
     }
 
@@ -726,6 +730,30 @@
     // across several runs.
     function exportWordList() {
         const blocks = notebookSpeechBlocks();
+
+        // 课文精读语料追加为一个独立词块，索引接在生词本之后。
+        // 条目按生成器口径规范化去重（notebookSpeechBlocks 已占用的
+        // 文本不重复出现）。clip 以文本为键缓存，索引变动不会引起
+        // 重复合成，所以这里的索引只需接续、无需永久稳定。
+        const nbIdxMax = blocks.reduce((m, b) => Math.max(m, b.index), 0);
+        {
+            const seen = new Set();
+            blocks.forEach(b => b.entries.forEach(e => seen.add(e)));
+            const entries = [];
+            (window.Lessons?.speechEntries?.() || []).forEach(s => {
+                const n = _normSpeak(s);
+                if (!n || /[\u4e00-\u9fff]/.test(n) || seen.has(n)) return;
+                seen.add(n);
+                entries.push(n);
+            });
+            if (entries.length) {
+                blocks.push({
+                    index   : nbIdxMax + 1,
+                    word    : 'lesson-corpus',
+                    entries : entries
+                });
+            }
+        }
         if (!blocks.length) { showToast('没有可导出的单词。'); return; }
 
         const itemCount = blocks.reduce((n, b) => n + b.entries.length, 0);
@@ -1393,8 +1421,8 @@
     }
 
     // ─── Tab navigation ─────────────────────────────────────
-    // Tab IDs in markup: my-words | speaking-coach | vocab-drill |
-    // writing-lab | reader. Each maps to #view-<id>.
+    // Tab IDs in markup: my-words | lessons | speaking-coach |
+    // vocab-drill | writing-lab | reader. Each maps to #view-<id>.
     function bindTabs() {
         const tabs   = document.querySelectorAll('.nav-tab[data-nav]');
         const views  = document.querySelectorAll('.app-view');
@@ -1426,6 +1454,7 @@
             stopSpeak();
             window.MyWords?.stopAutoplay?.();
             window.SentenceDrill?.stopListen?.();
+            window.Lessons?.stopPlay?.();
         }));
     }
 
@@ -1730,6 +1759,7 @@
             safeCall('WritingLab',      () => window.WritingLab?.init?.());
             safeCall('VocabDrill',      () => window.VocabDrill?.init?.());
             safeCall('Reader',          () => window.Reader?.init?.());
+            safeCall('Lessons',         () => window.Lessons?.init?.());
             safeCall('SpeakingCoach',   () => window.SpeakingCoach?.init?.());
             safeCall('ExpressionCoach', () => {
                 const el = document.getElementById('sc-panel-drill');

@@ -1,4 +1,13 @@
 // sw.js — VocabPeak Service Worker
+
+// hsv-v11 (?v=108) — 课文精读模块 (Lessons):
+//   • 新增 lessons-data.js (两课语料: 短文按句切分 + 63 个蓝色词条
+//     含原型/词形/释义/短语)、lessons.js (听读/点词/填空/短语四步)、
+//     lessons.css，三者全部纳入预缓存。
+//   • 导航新增「课文」tab；app.js 启动时初始化 Lessons，切 tab 停播。
+//   • wordlist 导出与覆盖率统计追加课文语料条目（含整句），配合
+//     音频包在无英文系统语音的平板上离线整篇朗读。
+
 // v12 — fixes PWA install on mobile:
 //   • v11: removed phantom files (dictionary.js, vocab.js, stories.js,
 //     i18n.js) that were breaking cache.addAll().
@@ -147,7 +156,7 @@
 
 // 缓存名与 EMPro 隔离：Cache Storage 也是按 origin 共享的，两个应用
 // 的 CACHE_NAME 必须不同，否则会互相删除对方的缓存。
-const CACHE_NAME = 'hsv-v10';
+const CACHE_NAME = 'hsv-v11';
 const ASSETS = [
     './',
     './index.html',
@@ -157,6 +166,9 @@ const ASSETS = [
     './config.js',
     './dictionary.js',
     './vocab-hs-data.js',
+    './lessons-data.js',
+    './lessons.js',
+    './lessons.css',
     './db.js',
     './ai-engine.js',
     './my-words.js',

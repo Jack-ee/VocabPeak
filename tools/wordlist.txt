@@ -1621,3 +1621,187 @@ yummy
 zip
 zone
 zoom
+
+# ------------------------------------------------------------
+# Lesson corpus (课文精读, lessons-data.js) — appended 2026-07-19
+# 词条原型/课文词形/短语按短条目多音色合成; 整句超过 40 字符,
+# 生成器自动只用 1 个音色 (LONG_ENTRY_VOICES), 控制包体。
+# App 内「导出词表」也会自动附带本节, 手工重导出不会丢失。
+# 57 word form(s), 97 phrase(s), 19 sentence(s).
+# ------------------------------------------------------------
+# -- word forms --
+according to
+review
+medical
+journal
+risk
+regularly
+effective
+lengthen
+lengthening
+cycling
+authors
+published
+cause
+causes
+race
+fitness
+benefits
+contribute to
+contributing to
+injuries
+conditioned
+athletes
+rule
+rules
+require
+knee
+knees
+straight
+swing
+remain
+contact
+at all times
+activity
+physically
+demanding
+calculation
+calculations
+calorie
+calories
+pound
+hit
+step
+create
+as a result
+associated
+uncommon
+strange
+form
+considerable
+stress
+ankles
+hip
+hips
+adopting
+coach
+experienced
+proper
+# -- phrases --
+according to the report
+according to plan
+a review of evidence
+book review
+under review
+evidence of / for
+solid evidence
+medical journal
+medical care
+an academic journal
+keep a journal
+benefit from
+be of benefit to
+for the benefit of
+be overweight
+reduce the risk of
+reduce ... to ...
+at risk
+take a risk
+risk doing sth.
+exercise regularly
+be effective at / in doing sth.
+take effective measures
+lengthen life
+go cycling
+the author of the book
+be published in
+the cause of
+cause and effect
+race walking
+a relay race
+physical fitness
+fitness benefits
+share benefits with
+contribute to fewer injuries
+contribute ... to ...
+suffer an injury
+a knee injury
+well-conditioned athletes
+a professional athlete
+track and field
+keep track of
+obey / break the rules
+as a rule
+require that sb. (should) do
+meet the requirements
+runner's knee
+on one’s knees
+stay straight
+go straight ahead
+the leg swing
+remain in contact with
+remain silent
+in contact with
+keep in contact with
+stay alert at all times
+be attractive to
+outdoor activities
+take part in an activity
+an assistant professor
+a shop assistant
+a professor of exercise science
+physically demanding
+physically and mentally
+a demanding job
+according to most calculations
+do a calculation
+at a pace of
+keep pace with
+burn calories
+be high / low in calories
+approximately twice as many as
+pound the body
+hit the ground
+step by step
+take steps to do
+create pressure
+as a result of
+be associated with
+associate ... with ...
+it is not uncommon for sb. to do
+a strange form
+in the form of
+fill in a form
+considerable stress
+place / put stress on
+under stress
+twist one’s ankle
+be cautious about / in
+adopt a method
+adopt a suggestion
+consult sb. about sth.
+consult a dictionary
+a head coach
+be experienced in
+proper technique
+learn proper technique
+# -- sentences --
+according to a review of evidence in a medical journal, runners live three years longer than non-runners.
+you don't have to run fast or for long to see the benefit.
+you may drink, smoke, be overweight and still reduce your risk of dying early by running.
+while running regularly can't make you live forever, the review says it is more effective at lengthening life than walking, cycling or swimming.
+two of the authors of the review also made a study published in 2014 that showed a mere five to 10 minutes a day of running reduced the risk of heart disease and early deaths from all causes.
+race walking shares many fitness benefits with running, research shows, while most likely contributing to fewer injuries.
+it does, however, have its own problem.
+race walkers are conditioned athletes.
+the longest track and field event at the summer olympics is the 50-kilometer race walk, which is about five miles longer than the marathon.
+but the sport's rules require that a race walker's knees stay straight through most of the leg swing and one foot remain in contact with the ground at all times.
+it's this strange form that makes race walking such an attractive activity, however, says jaclyn norberg, an assistant professor of exercise science at salem state university in salem, mass.
+like running, race walking is physically demanding, she says.
+according to most calculations, race walkers moving at a pace of six miles per hour would burn about 800 calories per hour, which is approximately twice as many as they would burn walking, although fewer than running, which would probably burn about 1,000 or more calories per hour.
+however, race walking does not pound the body as much as running does, dr. norberg says.
+according to her research, runners hit the ground with as much as four times their body weight per step, while race walkers, who do not leave the ground, create only about 1.4 times their body weight with each step.
+as a result, she says, some of the injuries associated with running, such as runner's knee, are uncommon among race walkers.
+but the sport's strange form does place considerable stress on the ankles and hips, so people with a history of such injuries might want to be cautious in adopting the sport.
+in fact, anyone wishing to try race walking should probably first consult a coach or experienced racer to learn proper technique, she says.
+it takes some practice.

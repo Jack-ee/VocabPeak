@@ -1,0 +1,414 @@
+/* ============================================================
+   lessons.css — 课文精读模块 (前缀 ls-)
+   跟随 style.css 的设计变量，自动适配深色模式。
+   ============================================================ */
+
+/* ---- 课程列表 ---- */
+.ls-home-title {
+    font-family : var(--font-display, inherit);
+    font-size   : 22px;
+    margin      : 4px 0 2px;
+}
+.ls-home-sub {
+    font-size     : 13px;
+    color         : var(--text-secondary);
+    margin-bottom : 16px;
+}
+.ls-card-list {
+    display        : flex;
+    flex-direction : column;
+    gap            : 12px;
+}
+.ls-card {
+    display       : block;
+    width         : 100%;
+    text-align    : left;
+    background    : var(--bg-card);
+    border        : 1px solid var(--bg-accent);
+    border-radius : 14px;
+    padding       : 16px;
+    cursor        : pointer;
+    transition    : background 0.15s ease;
+}
+.ls-card:hover { background: var(--bg-hover); }
+.ls-card-title {
+    font-size   : 17px;
+    font-weight : 600;
+    color       : var(--text-primary);
+}
+.ls-card-sub {
+    font-size : 13px;
+    color     : var(--text-secondary);
+    margin    : 3px 0 8px;
+}
+.ls-card-badges { display: flex; flex-wrap: wrap; gap: 6px; }
+.ls-badge {
+    font-size     : 12px;
+    padding       : 2px 8px;
+    border-radius : 10px;
+    background    : var(--bg-surface);
+    color         : var(--text-secondary);
+}
+.ls-badge-done  { background: var(--accent-bg); color: var(--accent-text); }
+.ls-badge-empty { opacity: 0.7; }
+.ls-empty {
+    color     : var(--text-tertiary);
+    font-size : 14px;
+    padding   : 24px 0;
+}
+
+/* ---- 单课页头 ---- */
+.ls-head {
+    display     : flex;
+    align-items : center;
+    gap         : 10px;
+    margin      : 2px 0 12px;
+}
+.ls-back {
+    background    : var(--bg-surface);
+    border        : none;
+    border-radius : 10px;
+    width         : 36px;
+    height        : 36px;
+    font-size     : 18px;
+    color         : var(--text-primary);
+    cursor        : pointer;
+    flex-shrink   : 0;
+}
+.ls-back:hover { background: var(--bg-hover); }
+.ls-head-text  { flex: 1; min-width: 0; }
+.ls-head-title {
+    font-size     : 16px;
+    font-weight   : 600;
+    white-space   : nowrap;
+    overflow      : hidden;
+    text-overflow : ellipsis;
+}
+.ls-head-sub  { font-size: 12px; color: var(--text-secondary); }
+.ls-head-prog {
+    font-size   : 11px;
+    color       : var(--accent);
+    white-space : nowrap;
+    flex-shrink : 0;
+}
+
+/* ---- 课内 tabs ---- */
+.ls-tabs {
+    display       : flex;
+    gap           : 6px;
+    margin-bottom : 14px;
+}
+.ls-tab {
+    flex          : 1;
+    padding       : 8px 4px;
+    border        : none;
+    border-radius : 10px;
+    background    : var(--bg-surface);
+    color         : var(--text-secondary);
+    font-size     : 14px;
+    cursor        : pointer;
+}
+.ls-tab.active {
+    background  : var(--accent);
+    color       : var(--text-inverse);
+    font-weight : 600;
+}
+
+/* ---- 课文 (听读) ---- */
+.ls-read-bar {
+    display       : flex;
+    align-items   : center;
+    gap           : 10px;
+    margin-bottom : 14px;
+    flex-wrap     : wrap;
+}
+.ls-read-hint { font-size: 12px; color: var(--text-tertiary); }
+.ls-text {
+    background    : var(--bg-card);
+    border        : 1px solid var(--bg-accent);
+    border-radius : 14px;
+    padding       : 18px 16px;
+    font-size     : 16.5px;
+    line-height   : 2.05;
+    color         : var(--text-primary);
+}
+.ls-para { margin: 0 0 16px; }
+.ls-para:last-child { margin-bottom: 0; }
+.ls-sent {
+    cursor        : pointer;
+    border-radius : 4px;
+    transition    : background 0.2s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+.ls-sent.playing { background: var(--accent-bg); }
+.ls-sent.ls-hard { border-bottom: 2px dotted var(--accent-light); }
+.ls-hard-mark {
+    display        : inline-block;
+    font-size      : 10px;
+    line-height    : 1;
+    padding        : 2px 4px;
+    margin-left    : 3px;
+    border-radius  : 6px;
+    background     : var(--accent-bg);
+    color          : var(--accent-text);
+    vertical-align : super;
+}
+.ls-word {
+    color         : var(--accent);
+    font-weight   : 600;
+    cursor        : pointer;
+    border-bottom : 1.5px solid var(--accent-light);
+}
+.ls-word:hover { background: var(--accent-bg); }
+
+/* ---- 词卡底部弹层 ---- */
+.ls-sheet-overlay {
+    position   : fixed;
+    inset      : 0;
+    background : rgba(0, 0, 0, 0.35);
+    display    : none;
+    z-index    : 300;
+}
+.ls-sheet-overlay.open { display: flex; align-items: flex-end; }
+.ls-sheet {
+    width         : 100%;
+    max-height    : 72vh;
+    overflow-y    : auto;
+    background    : var(--bg-card);
+    border-radius : 18px 18px 0 0;
+    padding       : 18px 18px calc(18px + env(safe-area-inset-bottom, 0));
+    box-shadow    : 0 -6px 30px rgba(0, 0, 0, 0.18);
+}
+.ls-sheet-head {
+    display         : flex;
+    align-items     : center;
+    justify-content : space-between;
+}
+.ls-sheet-word {
+    font-size   : 22px;
+    font-weight : 700;
+    display     : flex;
+    align-items : center;
+    gap         : 8px;
+}
+.ls-sheet-close {
+    background : none;
+    border     : none;
+    font-size  : 26px;
+    color      : var(--text-tertiary);
+    cursor     : pointer;
+    padding    : 0 4px;
+}
+.ls-sheet-lemma { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+.ls-sheet-pos   { font-size: 13px; color: var(--text-tertiary); margin-top: 6px; }
+.ls-sheet-zh    { font-size: 16px; margin: 4px 0 10px; }
+.ls-sheet-sent {
+    display       : flex;
+    gap           : 8px;
+    align-items   : flex-start;
+    background    : var(--bg-surface);
+    border-radius : 10px;
+    padding       : 10px 12px;
+    font-size     : 14px;
+    line-height   : 1.7;
+    margin-bottom : 10px;
+}
+.ls-sheet-phrases-title {
+    font-size : 13px;
+    color     : var(--text-secondary);
+    margin    : 8px 0 4px;
+}
+.ls-sheet-add { width: 100%; margin-top: 12px; }
+
+.ls-mini-speak {
+    background  : none;
+    border      : none;
+    font-size   : 15px;
+    cursor      : pointer;
+    padding     : 0 2px;
+    flex-shrink : 0;
+}
+
+/* ---- 短语行 (弹层和短语页共用) ---- */
+.ls-phrase-row {
+    display     : flex;
+    align-items : baseline;
+    gap         : 8px;
+    padding     : 5px 0;
+    font-size   : 14.5px;
+}
+.ls-phrase-en { font-weight: 600; }
+.ls-phrase-zh { color: var(--text-secondary); font-size: 13.5px; }
+.ls-phrase-group {
+    background    : var(--bg-card);
+    border        : 1px solid var(--bg-accent);
+    border-radius : 12px;
+    padding       : 12px 14px;
+    margin-bottom : 10px;
+}
+.ls-phrase-word {
+    font-weight   : 700;
+    font-size     : 15.5px;
+    margin-bottom : 4px;
+}
+.ls-phrase-wzh { font-weight: 400; font-size: 12.5px; color: var(--text-tertiary); }
+
+/* ---- 填空 ---- */
+.ls-cloze-setup, .ls-result { text-align: center; padding: 18px 4px; }
+.ls-setup-title { font-size: 16px; margin-bottom: 4px; }
+.ls-setup-sub   { font-size: 13px; color: var(--text-secondary); margin-bottom: 18px; }
+.ls-setup-btns {
+    display        : flex;
+    flex-direction : column;
+    gap            : 10px;
+    max-width      : 320px;
+    margin         : 0 auto 14px;
+}
+.ls-setup-hintopt { font-size: 13px; color: var(--text-secondary); }
+
+.ls-cloze-top {
+    display         : flex;
+    justify-content : space-between;
+    align-items     : center;
+    margin-bottom   : 12px;
+}
+.ls-cloze-prog { font-size: 13px; color: var(--text-secondary); }
+.ls-cloze-quit {
+    background    : var(--bg-surface);
+    border        : none;
+    border-radius : 8px;
+    padding       : 4px 12px;
+    font-size     : 13px;
+    color         : var(--text-secondary);
+    cursor        : pointer;
+}
+.ls-cloze-sent {
+    background    : var(--bg-card);
+    border        : 1px solid var(--bg-accent);
+    border-radius : 14px;
+    padding       : 16px;
+    font-size     : 16px;
+    line-height   : 1.95;
+    margin-bottom : 16px;
+    text-align    : left;
+}
+.ls-blank {
+    color         : var(--accent);
+    font-weight   : 700;
+    letter-spacing: 1px;
+}
+.ls-blank.ok  { color: var(--accent); }
+.ls-blank.bad { color: #c0392b; }
+
+.ls-opts {
+    display               : grid;
+    grid-template-columns : 1fr 1fr;
+    gap                   : 10px;
+}
+.ls-opt {
+    padding       : 12px 8px;
+    border        : 1px solid var(--bg-accent);
+    border-radius : 12px;
+    background    : var(--bg-card);
+    font-size     : 15px;
+    color         : var(--text-primary);
+    cursor        : pointer;
+}
+.ls-opt:hover:not(:disabled) { background: var(--bg-hover); }
+.ls-opt.ok  { background: var(--accent-bg); border-color: var(--accent); color: var(--accent-text); font-weight: 700; }
+.ls-opt.bad { background: rgba(192, 57, 43, 0.10); border-color: #c0392b; color: #c0392b; }
+
+.ls-spell-row { display: flex; gap: 8px; }
+.ls-spell-input {
+    flex          : 1;
+    padding       : 11px 12px;
+    border        : 1px solid var(--bg-accent);
+    border-radius : 12px;
+    background    : var(--bg-card);
+    color         : var(--text-primary);
+    font-size     : 16px;
+}
+.ls-spell-meta {
+    display         : flex;
+    justify-content : space-between;
+    font-size       : 13px;
+    color           : var(--text-secondary);
+    margin-top      : 8px;
+    gap             : 10px;
+}
+.ls-spell-hint b { color: var(--accent); }
+
+.ls-cloze-feedback { margin-top: 14px; font-size: 14.5px; }
+.ls-fb-ok  { color: var(--accent); font-weight: 700; }
+.ls-fb-bad { color: #c0392b; font-weight: 600; }
+.ls-fb-zh  { color: var(--text-secondary); margin-left: 6px; }
+.ls-fb-next { display: block; margin: 12px auto 0; }
+
+/* ---- 结果页 ---- */
+.ls-result-score {
+    font-size   : 44px;
+    font-weight : 800;
+    color       : var(--accent);
+}
+.ls-result-sub { font-size: 14px; color: var(--text-secondary); margin: 4px 0 16px; }
+.ls-result-wrong-title { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.ls-wrong-list {
+    max-width : 380px;
+    margin    : 0 auto 12px;
+    text-align: left;
+}
+.ls-wrong-row {
+    display     : flex;
+    align-items : baseline;
+    gap         : 8px;
+    padding     : 4px 0;
+    font-size   : 14.5px;
+}
+.ls-wrong-en { font-weight: 600; }
+.ls-wrong-zh { color: var(--text-secondary); font-size: 13px; }
+.ls-result-perfect { font-size: 15px; margin-bottom: 12px; }
+.ls-result-btns {
+    display         : flex;
+    gap             : 10px;
+    justify-content : center;
+    margin-top      : 14px;
+}
+
+/* ---- 短语匹配 ---- */
+.ls-match-cols {
+    display               : grid;
+    grid-template-columns : 1fr 1fr;
+    gap                   : 10px;
+}
+.ls-match-col {
+    display        : flex;
+    flex-direction : column;
+    gap            : 8px;
+}
+.ls-match-item {
+    padding       : 11px 8px;
+    border        : 1px solid var(--bg-accent);
+    border-radius : 12px;
+    background    : var(--bg-card);
+    font-size     : 13.5px;
+    line-height   : 1.4;
+    color         : var(--text-primary);
+    cursor        : pointer;
+    text-align    : center;
+}
+.ls-match-item.sel  { border-color: var(--accent); background: var(--accent-bg); }
+.ls-match-item.done { opacity: 0.45; background: var(--accent-bg); border-color: var(--accent); }
+.ls-match-item.miss { border-color: #c0392b; background: rgba(192, 57, 43, 0.10); }
+
+/* ---- 桌面增强 (不影响移动布局) ---- */
+@media (min-width: 769px) {
+    .ls-card-list { max-width: 560px; }
+    .ls-text      { font-size: 17px; padding: 24px 26px; }
+    .ls-sheet {
+        max-width     : 520px;
+        margin        : 0 auto;
+        border-radius : 18px;
+    }
+    .ls-sheet-overlay.open { align-items: center; }
+    .ls-opts { max-width: 520px; margin: 0 auto; }
+}

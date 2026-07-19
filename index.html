@@ -22,8 +22,9 @@
          sw.js to match (e.g. 'hsv-vN+1').
          Current version: v=107
          ========================================================= -->
-    <link rel="stylesheet" href="style.css?v=107">
-    <link rel="stylesheet" href="expressions-coach.css?v=107">
+    <link rel="stylesheet" href="style.css?v=108">
+    <link rel="stylesheet" href="expressions-coach.css?v=108">
+    <link rel="stylesheet" href="lessons.css?v=108">
 </head>
 <body>
 
@@ -49,6 +50,7 @@
 <main class="app-main">
     <nav class="app-nav">
         <button class="nav-tab active" data-nav="my-words"><span class="nav-icon">&#x1F4D6;</span><span class="nav-label">单词</span></button>
+        <button class="nav-tab" data-nav="lessons"><span class="nav-icon">&#x1F4D8;</span><span class="nav-label">课文</span></button>
         <button class="nav-tab" data-nav="speaking-coach" style="display:none"><span class="nav-icon">&#x1F5E3;&#xFE0F;</span><span class="nav-label">Expressions</span></button>
         <button class="nav-tab" data-nav="vocab-drill"><span class="nav-icon">&#x1F3AF;</span><span class="nav-label">训练</span></button>
         <button class="nav-tab" data-nav="writing-lab" style="display:none"><span class="nav-icon">&#x270D;&#xFE0F;</span><span class="nav-label">Writing</span></button>
@@ -100,6 +102,10 @@
     </div>
 
     <!-- ===== EXPRESSIONS (unified: drill + speak + reference) ===== -->
+    <div class="app-view" id="view-lessons">
+        <div class="ls-container" id="ls-root"></div>
+    </div>
+
     <div class="app-view" id="view-speaking-coach">
         <div class="sc-container">
             <div class="sc-tabs sc-tabs-compact">
@@ -390,28 +396,30 @@ eloquent manifest scrutinize caveat
 
 <div id="toast-container"></div>
 
-<script src="config.js?v=107"></script>
-<script src="dictionary.js?v=107"></script>
-<script src="vocab-hs-data.js?v=107"></script>
-<script src="db.js?v=107"></script>
-<script src="ai-engine.js?v=107"></script>
-<script src="my-words.js?v=107"></script>
-<script src="cloze.js?v=107"></script>
-<script src="writing-lab.js?v=107"></script>
-<script src="vocab-drill.js?v=107"></script>
-<script src="reader.js?v=107"></script>
-<script src="speaking-coach.js?v=107"></script>
-<script src="expressions-data.js?v=107"></script>
-<script src="expressions-coach.js?v=107"></script>
-<script src="sentence.js?v=107"></script>
-<script src="sentence-drill.js?v=107"></script>
-<script src="sync.js?v=107"></script>
-<script src="tts-pack.js?v=107"></script>
-<script src="app.js?v=107"></script>
+<script src="config.js?v=108"></script>
+<script src="dictionary.js?v=108"></script>
+<script src="vocab-hs-data.js?v=108"></script>
+<script src="lessons-data.js?v=108"></script>
+<script src="db.js?v=108"></script>
+<script src="ai-engine.js?v=108"></script>
+<script src="my-words.js?v=108"></script>
+<script src="cloze.js?v=108"></script>
+<script src="writing-lab.js?v=108"></script>
+<script src="vocab-drill.js?v=108"></script>
+<script src="reader.js?v=108"></script>
+<script src="lessons.js?v=108"></script>
+<script src="speaking-coach.js?v=108"></script>
+<script src="expressions-data.js?v=108"></script>
+<script src="expressions-coach.js?v=108"></script>
+<script src="sentence.js?v=108"></script>
+<script src="sentence-drill.js?v=108"></script>
+<script src="sync.js?v=108"></script>
+<script src="tts-pack.js?v=108"></script>
+<script src="app.js?v=108"></script>
 <!-- Debug panel — hidden by default, toggled via Settings → Developer.
      Script always loads so console-log capture is active even when UI
      is hidden, enabling post-mortem inspection of recent errors. -->
-<script src="debug-panel.js?v=107"></script>
+<script src="debug-panel.js?v=108"></script>
 <script>
 // --- PWA install: capture the browser's install prompt ---
 // Chrome fires beforeinstallprompt when install criteria are met.
