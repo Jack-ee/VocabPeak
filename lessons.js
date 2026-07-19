@@ -301,23 +301,56 @@ window.Lessons = (function () {
 
     function renderRead(panel) {
         const l     = curLesson;
+        const hasZh = (l.paras || []).some(p => p.zh);
         const paras = (l.paras || []).map(p => {
             const inner = (p.sentences || []).map(s => sentenceHtml(l, s)).join(' ');
+            const trBtn = p.zh
+                ? `<button class="ls-para-tr" data-tr="${esc(p.id)}" title="\u663E\u793A/\u9690\u85CF\u672C\u6BB5\u8BD1\u6587">\u8BD1</button>`
+                : '';
+            const zhDiv = p.zh
+                ? `<div class="ls-para-zh" data-zh="${esc(p.id)}">${esc(p.zh)}</div>`
+                : '';
             return `<p class="ls-para">`
                  + `<button class="ls-para-play" data-para="${esc(p.id)}" title="\u64AD\u653E\u672C\u6BB5">\u25B6</button>`
-                 + `${inner}</p>`;
+                 + `${trBtn}${inner}</p>${zhDiv}`;
         }).join('');
         panel.innerHTML = `
             <div class="ls-read">
                 <div class="ls-read-bar">
                     <button class="wl-btn-primary" id="ls-play-all">\u25B6 \u64AD\u653E\u5168\u6587</button>
-                    <span class="ls-read-hint">\u70B9\u53E5\u5B50\u542C\u5355\u53E5 \u00b7 \u70B9\u84DD\u8272\u8BCD\u770B\u8BE6\u89E3</span>
+                    ${hasZh ? '<button class="ls-tool-btn" id="ls-read-zh-all" title="\u663E\u793A/\u9690\u85CF\u5168\u90E8\u8BD1\u6587">\u8BD1\u6587</button>' : ''}
+                    <span class="ls-read-hint">\u70B9\u53E5\u5B50\u542C\u5355\u53E5 \u00b7 \u70B9\u84DD\u8272\u8BCD\u770B\u8BE6\u89E3${hasZh ? ' \u00b7 \u70B9 \u8BD1 \u770B\u6BB5\u8BD1' : ''}</span>
                 </div>
                 <div class="ls-text">${paras}</div>
             </div>
             <div class="ls-sheet-overlay" id="ls-sheet-overlay">
                 <div class="ls-sheet" id="ls-sheet"></div>
             </div>`;
+    }
+
+    // 段译显隐: 单段切换 + 全局开关 (按当前是否全显决定方向)。
+    function toggleParaZh(pid) {
+        const div = root.querySelector(`.ls-para-zh[data-zh="${pid}"]`);
+        const btn = root.querySelector(`.ls-para-tr[data-tr="${pid}"]`);
+        if (!div) return;
+        const show = !div.classList.contains('show');
+        div.classList.toggle('show', show);
+        btn?.classList.toggle('on', show);
+        syncZhAllBtn();
+    }
+    function toggleAllParaZh() {
+        const divs = Array.from(root.querySelectorAll('.ls-para-zh'));
+        if (!divs.length) return;
+        const showAll = divs.some(d => !d.classList.contains('show'));
+        divs.forEach(d => d.classList.toggle('show', showAll));
+        root.querySelectorAll('.ls-para-tr').forEach(b => b.classList.toggle('on', showAll));
+        syncZhAllBtn();
+    }
+    function syncZhAllBtn() {
+        const btn  = root.querySelector('#ls-read-zh-all');
+        if (!btn) return;
+        const divs = Array.from(root.querySelectorAll('.ls-para-zh'));
+        btn.classList.toggle('on', divs.length > 0 && divs.every(d => d.classList.contains('show')));
     }
 
     function openWordSheet(w) {
@@ -790,7 +823,8 @@ window.Lessons = (function () {
 
 转写规则:
 
-1. 逐字转写英文原文，忠实于照片，保持原有段落划分。每段拆分为句子数组，一句一条。
+1. 逐字转写英文原文，忠实于照片，保持原有段落划分。每段拆分为句子数组，一句一条;
+   并为每个段落写一段通顺、贴合教材语体的整段中文翻译，放在该段落对象的 "zh" 字段。
 2. 标点规范化: 英文文本中的全角标点（，。；：？！""''）一律转为对应的半角英文标点;
    撇号和引号统一用直引号 ' 和 "。数字、缩写（如 Dr. / Mass.）保持原样。
 3. 教材中蓝色（或高亮）标注的词汇逐个列出，按课文出现顺序排列:
@@ -814,7 +848,8 @@ window.Lessons = (function () {
   "title": "课文英文标题（照片中没有标题时根据内容拟一个简短的）",
   "titleZh": "中文标题",
   "paras": [
-    { "sentences": [
+    { "zh": "本段的整段中文翻译。",
+      "sentences": [
         { "text": "First sentence of the paragraph.", "hard": false },
         { "text": "A sentence marked as difficult.",  "hard": true }
     ] }
@@ -905,7 +940,11 @@ window.Lessons = (function () {
                 sens.push({ id: `${pid}-S${si + 1}`, hard: !!(s && s.hard), text: text });
             });
             if (!sens.length) errors.push(`\u7B2C ${pi + 1} \u6BB5\u6CA1\u6709\u53E5\u5B50`);
-            paras.push({ id: pid, sentences: sens });
+            const para = { id: pid, sentences: sens };
+            // 可选段译 (schema v1 兼容扩展): 中文字段不做英文规范化
+            const pzh = String(p && p.zh || '').trim().replace(/\s+/g, ' ');
+            if (pzh) para.zh = pzh;
+            paras.push(para);
         });
         const flatSents = paras.reduce((a, p) => a.concat(p.sentences), []);
 
@@ -1171,13 +1210,16 @@ window.Lessons = (function () {
         const overlay = t.closest('#ls-sheet-overlay');
         if (overlay && t === overlay) { closeWordSheet(); return; }
 
-        // 课文: 整段播放
+        // 课文: 整段播放 / 段译显隐
         const paraBtn = t.closest('.ls-para-play');
         if (paraBtn) {
             const p = paraById(curLesson, paraBtn.dataset.para);
             if (p) playSentences((p.sentences || []).map(s => s.id));
             return;
         }
+        const trBtn = t.closest('.ls-para-tr');
+        if (trBtn) { toggleParaZh(trBtn.dataset.tr); return; }
+        if (t.closest('#ls-read-zh-all')) { toggleAllParaZh(); return; }
 
         // 填空
         if (t.closest('#ls-cloze-choice')) { startCloze('choice'); return; }

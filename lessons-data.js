@@ -21,6 +21,7 @@ window.HSV_LESSONS = [
     paras   : [
       {
         id       : 'L01-P1',
+        zh       : '根据一家医学期刊上的一项证据综述，跑步的人比不跑步的人长寿三年。你不必跑得快或跑得久就能看到益处。即使你喝酒、吸烟、超重，跑步仍能降低你早逝的风险。',
         sentences: [
           { id: 'L01-P1-S1', hard: true,
             text: 'According to a review of evidence in a medical journal, runners live three years longer than non-runners.' },
@@ -32,6 +33,7 @@ window.HSV_LESSONS = [
       },
       {
         id       : 'L01-P2',
+        zh       : '虽然经常跑步不能让你长生不老，但该综述指出，在延长寿命方面，跑步比步行、骑自行车或游泳更有效。该综述的其中两位作者还做过一项发表于2014年的研究，研究表明每天仅跑步5到10分钟就能降低患心脏病和因各种原因早逝的风险。',
         sentences: [
           { id: 'L01-P2-S1', hard: false,
             text: "While running regularly can't make you live forever, the review says it is more effective at lengthening life than walking, cycling or swimming." },
@@ -145,6 +147,7 @@ window.HSV_LESSONS = [
     paras   : [
       {
         id       : 'L02-P1',
+        zh       : '研究表明，竞走与跑步有许多相同的健身益处，而且很可能造成更少的损伤。不过，它也有自己的问题。',
         sentences: [
           { id: 'L02-P1-S1', hard: false,
             text: 'Race walking shares many fitness benefits with running, research shows, while most likely contributing to fewer injuries.' },
@@ -154,6 +157,7 @@ window.HSV_LESSONS = [
       },
       {
         id       : 'L02-P2',
+        zh       : '竞走运动员是训练有素的运动员。夏季奥运会最长的田径项目是50公里竞走，比马拉松还长约5英里。但这项运动的规则要求竞走运动员在腿部摆动的大部分过程中膝盖保持伸直，并且始终有一只脚与地面保持接触。不过，马萨诸塞州塞勒姆州立大学运动科学助理教授杰克琳·诺伯格说，正是这种奇特的姿势使竞走成为一项如此有吸引力的运动。',
         sentences: [
           { id: 'L02-P2-S1', hard: false,
             text: 'Race walkers are conditioned athletes.' },
@@ -167,6 +171,7 @@ window.HSV_LESSONS = [
       },
       {
         id       : 'L02-P3',
+        zh       : '她说，和跑步一样，竞走对体力要求很高。根据大多数计算，以每小时6英里的速度行进的竞走运动员每小时约消耗800卡路里，大约是普通步行消耗量的两倍，不过少于跑步——跑步每小时大概能消耗1000卡路里甚至更多。',
         sentences: [
           { id: 'L02-P3-S1', hard: false,
             text: 'Like running, race walking is physically demanding, she says.' },
@@ -176,6 +181,7 @@ window.HSV_LESSONS = [
       },
       {
         id       : 'L02-P4',
+        zh       : '不过，诺伯格博士说，竞走不像跑步那样对身体造成那么大的冲击。根据她的研究，跑步者每一步落地时对地面的冲击力可达体重的四倍，而竞走运动员的脚不离地，每一步只产生约1.4倍体重的力。',
         sentences: [
           { id: 'L02-P4-S1', hard: false,
             text: 'However, race walking does not pound the body as much as running does, Dr. Norberg says.' },
@@ -185,6 +191,7 @@ window.HSV_LESSONS = [
       },
       {
         id       : 'L02-P5',
+        zh       : '因此，她说，一些与跑步相关的损伤（如跑步膝）在竞走运动员中并不常见。但这项运动奇特的姿势确实会给脚踝和髋部带来相当大的压力，所以有此类损伤史的人在开始这项运动时要谨慎。事实上，她说，任何想尝试竞走的人最好先咨询教练或有经验的竞走者，学习正确的技术。这需要一些练习。',
         sentences: [
           { id: 'L02-P5-S1', hard: false,
             text: "As a result, she says, some of the injuries associated with running, such as runner's knee, are uncommon among race walkers." },

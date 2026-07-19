@@ -409,10 +409,39 @@
     color         : var(--text-secondary);
     cursor        : pointer;
     padding       : 2px 7px;
-    margin-right  : 8px;
+    margin-right  : 6px;
     vertical-align: middle;
 }
 .ls-para-play:hover { background: var(--bg-hover); color: var(--accent); }
+.ls-para-tr {
+    background    : var(--bg-surface);
+    border        : 1px solid var(--bg-accent);
+    border-radius : 8px;
+    font-size     : 11px;
+    color         : var(--text-secondary);
+    cursor        : pointer;
+    padding       : 2px 7px;
+    margin-right  : 8px;
+    vertical-align: middle;
+}
+.ls-para-tr:hover { background: var(--bg-hover); color: var(--accent); }
+.ls-para-tr.on {
+    background   : var(--accent-bg);
+    border-color : var(--accent);
+    color        : var(--accent-text);
+}
+.ls-para-zh {
+    display       : none;
+    background    : var(--bg-surface);
+    border-left   : 3px solid var(--accent-light);
+    border-radius : 0 10px 10px 0;
+    padding       : 10px 14px;
+    margin        : -6px 0 16px;
+    font-size     : 14.5px;
+    line-height   : 1.9;
+    color         : var(--text-secondary);
+}
+.ls-para-zh.show { display: block; }
 .ls-blank {
     color         : var(--accent);
     font-weight   : 700;

@@ -1,5 +1,12 @@
 // sw.js — VocabPeak Service Worker
 
+// hsv-v17 (?v=114) — 课文精读: 段级中文译文:
+//   • 段落数据新增可选 zh 字段, 两篇内置课 7 段译文全部就位。
+//   • 课文页每段「译」按钮切换该段译文显隐, 工具栏「译文」全局
+//     开关一键全显/全隐; 默认隐藏 (先读英文, 卡住再看译)。
+//   • 导入 schema 兼容扩展: 段落对象可带 zh; 识别提示词 (内嵌
+//     常量与 docs 文档) 同步要求 AI 产出整段翻译。
+
 // hsv-v16 (?v=113) — 课文精读: 修复「复制识别提示词」:
 //   • 提示词全文内嵌 lessons.js 常量, 关键路径不再 fetch 线上
 //     docs 文件 (未部署即 404), 也不再受 await 后用户手势过期影响。
@@ -191,7 +198,7 @@
 
 // 缓存名与 EMPro 隔离：Cache Storage 也是按 origin 共享的，两个应用
 // 的 CACHE_NAME 必须不同，否则会互相删除对方的缓存。
-const CACHE_NAME = 'hsv-v16';
+const CACHE_NAME = 'hsv-v17';
 const ASSETS = [
     './',
     './index.html',
