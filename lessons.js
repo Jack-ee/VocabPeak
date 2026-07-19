@@ -55,6 +55,9 @@ window.Lessons = (function () {
     function sentenceById(lesson, sid) {
         return allSentences(lesson).find(s => s.id === sid) || null;
     }
+    function paraById(lesson, pid) {
+        return (lesson.paras || []).find(p => p.id === pid) || null;
+    }
     function wordById(lesson, wid) {
         return (lesson.words || []).find(w => w.id === wid) || null;
     }
@@ -245,7 +248,9 @@ window.Lessons = (function () {
         const l     = curLesson;
         const paras = (l.paras || []).map(p => {
             const inner = (p.sentences || []).map(s => sentenceHtml(l, s)).join(' ');
-            return `<p class="ls-para">${inner}</p>`;
+            return `<p class="ls-para">`
+                 + `<button class="ls-para-play" data-para="${esc(p.id)}" title="\u64AD\u653E\u672C\u6BB5">\u25B6</button>`
+                 + `${inner}</p>`;
         }).join('');
         panel.innerHTML = `
             <div class="ls-read">
@@ -332,15 +337,19 @@ window.Lessons = (function () {
             </div>`;
     }
 
-    function startCloze(mode) {
-        const hint = !!root.querySelector('#ls-cloze-hint')?.checked;
+    function startCloze(mode, hintOpt) {
+        // 从结果页「再练一轮」进来时 setup 复选框已不在 DOM，用上一轮的值。
+        const hint = (hintOpt != null)
+            ? !!hintOpt
+            : !!root.querySelector('#ls-cloze-hint')?.checked;
         clozeState = {
             mode    : mode,                                // choice | spell
             hint    : hint,
+            showZh  : (window.DB?.getPref?.('lesson_cloze_zh', '1') !== '0'),
             queue   : shuffle((curLesson.words || []).slice()),
             idx     : 0,
-            correct : 0,
-            wrong   : []                                   // 答错的词对象
+            opts    : {},                                  // wid -> 选项 ID 序 (稳定, 回看不重排)
+            answers : {}                                   // wid -> { ok, pickedId?, typed? }
         };
         renderClozeQuestion();
     }
@@ -358,35 +367,51 @@ window.Lessons = (function () {
         return pool.slice(0, n);
     }
 
-    function clozeSentenceHtml(w) {
+    function clozeSentenceHtml(w, ans) {
         const s = sentenceById(curLesson, w.sent);
         if (!s) return '';
         let html = esc(s.text);
         const surf = esc(w.surface);
         const idx  = html.indexOf(surf);
         if (idx >= 0) {
-            html = html.slice(0, idx)
-                 + '<span class="ls-blank" id="ls-blank">______</span>'
-                 + html.slice(idx + surf.length);
+            const blank = ans
+                ? `<span class="ls-blank ${ans.ok ? 'ok' : 'bad'}" id="ls-blank">${surf}</span>`
+                : '<span class="ls-blank" id="ls-blank">______</span>';
+            html = html.slice(0, idx) + blank + html.slice(idx + surf.length);
         }
-        return html;
+        // 整句朗读: 有意提供 —— 未答时听原句即是「听力填空」练法。
+        return `<div class="ls-cloze-sentrow">`
+             + `<button class="ls-mini-speak" data-say="${esc(s.text)}" title="\u64AD\u653E\u672C\u53E5">\u{1F50A}</button>`
+             + `<div class="ls-cloze-senttext">${html}</div></div>`;
     }
 
     function renderClozeQuestion() {
         const st    = clozeState;
         const panel = root.querySelector('#ls-panel');
         if (!st || !panel) return;
-        if (st.idx >= st.queue.length) { renderClozeResult(panel); return; }
-        const w    = st.queue[st.idx];
-        const prog = `${st.idx + 1} / ${st.queue.length}`;
+        const total    = st.queue.length;
+        const w        = st.queue[st.idx];
+        const ans      = st.answers[w.id] || null;
+        const answered = Object.keys(st.answers).length;
+        const isLast   = st.idx === total - 1;
+
         let body;
         if (st.mode === 'choice') {
-            // 选项统一小写: 句首词形 (Race / As a result) 保留原大小写
-            // 会因首字母大写直接暴露答案。
-            const opts = shuffle([w].concat(pickDistractors(w, 3)))
-                .map(o => `<button class="ls-opt" data-opt="${esc(o.id)}">${esc(o.surface.toLowerCase())}</button>`)
-                .join('');
-            body = `<div class="ls-opts">${opts}</div>`;
+            // 选项顺序按题缓存: 回看已答题时不重排。统一小写显示,
+            // 句首词形 (Race / As a result) 的大写会直接暴露答案。
+            if (!st.opts[w.id]) {
+                st.opts[w.id] = shuffle([w].concat(pickDistractors(w, 3))).map(o => o.id);
+            }
+            const btns = st.opts[w.id].map(oid => {
+                const o   = wordById(curLesson, oid);
+                let   cls = 'ls-opt';
+                if (ans) {
+                    if (oid === w.id)            cls += ' ok';
+                    else if (oid === ans.pickedId) cls += ' bad';
+                }
+                return `<button class="${cls}" data-opt="${esc(oid)}"${ans ? ' disabled' : ''}>${esc(o.surface.toLowerCase())}</button>`;
+            }).join('');
+            body = `<div class="ls-opts">${btns}</div>`;
         } else {
             const hint = st.hint
                 ? `<span class="ls-spell-hint">\u9996\u5B57\u6BCD: <b>${esc(w.surface.charAt(0))}</b></span>`
@@ -395,23 +420,42 @@ window.Lessons = (function () {
                 <div class="ls-spell-row">
                     <input type="text" class="ls-spell-input" id="ls-spell-input"
                            placeholder="\u8F93\u5165\u7B54\u6848\u540E\u56DE\u8F66" autocomplete="off"
-                           autocapitalize="off" spellcheck="false">
-                    <button class="wl-btn-primary" id="ls-spell-submit">\u786E\u5B9A</button>
+                           autocapitalize="off" spellcheck="false"
+                           value="${ans ? esc(ans.typed || '') : ''}"${ans ? ' disabled' : ''}>
+                    <button class="wl-btn-primary" id="ls-spell-submit"${ans ? ' disabled' : ''}>\u786E\u5B9A</button>
                 </div>
-                <div class="ls-spell-meta">${hint}<span class="ls-spell-zh">${esc(w.zh)}</span></div>`;
+                <div class="ls-spell-meta">${hint}</div>`;
         }
+
+        // 已答题回看: 反馈区固定显示
+        const feedback = ans
+            ? (ans.ok
+                ? `<span class="ls-fb-ok">\u2713 \u6B63\u786E</span>`
+                : `<span class="ls-fb-bad">\u2717 \u6B63\u786E\u7B54\u6848: <b>${esc(w.surface)}</b></span>`)
+              + ` <span class="ls-fb-zh">${esc(w.zh)}</span>`
+              + ` <button class="wl-btn-primary ls-fb-next" id="ls-cloze-next">${isLast ? '\u4EA4\u5377 \u2192' : '\u4E0B\u4E00\u9898 \u2192'}</button>`
+            : '';
+
         panel.innerHTML = `
             <div class="ls-cloze">
                 <div class="ls-cloze-top">
-                    <span class="ls-cloze-prog">${prog}</span>
-                    <button class="ls-cloze-quit" id="ls-cloze-quit">\u9000\u51FA</button>
+                    <div class="ls-cloze-navs">
+                        <button class="ls-nav-btn" id="ls-cloze-prev"${st.idx === 0 ? ' disabled' : ''}>\u2190</button>
+                        <span class="ls-cloze-prog">${st.idx + 1} / ${total} \u00b7 \u5DF2\u7B54 ${answered}</span>
+                        <button class="ls-nav-btn" id="ls-cloze-nextq">${isLast ? '\u4EA4\u5377' : '\u2192'}</button>
+                    </div>
+                    <div class="ls-cloze-tools">
+                        <button class="ls-tool-btn${st.showZh ? ' on' : ''}" id="ls-zh-toggle" title="\u663E\u793A/\u9690\u85CF\u4E2D\u6587\u91CA\u4E49">\u4E2D\u6587</button>
+                        <button class="ls-cloze-quit" id="ls-cloze-quit">\u9000\u51FA</button>
+                    </div>
                 </div>
-                <div class="ls-cloze-sent">${clozeSentenceHtml(w)}</div>
+                <div class="ls-cloze-sent">${clozeSentenceHtml(w, ans)}</div>
+                ${st.showZh ? `<div class="ls-zh-hint">\u91CA\u4E49: ${esc(w.zh)}</div>` : ''}
                 ${body}
-                <div class="ls-cloze-feedback" id="ls-cloze-feedback"></div>
+                <div class="ls-cloze-feedback" id="ls-cloze-feedback">${feedback}</div>
             </div>`;
         const inp = panel.querySelector('#ls-spell-input');
-        if (inp) {
+        if (inp && !ans) {
             inp.focus();
             inp.addEventListener('keydown', e => {
                 if (e.key === 'Enter') { e.preventDefault(); submitSpell(); }
@@ -419,62 +463,76 @@ window.Lessons = (function () {
         }
     }
 
-    function gradeCloze(isCorrect, w) {
+    function clozeGoPrev() {
+        if (!clozeState || clozeState.idx === 0) return;
+        clozeState.idx--;
+        renderClozeQuestion();
+    }
+    function clozeGoNext() {
         const st = clozeState;
-        if (isCorrect) st.correct++;
-        else           st.wrong.push(w);
+        if (!st) return;
+        if (st.idx >= st.queue.length - 1) { renderClozeResult(); return; }
+        st.idx++;
+        renderClozeQuestion();
+    }
+    function toggleClozeZh() {
+        const st = clozeState;
+        if (!st) return;
+        st.showZh = !st.showZh;
+        try { window.DB?.setPref?.('lesson_cloze_zh', st.showZh ? '1' : '0'); } catch (e) {}
+        renderClozeQuestion();
+    }
+
+    function gradeCloze(isCorrect, w, detail) {
+        const st = clozeState;
+        if (st.answers[w.id]) return;               // 已答过, 不重复计分
+        st.answers[w.id] = Object.assign({ ok: isCorrect }, detail || {});
         try { window.DB?.bumpDaily?.({ quizTotal: 1, quizCorrect: isCorrect ? 1 : 0 }); }
         catch (e) {}
-        const fb = root.querySelector('#ls-cloze-feedback');
-        if (fb) {
-            fb.innerHTML = (isCorrect
-                ? `<span class="ls-fb-ok">\u2713 \u6B63\u786E</span>`
-                : `<span class="ls-fb-bad">\u2717 \u6B63\u786E\u7B54\u6848: <b>${esc(w.surface)}</b></span>`)
-                + ` <span class="ls-fb-zh">${esc(w.zh)}</span>`
-                + ` <button class="wl-btn-primary ls-fb-next" id="ls-cloze-next">\u4E0B\u4E00\u9898 \u2192</button>`;
-        }
-        const blank = root.querySelector('#ls-blank');
-        if (blank) {
-            blank.textContent = w.surface;
-            blank.classList.add(isCorrect ? 'ok' : 'bad');
-        }
         speak(w.surface);
+        renderClozeQuestion();                      // 状态驱动重渲染: 选项着色/回填/反馈
     }
 
     function submitChoice(optId) {
         const st = clozeState;
         const w  = st.queue[st.idx];
-        const ok = optId === w.id;
-        root.querySelectorAll('.ls-opt').forEach(b => {
-            b.disabled = true;
-            if (b.dataset.opt === w.id) b.classList.add('ok');
-            else if (b.dataset.opt === optId) b.classList.add('bad');
-        });
-        gradeCloze(ok, w);
+        if (st.answers[w.id]) return;
+        gradeCloze(optId === w.id, w, { pickedId: optId });
     }
 
     function submitSpell() {
         const st  = clozeState;
         const w   = st.queue[st.idx];
         const inp = root.querySelector('#ls-spell-input');
-        if (!inp || inp.disabled) return;
+        if (!inp || inp.disabled || st.answers[w.id]) return;
         const val = String(inp.value || '').trim().toLowerCase().replace(/\s+/g, ' ');
         const ans = w.surface.trim().toLowerCase().replace(/\s+/g, ' ');
-        inp.disabled = true;
-        const btn = root.querySelector('#ls-spell-submit');
-        if (btn) btn.disabled = true;
-        gradeCloze(val === ans, w);
+        gradeCloze(val === ans, w, { typed: inp.value });
     }
 
-    function renderClozeResult(panel) {
+    function renderClozeResult() {
         const st    = clozeState;
-        const total = st.queue.length;
-        const pct   = total ? Math.round(st.correct * 100 / total) : 0;
-        const prev  = loadProgress()[curLesson.id] || {};
-        const best  = Math.max(pct, prev.clozeBest || 0);
-        bumpProgress(curLesson.id, { clozeBest: best, clozeRuns: (prev.clozeRuns || 0) + 1 });
-        renderHeaderProgress();
-        const wrongRows = st.wrong.map(w => `
+        const panel = root.querySelector('#ls-panel');
+        if (!st || !panel) return;
+        const total      = st.queue.length;
+        const doneWords  = st.queue.filter(w => st.answers[w.id]);
+        const correct    = doneWords.filter(w => st.answers[w.id].ok).length;
+        const wrong      = doneWords.filter(w => !st.answers[w.id].ok);
+        const unanswered = total - doneWords.length;
+        const pct        = doneWords.length
+            ? Math.round(correct * 100 / doneWords.length) : 0;
+
+        // 最佳成绩只在完整作答时刷新, 保证历史成绩可比。
+        const prev = loadProgress()[curLesson.id] || {};
+        if (!unanswered) {
+            bumpProgress(curLesson.id, {
+                clozeBest : Math.max(pct, prev.clozeBest || 0),
+                clozeRuns : (prev.clozeRuns || 0) + 1
+            });
+            renderHeaderProgress();
+        }
+
+        const wrongRows = wrong.map(w => `
             <div class="ls-wrong-row">
                 <button class="ls-mini-speak" data-say="${esc(w.surface)}">\u{1F50A}</button>
                 <span class="ls-wrong-en">${esc(w.surface)}</span>
@@ -483,12 +541,15 @@ window.Lessons = (function () {
         panel.innerHTML = `
             <div class="ls-result">
                 <div class="ls-result-score">${pct}%</div>
-                <div class="ls-result-sub">${st.correct} / ${total} \u9898\u6B63\u786E${pct >= best && pct > 0 ? ' \u00b7 \u65B0\u7EAA\u5F55\uFF01' : ''}</div>
-                ${st.wrong.length ? `
-                    <div class="ls-result-wrong-title">\u9519\u8BCD ${st.wrong.length} \u4E2A</div>
+                <div class="ls-result-sub">${correct} / ${doneWords.length} \u9898\u6B63\u786E${
+                    unanswered ? ` \u00b7 \u8FD8\u6709 ${unanswered} \u9898\u672A\u4F5C\u7B54` :
+                    (pct > 0 && pct >= (prev.clozeBest || 0) ? ' \u00b7 \u65B0\u7EAA\u5F55\uFF01' : '')}</div>
+                ${unanswered ? `<button class="wl-btn-primary" id="ls-cloze-resume">\u21A9 \u7EE7\u7EED\u4F5C\u7B54</button>` : ''}
+                ${wrong.length ? `
+                    <div class="ls-result-wrong-title">\u9519\u8BCD ${wrong.length} \u4E2A</div>
                     <div class="ls-wrong-list">${wrongRows}</div>
                     <button class="wl-btn-primary" id="ls-wrong-add">\u{1F4D6} \u9519\u8BCD\u52A0\u5165\u751F\u8BCD\u672C</button>`
-                  : '<div class="ls-result-perfect">\u{1F3C6} \u5168\u5BF9\uFF0C\u6EE1\u5206\u901A\u5173\uFF01</div>'}
+                  : (!unanswered ? '<div class="ls-result-perfect">\u{1F3C6} \u5168\u5BF9\uFF0C\u6EE1\u5206\u901A\u5173\uFF01</div>' : '')}
                 <div class="ls-result-btns">
                     <button class="wl-btn-secondary" id="ls-cloze-again">\u{1F504} \u518D\u7EC3\u4E00\u8F6E</button>
                     <button class="wl-btn-secondary" id="ls-cloze-back">\u8FD4\u56DE</button>
@@ -496,11 +557,22 @@ window.Lessons = (function () {
             </div>`;
     }
 
+    // 从结果页回到第一道未作答的题继续。
+    function clozeResume() {
+        const st = clozeState;
+        if (!st) return;
+        const i = st.queue.findIndex(w => !st.answers[w.id]);
+        st.idx  = i >= 0 ? i : 0;
+        renderClozeQuestion();
+    }
+
     function addWrongToNotebook() {
         const st = clozeState;
-        if (!st || !st.wrong.length) return;
-        st.wrong.forEach(w => addWordToNotebook(w));
-        toast('\u{1F4D6} ' + st.wrong.length + ' \u4E2A\u9519\u8BCD\u5DF2\u52A0\u5165\u751F\u8BCD\u672C');
+        if (!st) return;
+        const wrong = st.queue.filter(w => st.answers[w.id] && !st.answers[w.id].ok);
+        if (!wrong.length) return;
+        wrong.forEach(w => addWordToNotebook(w));
+        toast('\u{1F4D6} ' + wrong.length + ' \u4E2A\u9519\u8BCD\u5DF2\u52A0\u5165\u751F\u8BCD\u672C');
         const btn = root.querySelector('#ls-wrong-add');
         if (btn) { btn.disabled = true; btn.textContent = '\u2713 \u5DF2\u52A0\u5165'; }
     }
@@ -686,16 +758,28 @@ window.Lessons = (function () {
         const overlay = t.closest('#ls-sheet-overlay');
         if (overlay && t === overlay) { closeWordSheet(); return; }
 
+        // 课文: 整段播放
+        const paraBtn = t.closest('.ls-para-play');
+        if (paraBtn) {
+            const p = paraById(curLesson, paraBtn.dataset.para);
+            if (p) playSentences((p.sentences || []).map(s => s.id));
+            return;
+        }
+
         // 填空
         if (t.closest('#ls-cloze-choice')) { startCloze('choice'); return; }
         if (t.closest('#ls-cloze-spell'))  { startCloze('spell');  return; }
         if (t.closest('#ls-cloze-quit'))   { switchTab('cloze');   return; }
+        if (t.closest('#ls-cloze-prev'))   { clozeGoPrev(); return; }
+        if (t.closest('#ls-cloze-nextq'))  { clozeGoNext(); return; }
+        if (t.closest('#ls-zh-toggle'))    { toggleClozeZh(); return; }
         const opt = t.closest('.ls-opt');
         if (opt && !opt.disabled) { submitChoice(opt.dataset.opt); return; }
         if (t.closest('#ls-spell-submit')) { submitSpell(); return; }
-        if (t.closest('#ls-cloze-next'))   { clozeState.idx++; renderClozeQuestion(); return; }
+        if (t.closest('#ls-cloze-next'))   { clozeGoNext(); return; }
+        if (t.closest('#ls-cloze-resume')) { clozeResume(); return; }
         if (t.closest('#ls-wrong-add'))    { addWrongToNotebook(); return; }
-        if (t.closest('#ls-cloze-again'))  { startCloze(clozeState.mode); return; }
+        if (t.closest('#ls-cloze-again'))  { startCloze(clozeState.mode, clozeState.hint); return; }
         if (t.closest('#ls-cloze-back'))   { switchTab('cloze'); return; }
 
         // 短语匹配
