@@ -385,6 +385,15 @@
                 _ttsCache.set(cacheK, url);
             }
             const audio = new Audio(url);
+            // 变速不变调, 与包播放同口径 (合成按自然语速, 播放端调速)
+            const nr = Number(rate);
+            if (nr && nr > 0 && nr !== 1) {
+                try {
+                    audio.preservesPitch       = true;
+                    audio.webkitPreservesPitch = true;
+                    audio.playbackRate         = Math.min(2, Math.max(0.5, nr));
+                } catch (e) { /* ignore */ }
+            }
             _neuralAudio = audio;
             audio.onended = () => { if (_neuralAudio === audio) _neuralAudio = null; finish(); };
             audio.onerror = () => { if (_neuralAudio === audio) _neuralAudio = null; finish(); };
@@ -425,7 +434,7 @@
                 else speakNative(text, effRate, onEnd, opts);
             };
             if (window.TTSPack && window.TTSPack.playWord) {
-                window.TTSPack.playWord(text, getPackVoices(), onEnd)
+                window.TTSPack.playWord(text, getPackVoices(), onEnd, effRate)
                     .then(played => { if (!played) fallback(); })
                     .catch(err => {
                         console.log('[pack] playWord error: ' + (err && err.message));

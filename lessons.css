@@ -17,7 +17,7 @@
 .ls-card-list {
     display        : flex;
     flex-direction : column;
-    gap            : 12px;
+    gap            : 8px;
 }
 .ls-card {
     display       : block;
@@ -25,27 +25,36 @@
     text-align    : left;
     background    : var(--bg-card);
     border        : 1px solid var(--bg-accent);
-    border-radius : 14px;
-    padding       : 16px;
+    border-radius : 12px;
+    padding       : 10px 14px;
     cursor        : pointer;
     transition    : background 0.15s ease;
 }
 .ls-card:hover { background: var(--bg-hover); }
 .ls-card-title {
-    font-size   : 17px;
-    font-weight : 600;
-    color       : var(--text-primary);
+    font-size     : 15px;
+    font-weight   : 600;
+    color         : var(--text-primary);
+    padding-right : 22px;           /* 给右上角删除按钮留位 */
+    white-space   : nowrap;
+    overflow      : hidden;
+    text-overflow : ellipsis;
+}
+.ls-card-meta {
+    display     : flex;
+    align-items : center;
+    flex-wrap   : wrap;
+    gap         : 6px;
+    margin-top  : 3px;
 }
 .ls-card-sub {
-    font-size : 13px;
+    font-size : 12.5px;
     color     : var(--text-secondary);
-    margin    : 3px 0 8px;
 }
-.ls-card-badges { display: flex; flex-wrap: wrap; gap: 6px; }
 .ls-badge {
-    font-size     : 12px;
-    padding       : 2px 8px;
-    border-radius : 10px;
+    font-size     : 11px;
+    padding       : 1px 7px;
+    border-radius : 9px;
     background    : var(--bg-surface);
     color         : var(--text-secondary);
 }
@@ -656,7 +665,12 @@
 
 /* ---- 桌面增强 (不影响移动布局) ---- */
 @media (min-width: 769px) {
-    .ls-card-list { max-width: 560px; }
+    .ls-card-list {
+        display               : grid;
+        grid-template-columns : 1fr 1fr;
+        gap                   : 10px;
+        max-width             : 860px;
+    }
     .ls-text      { font-size: 17px; padding: 24px 26px; }
     .ls-sheet {
         max-width     : 520px;

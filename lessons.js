@@ -182,8 +182,10 @@ window.Lessons = (function () {
             <div class="ls-card" data-lesson="${esc(l.id)}">
                 ${del}
                 <div class="ls-card-title">${esc(l.title)}</div>
-                <div class="ls-card-sub">${esc(l.titleZh || '')} \u00b7 ${wordN} \u8BCD</div>
-                <div class="ls-card-badges">${badges.join('') || '<span class="ls-badge ls-badge-empty">\u672A\u5F00\u59CB</span>'}</div>
+                <div class="ls-card-meta">
+                    <span class="ls-card-sub">${esc(l.titleZh || '')} \u00b7 ${wordN} \u8BCD</span>
+                    ${badges.join('') || '<span class="ls-badge ls-badge-empty">\u672A\u5F00\u59CB</span>'}
+                </div>
             </div>`;
         }).join('');
         root.innerHTML = `
@@ -960,8 +962,11 @@ window.Lessons = (function () {
             const pos     = String(w && w.pos || '').trim();
             const zh      = String(w && w.zh || '').trim().replace(/\s+/g, ' ');
             if (!surface) { errors.push(`${label}: \u7F3A surface`); return; }
-            if (/[&<>"']/.test(surface) || /[&<>"']/.test(lemma)) {
-                errors.push(`${label} (${surface}): surface/lemma \u542B\u7279\u6B8A\u5B57\u7B26`); return;
+            // 只拦结构性字符 & < > " —— 撇号 ' 是合法英文
+            // (teenagers' / runner's / don't), 全链路 esc() 转义后
+            // 进入页面, 无注入风险, 不得误杀。
+            if (/[&<>"]/.test(surface) || /[&<>"]/.test(lemma)) {
+                errors.push(`${label} (${surface}): surface/lemma \u542B\u7279\u6B8A\u5B57\u7B26 (& < > \")`); return;
             }
             if (!zh) errors.push(`${label} (${surface}): \u7F3A\u4E2D\u6587\u91CA\u4E49 zh`);
             if (!pos) warnings.push(`${label} (${surface}): \u7F3A\u8BCD\u6027 pos`);

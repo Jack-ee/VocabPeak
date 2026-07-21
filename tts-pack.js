@@ -27,10 +27,13 @@
  *   download(onStatus)      fetch + import the pack; onStatus(msg) for UI
  *   getClip(word, voice)    -> Promise<Blob|null>
  *   getCachedVoices(word)   -> Promise<string[]> voices present for a word
- *   playWord(text, preferredVoices, onEnd)
+ *   playWord(text, preferredVoices, onEnd, rate)
  *                           -> Promise<boolean>; plays a random cached
  *                              voice (restricted to preferredVoices when
- *                              given); false if the word is not in the pack
+ *                              given); false if the word is not in the pack.
+ *                              rate (optional, 0.5-2): playbackRate with
+ *                              pitch preserved — slow reading uses this,
+ *                              clips stay natural-speed in the pack
  *   stop()                  stop any pack clip currently playing
  *   deleteWord(word)         remove every voice's clip for a word
  *   status()                -> Promise<{generation,clipCount,voices}|null>
@@ -339,7 +342,7 @@ window.TTSPack = (function () {
     // pre-rendered at a model learner pace and play at natural speed.
     // Resolves true if it played, false if the word is not in the pack
     // (the caller then falls back to the live or device voice).
-    async function playWord(text, preferredVoices, onEnd) {
+    async function playWord(text, preferredVoices, onEnd, rate) {
         const cached = await getCachedVoices(text);
         if (!cached.length) {
             const meta = await idbGet(META_KEY);
@@ -369,6 +372,16 @@ window.TTSPack = (function () {
         stop();
         const url   = URL.createObjectURL(blob);
         const audio = new Audio(url);
+        // 变速不变调: clip 按自然语速生成, 慢速跟读用客户端变速实现,
+        // 不生成慢速版包 (省包体、省合成费、速度连续可调)。
+        const r = Number(rate);
+        if (r && r > 0 && r !== 1) {
+            try {
+                audio.preservesPitch       = true;
+                audio.webkitPreservesPitch = true;   // 旧版 Chrome/WebKit
+                audio.playbackRate         = Math.min(2, Math.max(0.5, r));
+            } catch (e) { /* ignore */ }
+        }
         _audio = audio;
 
         let done = false;
