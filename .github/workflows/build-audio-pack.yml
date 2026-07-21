@@ -1,0 +1,76 @@
+# ============================================================
+# Build audio pack — 增量合成发音包并发布到 Release (audio-pack)
+#
+# 触发: 手动 (Actions -> Build audio pack -> Run workflow),
+#       或 push 改动了词表/生成器。
+# 前置: 仓库 Secret OPENAI_API_KEY (Settings -> Secrets and
+#       variables -> Actions); Workflow permissions 为
+#       Read and write (本文件的 permissions 也声明了写权限)。
+# 产物: tools/dist/ 下三个文件, 发布到 audio-pack 标签的 Release,
+#       下载 URL 稳定 (见 tools/README.md)。
+# 增量: 生成器自动下载上一代包, 只合成缺失 clip; 中途失败也会
+#       写出部分包, 因此发布步骤 if: always() —— 已合成的钱不浪费。
+# ============================================================
+name: Build audio pack
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'tools/wordlist.txt'
+      - 'tools/generate_audio_pack.py'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: audio-pack
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # 生成器只用标准库, 无需 pip 安装。
+      - name: Build pack (incremental)
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_TOKEN:   ${{ secrets.GITHUB_TOKEN }}
+        run: python tools/generate_audio_pack.py
+
+      - name: Publish release assets
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          DIST=tools/dist
+          if [ ! -f "$DIST/vocabpeak-audio-pack.empack" ]; then
+            echo "No pack produced; nothing to publish."
+            exit 0
+          fi
+          # Release (标签 audio-pack) 不存在则创建, 存在则复用。
+          if ! gh release view audio-pack > /dev/null 2>&1; then
+            gh release create audio-pack \
+              --title "Audio pack" \
+              --notes "Auto-built offline pronunciation pack. Assets are overwritten by each build; download URLs stay stable."
+          fi
+          gh release upload audio-pack \
+            "$DIST/vocabpeak-audio-pack.empack" \
+            "$DIST/vocabpeak-audio-pack.manifest.json" \
+            --clobber
+          if [ -f "$DIST/vocabpeak-audio-pack.delta.empack" ]; then
+            gh release upload audio-pack \
+              "$DIST/vocabpeak-audio-pack.delta.empack" --clobber
+          fi
+          echo "Published to release 'audio-pack'."
