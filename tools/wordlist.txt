@@ -1,1702 +1,3555 @@
 # VocabPeak audio pack - word list
-# Generated 2026-07-01 from the built-in high-school CORE vocabulary.
-# Replace tools/wordlist.txt and commit; the Build audio pack workflow (re)builds automatically.
-# Voices to synthesise (kept to 2 for a smaller, tablet-friendly pack; edit to taste).
-# Valid gpt-4o-mini-tts voices: alloy ash ballad coral echo fable nova onyx sage shimmer verse
-# voices: nova, fable
-# 1615 core word(s), one per line.
+# 已导出 2026-07-21 from the app.
+# Replace tools/wordlist.txt with this file, then commit it.
+# Each block is tagged  #@<index> <word>  with a stable index.
+# voices: ash, echo
+# (no range set - building all 1616 words; add e.g.  "# range: 1-50"  to build one batch)
+# 1616 word(s), 2443 个条目
 
+#@1 abandon
 abandon
+to give up something completely, or to leave someone or something you are responsible for.
+they had to abandon the car in the snow and walk home.
+abandon a plan
+abandon a child
+abandon hope
+abandon ship
+#@2 abnormal
 abnormal
+different from what is usual or expected, often in a way that is worrying.
+the doctor said the test showed some abnormal cells.
+abnormal behaviour
+abnormal results
+abnormal growth
+abnormal conditions
+#@3 aboard
 aboard
+on or onto a ship, plane, train, or bus.
+once everyone was aboard, the ship set sail.
+go aboard
+all aboard
+welcome aboard
+aboard the ship
+#@4 abortion
 abortion
+the ending of a pregnancy before birth; more broadly, the failure of a plan or process before it is completed.
+the whole project turned out to be an abortion and was cancelled.
+have an abortion
+the abortion of a plan
+a failed abortion
+abortion debate
+#@5 absence
 absence
+the fact of not being present in a place, or the lack of something.
+in the absence of the manager, her assistant made the decision.
+in the absence of
+absence from school
+a long absence
+leave of absence
+#@6 absolute
 absolute
+complete and total, or not limited or qualified in any way.
+there was absolute silence in the exam room.
+absolute power
+absolute truth
+absolute silence
+an absolute must
+#@7 absorb
 absorb
+to take in a liquid, gas, or other substance; also to take in information or to hold someone's full attention.
+plants absorb water and nutrients through their roots.
+absorb water
+absorb information
+absorb the shock
+be absorbed in
+#@8 abstract
 abstract
+as a noun, a short summary of a paper or book; as an adjective, based on general ideas rather than physical things.
+every research paper begins with a short abstract summarising its findings.
+an abstract concept
+write an abstract
+abstract art
+in the abstract
+#@9 absurd
 absurd
+completely unreasonable, foolish, or not making any sense.
+it seems absurd to spend so much money on a pair of shoes.
+an absurd idea
+absurd prices
+sound absurd
+utterly absurd
+#@10 abundant
 abundant
+existing in large quantities; more than enough.
+the region has abundant rainfall, so farming is easy.
+abundant resources
+abundant supply
+abundant rainfall
+abundant in
+#@11 abuse
 abuse
+to use something wrongly, to treat a person or animal cruelly, or to speak to someone rudely.
+he was accused of abusing his position for personal gain.
+abuse power
+abuse drugs
+child abuse
+verbal abuse
+#@12 academic
 academic
+relating to education, schools, and study; sometimes meaning theoretical rather than practical.
+her academic performance improved a lot this term.
+academic year
+academic performance
+academic research
+purely academic
+#@13 academy
 academy
+a school or college for special training, or an organisation of experts in a particular field.
+he studied painting at a famous art academy in italy.
+military academy
+academy of sciences
+art academy
+join an academy
+#@14 accelerate
 accelerate
+to go faster, or to make something happen or develop more quickly.
+the car accelerated quickly as it entered the motorway.
+accelerate growth
+accelerate the process
+rapidly accelerate
+accelerate towards
+#@15 access
 access
+the right or chance to use, enter, or reach something; as a verb, to reach or open something, especially data.
+students have free access to the online library.
+have access to
+gain access
+internet access
+access a file
+#@16 accessible
 accessible
+able to be reached, entered, used, or understood easily.
+the museum is easily accessible by public transport.
+easily accessible
+accessible to all
+wheelchair accessible
+accessible information
+#@17 accommodation
 accommodation
+a place to live, stay, or work, especially for a short period of time.
+the university provides accommodation for first-year students.
+find accommodation
+student accommodation
+temporary accommodation
+book accommodation
+#@18 accompany
 accompany
+to go somewhere with someone, or to happen at the same time as something else.
+children must be accompanied by an adult.
+accompany someone
+accompanied by
+accompany on the piano
+accompany the meal
+#@19 accomplish
 accomplish
+to succeed in doing or completing something, especially something difficult.
+she accomplished her goal of running a marathon.
+accomplish a task
+accomplish a goal
+accomplish a mission
+accomplish much
+#@20 account
 account
+a record of money spent and received; also a spoken or written description of an event.
+she gave a detailed account of what happened that night.
+bank account
+take into account
+a detailed account
+account for
+#@21 accountant
 accountant
+a person whose job is to keep or check financial records.
+my aunt works as an accountant for a large firm.
+a qualified accountant
+chartered accountant
+work as an accountant
+company accountant
+#@22 accuracy
 accuracy
+the quality of being correct or exact, with no mistakes.
+the new instrument measures temperature with great accuracy.
+with accuracy
+a high degree of accuracy
+improve accuracy
+pinpoint accuracy
+#@23 accurate
 accurate
+correct, exact, and without mistakes.
+we need accurate data to draw reliable conclusions.
+an accurate description
+accurate measurement
+highly accurate
+accurate data
+#@24 accuse
 accuse
+to say that someone has done something wrong or illegal.
+they accused him of stealing the money.
+accuse someone of
+falsely accuse
+be accused of
+accuse publicly
+#@25 accustomed
 accustomed
+familiar with something because you have experienced it often; usual.
+she soon became accustomed to the cold weather.
+be accustomed to
+become accustomed
+accustomed to doing
+grow accustomed
+#@26 acid
 acid
+a chemical substance, usually a liquid, that has a sour taste and can dissolve some materials.
+acid rain is caused by pollution in the atmosphere.
+acid rain
+a strong acid
+citric acid
+acid test
+#@27 acknowledge
 acknowledge
+to accept or admit that something is true, or to show that you have noticed or received something.
+he acknowledged that he had made a mistake.
+acknowledge a mistake
+acknowledge receipt
+widely acknowledged
+acknowledge support
+#@28 acquaintance
 acquaintance
+a person you know a little but who is not a close friend; also slight knowledge of something.
+he is just an acquaintance, not a real friend.
+a close acquaintance
+make someone's acquaintance
+a nodding acquaintance
+business acquaintance
+#@29 acquire
 acquire
+to get or obtain something, or to gain a skill or knowledge over time.
+children acquire language skills very quickly.
+acquire knowledge
+acquire a skill
+acquire a company
+acquire a taste for
+#@30 acquisition
 acquisition
+the act of getting or gaining something; also a thing that has been gained.
+the acquisition of a second language takes time and practice.
+language acquisition
+the acquisition of
+a recent acquisition
+data acquisition
+#@31 acre
 acre
+a unit for measuring area of land, equal to about 4,047 square metres.
+the farmer owns several hundred acres of farmland.
+a hundred acres
+acres of land
+a farm of ten acres
+acres of space
+#@32 actual
 actual
+existing in fact; real, rather than imagined or expected.
+the actual cost was much higher than we expected.
+the actual cost
+actual size
+in actual fact
+the actual figures
+#@33 acute
 acute
-AD
+very serious or severe; also very sharp in perception, as with the senses or the mind.
+there is an acute shortage of clean water in the region.
+acute pain
+an acute shortage
+acute hearing
+an acute angle
+#@34 ad
+ad
+used with a year to show that it is after the birth of christ in the modern calendar.
+the temple was built in ad 600.
+ad 200
+in 500 ad
+the second century ad
+dated ad
+#@35 adapt
 adapt
+to change your behaviour to fit a new situation, or to change something so it can be used in a new way.
+it took her a while to adapt to the new school.
+adapt to
+adapt a novel
+quickly adapt
+adapt for
+#@36 adaptation
 adaptation
+the process of changing to suit new conditions; also a film, play, or book based on another work.
+the film is an adaptation of a famous novel.
+a film adaptation
+climate adaptation
+a stage adaptation
+adaptation to
+#@37 addicted
 addicted
+unable to stop doing or using something because you depend on it.
+many teenagers are addicted to their phones.
+addicted to
+become addicted
+addicted to games
+seriously addicted
+#@38 addition
 addition
+the act of adding something; also the mathematical process of adding numbers together.
+in addition to english, she speaks french and german.
+in addition
+in addition to
+a welcome addition
+recent addition
+#@39 adequate
 adequate
+enough in amount or good enough in quality for a particular purpose.
+the room was small but adequate for our needs.
+adequate supply
+adequate for
+barely adequate
+adequate protection
+#@40 adjust
 adjust
+to change something slightly to make it better, more accurate, or more suitable; also to get used to a new situation.
+you can adjust the brightness of the screen in the settings.
+adjust to
+adjust the settings
+adjust accordingly
+fine-adjust
+#@41 adjustment
 adjustment
+a small change made to something to improve it or make it fit; also the process of getting used to something.
+we made a few small adjustments to the plan.
+make an adjustment
+minor adjustment
+a period of adjustment
+fine adjustment
+#@42 administration
 administration
+the activities of managing an organisation; also the group of people who govern or manage.
+she works in the administration department of the hospital.
+business administration
+public administration
+the current administration
+under the administration of
+#@43 admire
 admire
+to respect and approve of someone or something, or to look at something with pleasure.
+i really admire her for her courage.
+admire someone for
+greatly admire
+admire the view
+secretly admire
+#@44 admission
 admission
+permission to enter a place, school, or organisation; also the act of admitting that something is true.
+admission to the exhibition is free for students.
+admission fee
+gain admission
+admission to university
+an admission of guilt
+#@45 admit
 admit
+to agree that something is true, often reluctantly; also to allow someone to enter or join.
+he admitted breaking the window.
+admit a mistake
+admit doing
+be admitted to
+admit defeat
+#@46 adolescent
 adolescent
+a young person who is developing from a child into an adult; also relating to this stage of life.
+adolescents often want more independence from their parents.
+adolescent behaviour
+a troubled adolescent
+adolescent years
+adolescent development
+#@47 adopt
 adopt
+to start using a particular method or attitude, or to legally take another person's child into your family.
+the school decided to adopt a new teaching method.
+adopt a method
+adopt a policy
+adopt a child
+adopt an approach
+#@48 adore
 adore
+to love someone very much, or to like something very much.
+she adores her little brother.
+absolutely adore
+adore someone
+adore doing
+simply adore
+#@49 advance
 advance
+to move forward, or to help something develop and progress.
+please book your tickets in advance.
+in advance
+advance a theory
+technological advance
+advance towards
+#@50 advantage
 advantage
+something that helps you or puts you in a better position than others.
+speaking two languages is a great advantage when travelling.
+take advantage of
+a big advantage
+competitive advantage
+to your advantage
+#@51 adventure
 adventure
+#@52 advertise
 advertise
+#@53 advocate
 advocate
+#@54 affair
 affair
+#@55 affect
 affect
+#@56 affection
 affection
-African
+#@57 african
+african
+#@58 afterwards
 afterwards
+#@59 agency
 agency
+#@60 agenda
 agenda
+#@61 agent
 agent
+#@62 aggressive
 aggressive
+#@63 agricultural
 agricultural
+#@64 agriculture
 agriculture
+#@65 ahead
 ahead
+#@66 aid
 aid
-AIDS
+#@67 aids
+aids
+#@68 aim
 aim
+#@69 aircraft
 aircraft
+#@70 album
 album
+#@71 alcohol
 alcohol
+#@72 alcoholic
 alcoholic
+#@73 algebra
 algebra
+#@74 alike
 alike
+#@75 allergic
 allergic
+#@76 alley
 alley
+#@77 allowance
 allowance
+#@78 alongside
 alongside
+#@79 alphabet
 alphabet
+#@80 alternative
 alternative
+#@81 altitude
 altitude
+#@82 altogether
 altogether
+#@83 aluminium
 aluminium
+#@84 amateur
 amateur
+#@85 ambassador
 ambassador
+#@86 ambiguous
 ambiguous
+#@87 ambition
 ambition
+#@88 ambulance
 ambulance
+#@89 amount
 amount
+#@90 ample
 ample
+#@91 analysis
 analysis
+#@92 anchor
 anchor
+#@93 anger
 anger
+#@94 angle
 angle
+#@95 ankle
 ankle
+#@96 anniversary
 anniversary
+#@97 announce
 announce
+#@98 annual
 annual
-Antarctic
+#@99 antarctic
+antarctic
+#@100 antique
 antique
+#@101 anxiety
 anxiety
+#@102 anxious
 anxious
+#@103 anybody
 anybody
+#@104 apartment
 apartment
+#@105 apologize
 apologize
+#@106 apology
 apology
+#@107 apparent
 apparent
+#@108 appeal
 appeal
+#@109 appearance
 appearance
+#@110 appendix
 appendix
+#@111 appetite
 appetite
+#@112 applicant
 applicant
+#@113 application
 application
+#@114 apply
 apply
+#@115 appoint
 appoint
+#@116 appointment
 appointment
+#@117 appreciate
 appreciate
+#@118 appreciation
 appreciation
+#@119 approach
 approach
+#@120 appropriate
 appropriate
+#@121 approval
 approval
+#@122 approve
 approve
+#@123 approximately
 approximately
+#@124 arbitrary
 arbitrary
+#@125 arch
 arch
+#@126 architect
 architect
+#@127 architecture
 architecture
-Arctic
+#@128 arctic
+arctic
+#@129 argument
 argument
+#@130 arise
 arise
+#@131 arrange
 arrange
+#@132 arrangement
 arrangement
+#@133 arrest
 arrest
+#@134 arrival
 arrival
+#@135 arrow
 arrow
+#@136 artificial
 artificial
+#@137 ash
 ash
+#@138 ashamed
 ashamed
+#@139 aside
 aside
+#@140 aspect
 aspect
+#@141 assess
 assess
+#@142 assessment
 assessment
+#@143 assist
 assist
+#@144 assistance
 assistance
+#@145 assistant
 assistant
+#@146 associate
 associate
+#@147 association
 association
+#@148 assume
 assume
+#@149 assumption
 assumption
+#@150 astronaut
 astronaut
+#@151 astronomy
 astronomy
+#@152 athlete
 athlete
+#@153 athletic
 athletic
+#@154 atmosphere
 atmosphere
+#@155 atom
 atom
+#@156 attach
 attach
+#@157 attack
 attack
+#@158 attain
 attain
+#@159 attempt
 attempt
+#@160 attend
 attend
+#@161 attitude
 attitude
+#@162 attract
 attract
+#@163 attraction
 attraction
+#@164 attractive
 attractive
+#@165 audience
 audience
+#@166 authentic
 authentic
+#@167 author
 author
+#@168 authority
 authority
+#@169 automatic
 automatic
+#@170 autonomous
 autonomous
+#@171 avenue
 avenue
+#@172 average
 average
+#@173 award
 award
+#@174 aware
 aware
+#@175 awesome
 awesome
+#@176 awful
 awful
+#@177 awkward
 awkward
+#@178 bachelor
 bachelor
+#@179 backward
 backward
+#@180 bacon
 bacon
+#@181 baggage
 baggage
+#@182 bakery
 bakery
+#@183 balance
 balance
+#@184 balcony
 balcony
+#@185 ballet
 ballet
+#@186 ban
 ban
+#@187 bar
 bar
+#@188 barbecue
 barbecue
+#@189 barber
 barber
+#@190 bare
 bare
+#@191 bargain
 bargain
+#@192 bark
 bark
+#@193 barrier
 barrier
+#@194 baseball
 baseball
+#@195 basement
 basement
+#@196 basin
 basin
+#@197 basis
 basis
+#@198 bat
 bat
+#@199 bath
 bath
+#@200 battery
 battery
+#@201 battle
 battle
+#@202 bay
 bay
-B.C.
+#@203 b.c.
+b.c.
+#@204 bean
 bean
+#@205 beard
 beard
+#@206 beast
 beast
+#@207 beer
 beer
+#@208 beg
 beg
+#@209 behalf
 behalf
+#@210 behave
 behave
+#@211 belief
 belief
+#@212 belly
 belly
+#@213 belt
 belt
+#@214 bench
 bench
+#@215 bend
 bend
+#@216 beneath
 beneath
+#@217 beneficial
 beneficial
+#@218 benefit
 benefit
+#@219 bent
 bent
+#@220 bicycle
 bicycle
+#@221 bid
 bid
+#@222 bingo
 bingo
+#@223 billion
 billion
+#@224 biography
 biography
+#@225 biology
 biology
+#@226 bishop
 bishop
+#@227 bite
 bite
+#@228 blame
 blame
+#@229 blank
 blank
+#@230 blanket
 blanket
+#@231 bleed
 bleed
+#@232 bless
 bless
+#@233 block
 block
+#@234 boil
 boil
+#@235 bomb
 bomb
+#@236 bond
 bond
+#@237 bone
 bone
+#@238 bonus
 bonus
+#@239 boom
 boom
+#@240 boot
 boot
+#@241 booth
 booth
+#@242 border
 border
+#@243 bored
 bored
+#@244 bother
 bother
+#@245 bounce
 bounce
+#@246 bound
 bound
+#@247 boundary
 boundary
+#@248 bow
 bow
+#@249 bowling
 bowling
+#@250 boxing
 boxing
+#@251 boycott
 boycott
+#@252 brake
 brake
+#@253 branch
 branch
+#@254 brand
 brand
+#@255 bravery
 bravery
+#@256 breakthrough
 breakthrough
+#@257 breast
 breast
+#@258 brewery
 brewery
+#@259 brick
 brick
+#@260 bride
 bride
+#@261 brief
 brief
+#@262 brilliant
 brilliant
+#@263 broad
 broad
+#@264 broadcast
 broadcast
-Buddhism
+#@265 buddhism
+buddhism
+#@266 budget
 budget
+#@267 buffet
 buffet
+#@268 bun
 bun
+#@269 bunch
 bunch
+#@270 burden
 burden
+#@271 burn
 burn
+#@272 burst
 burst
+#@273 bury
 bury
+#@274 bush
 bush
+#@275 businessman/men
 businessman/men
+#@276 businesswoman/women
 businesswoman/women
+#@277 butcher
 butcher
+#@278 button
 button
+#@279 cab
 cab
+#@280 cafe
 cafe
+#@281 cage
 cage
+#@282 calculate
 calculate
+#@283 calm
 calm
+#@284 campaign
 campaign
+#@285 canal
 canal
+#@286 candidate
 candidate
+#@287 capsule
 capsule
+#@288 caption
 caption
+#@289 carbon
 carbon
+#@290 carpenter
 carpenter
+#@291 carpet
 carpet
+#@292 carriage
 carriage
+#@293 carrier
 carrier
+#@294 cartoon
 cartoon
+#@295 case
 case
+#@296 cash
 cash
+#@297 cast
 cast
+#@298 castle
 castle
+#@299 casual
 casual
+#@300 catalogue
 catalogue
+#@301 catastrophe
 catastrophe
+#@302 category
 category
+#@303 cater
 cater
+#@304 cathedral
 cathedral
+#@305 catholic
 catholic
+#@306 cattle
 cattle
+#@307 caution
 caution
+#@308 cautious
 cautious
+#@309 cave
 cave
+#@310 celebration
 celebration
+#@311 cell
 cell
+#@312 central
 central
+#@313 certificate
 certificate
+#@314 chain
 chain
+#@315 challenging
 challenging
+#@316 champion
 champion
+#@317 channel
 channel
+#@318 chaos
 chaos
+#@319 character
 character
+#@320 characteristic
 characteristic
+#@321 charge
 charge
+#@322 chapter
 chapter
+#@323 chart
 chart
+#@324 chat
 chat
+#@325 cheek
 cheek
+#@326 cheerful
 cheerful
+#@327 cheers
 cheers
+#@328 chef
 chef
+#@329 chemical
 chemical
+#@330 chemist
 chemist
+#@331 chew
 chew
+#@332 chief
 chief
+#@333 choke
 choke
+#@334 chorus
 chorus
-Christian
+#@335 christian
+christian
+#@336 cigar
 cigar
+#@337 cigarette
 cigarette
+#@338 circuit
 circuit
+#@339 circumstance
 circumstance
+#@340 circus
 circus
+#@341 citizen
 citizen
+#@342 civil
 civil
+#@343 civilian
 civilian
+#@344 civilization/sation
 civilization/sation
+#@345 clarify
 clarify
+#@346 claw
 claw
+#@347 clay
 clay
+#@348 cleaner
 cleaner
+#@349 clerk
 clerk
+#@350 click
 click
+#@351 climate
 climate
+#@352 clinic
 clinic
+#@353 cloth
 cloth
+#@354 clothing
 clothing
+#@355 cocoa
 cocoa
+#@356 coincidence
 coincidence
+#@357 collar
 collar
+#@358 colleague
 colleague
+#@359 collection
 collection
+#@360 collision
 collision
+#@361 colour
 colour
+#@362 comb
 comb
+#@363 combine
 combine
+#@364 comedy
 comedy
+#@365 comfort
 comfort
+#@366 command
 command
+#@367 comment
 comment
+#@368 commercial
 commercial
+#@369 commit
 commit
+#@370 commitment
 commitment
+#@371 committee
 committee
+#@372 communism
 communism
+#@373 communist
 communist
+#@374 companion
 companion
+#@375 compass
 compass
+#@376 compensate
 compensate
+#@377 competence
 competence
+#@378 complex
 complex
+#@379 component
 component
+#@380 comprehension
 comprehension
+#@381 compromise
 compromise
+#@382 compulsory
 compulsory
+#@383 concentrate
 concentrate
+#@384 concept
 concept
+#@385 concern
 concern
+#@386 conclude
 conclude
+#@387 conclusion
 conclusion
+#@388 concrete
 concrete
+#@389 condemn
 condemn
+#@390 conduct
 conduct
+#@391 conductor
 conductor
+#@392 confident
 confident
+#@393 confidential
 confidential
+#@394 confirm
 confirm
+#@395 conflict
 conflict
+#@396 confuse
 confuse
+#@397 congratulate
 congratulate
+#@398 connection
 connection
+#@399 conscience
 conscience
+#@400 consensus
 consensus
+#@401 consequence
 consequence
+#@402 conservation
 conservation
+#@403 conservative
 conservative
+#@404 consideration
 consideration
+#@405 consist
 consist
+#@406 consistent
 consistent
+#@407 constant
 constant
+#@408 constitution
 constitution
+#@409 construct
 construct
+#@410 construction
 construction
+#@411 consult
 consult
+#@412 consultant
 consultant
+#@413 consume
 consume
+#@414 contain
 contain
+#@415 container
 container
+#@416 contemporary
 contemporary
+#@417 content
 content
+#@418 continent
 continent
+#@419 contrary
 contrary
+#@420 contribute
 contribute
+#@421 contribution
 contribution
+#@422 controversial
 controversial
+#@423 convenience
 convenience
+#@424 convenient
 convenient
+#@425 conventional
 conventional
+#@426 convey
 convey
+#@427 convince
 convince
+#@428 cookie
 cookie
+#@429 corn
 corn
+#@430 corporation
 corporation
+#@431 correction
 correction
+#@432 correspond
 correspond
+#@433 corrupt
 corrupt
+#@434 cost
 cost
+#@435 cottage
 cottage
+#@436 counter
 counter
+#@437 court
 court
+#@438 courtyard
 courtyard
+#@439 crash
 crash
+#@440 cream
 cream
+#@441 creature
 creature
+#@442 credit
 credit
+#@443 crew
 crew
+#@444 crop
 crop
+#@445 crowd
 crowd
+#@446 cube
 cube
+#@447 cubic
 cubic
+#@448 cuisine
 cuisine
+#@449 cure
 cure
+#@450 curious
 curious
+#@451 currency
 currency
+#@452 curriculum
 curriculum
+#@453 curtain
 curtain
+#@454 cushion
 cushion
+#@455 custom
 custom
+#@456 customer
 customer
+#@457 customs
 customs
+#@458 cycle
 cycle
+#@459 cyclist
 cyclist
+#@460 dam
 dam
+#@461 damage
 damage
+#@462 damp
 damp
+#@463 darkness
 darkness
+#@464 dash
 dash
+#@465 data
 data
+#@466 database
 database
+#@467 dawn
 dawn
+#@468 deadline
 deadline
+#@469 debate
 debate
+#@470 debt
 debt
+#@471 decade
 decade
+#@472 declare
 declare
+#@473 decline
 decline
+#@474 decoration
 decoration
+#@475 decrease
 decrease
+#@476 deed
 deed
+#@477 deer
 deer
+#@478 defeat
 defeat
+#@479 defence
 defence
+#@480 defend
 defend
+#@481 delay
 delay
+#@482 delete
 delete
+#@483 deliberately
 deliberately
+#@484 dedicate
 dedicate
+#@485 delight
 delight
+#@486 delighted
 delighted
+#@487 deliver
 deliver
+#@488 demand
 demand
+#@489 department
 department
+#@490 departure
 departure
+#@491 deposit
 deposit
+#@492 depth
 depth
+#@493 description
 description
+#@494 design
 design
+#@495 desire
 desire
+#@496 desperate
 desperate
+#@497 dessert
 dessert
+#@498 destination
 destination
+#@499 destroy
 destroy
+#@500 detective
 detective
+#@501 determine
 determine
+#@502 devote
 devote
+#@503 devotion
 devotion
+#@504 diagram
 diagram
+#@505 dial
 dial
+#@506 diamond
 diamond
+#@507 diet
 diet
+#@508 differ
 differ
+#@509 dig
 dig
+#@510 digest
 digest
+#@511 digital
 digital
+#@512 dignity
 dignity
+#@513 dilemma
 dilemma
+#@514 dimension
 dimension
+#@515 dioxide
 dioxide
+#@516 dip
 dip
+#@517 diploma
 diploma
+#@518 direction
 direction
+#@519 director
 director
+#@520 directory
 directory
+#@521 disability
 disability
+#@522 disadvantage
 disadvantage
+#@523 disagree
 disagree
+#@524 disagreement
 disagreement
+#@525 disappear
 disappear
+#@526 disappoint
 disappoint
+#@527 disappointed
 disappointed
+#@528 disappointment
 disappointment
+#@529 disaster
 disaster
+#@530 discount
 discount
+#@531 discourage
 discourage
+#@532 discrimination
 discrimination
+#@533 disgusting
 disgusting
+#@534 disk
 disk
+#@535 dislike
 dislike
+#@536 distance
 distance
+#@537 distant
 distant
+#@538 distinction
 distinction
+#@539 distinguish
 distinguish
+#@540 distribute
 distribute
+#@541 district
 district
+#@542 disturbing
 disturbing
+#@543 dive
 dive
+#@544 diverse
 diverse
+#@545 division
 division
+#@546 divorce
 divorce
+#@547 document
 document
+#@548 donate
 donate
+#@549 dot
 dot
+#@550 download
 download
+#@551 downtown ad
 downtown ad
+#@552 draft
 draft
+#@553 drag
 drag
+#@554 drill
 drill
+#@555 drunk
 drunk
+#@556 dull
 dull
+#@557 dusty
 dusty
-DVD
+#@558 dvd
+dvd
+#@559 dynamic
 dynamic
+#@560 eager
 eager
+#@561 eagle
 eagle
+#@562 earn
 earn
+#@563 earthquake
 earthquake
-Easter
+#@564 easter
+easter
+#@565 eastern
 eastern
+#@566 ecology
 ecology
+#@567 edition
 edition
+#@568 editor
 editor
+#@569 educate
 educate
+#@570 educator
 educator
+#@571 effect
 effect
+#@572 elect
 elect
+#@573 electrical
 electrical
+#@574 electricity
 electricity
+#@575 electronic
 electronic
+#@576 elegant
 elegant
-E-mail/e-mail
+#@577 e-mail/e-mail
+e-mail/e-mail
+#@578 embassy
 embassy
+#@579 emergency
 emergency
+#@580 employ
 employ
+#@581 encouragement
 encouragement
+#@582 ending
 ending
+#@583 endless
 endless
+#@584 energetic
 energetic
+#@585 engine
 engine
+#@586 enjoyable
 enjoyable
+#@587 enterprise
 enterprise
+#@588 entertainment
 entertainment
+#@589 enthusiastic
 enthusiastic
+#@590 entire
 entire
+#@591 entrance
 entrance
+#@592 entry
 entry
+#@593 envelope
 envelope
+#@594 envy
 envy
+#@595 equal
 equal
+#@596 equality
 equality
+#@597 equip
 equip
+#@598 equipment
 equipment
+#@599 error
 error
+#@600 escape
 escape
+#@601 essay
 essay
+#@602 evaluate
 evaluate
+#@603 event
 event
+#@604 eventually
 eventually
+#@605 evidence
 evidence
+#@606 evident
 evident
+#@607 evolution
 evolution
+#@608 exact
 exact
+#@609 exam
 exam
+#@610 exchange
 exchange
+#@611 exhibition
 exhibition
+#@612 exist
 exist
+#@613 existence
 existence
+#@614 exit
 exit
+#@615 expand
 expand
+#@616 expectation
 expectation
+#@617 expedition
 expedition
+#@618 expense
 expense
+#@619 expert
 expert
+#@620 explanation
 explanation
+#@621 explicit
 explicit
+#@622 explode
 explode
+#@623 explore
 explore
+#@624 export
 export
+#@625 expose
 expose
+#@626 expression
 expression
+#@627 extension
 extension
+#@628 extra
 extra
+#@629 extraordinary
 extraordinary
+#@630 extreme
 extreme
+#@631 facial
 facial
+#@632 fade
 fade
+#@633 failure
 failure
+#@634 faith
 faith
+#@635 false
 false
+#@636 familiar
 familiar
+#@637 fancy
 fancy
+#@638 fantasy
 fantasy
+#@639 fare
 fare
+#@640 fault
 fault
+#@641 favour
 favour
+#@642 favourite
 favourite
+#@643 fax
 fax
+#@644 feast
 feast
+#@645 feather
 feather
+#@646 federal
 federal
+#@647 fee
 fee
+#@648 fellow
 fellow
+#@649 female
 female
+#@650 fence
 fence
+#@651 ferry
 ferry
+#@652 fibre
 fibre
+#@653 fierce
 fierce
+#@654 figure
 figure
+#@655 file
 file
+#@656 finance
 finance
+#@657 fireworks
 fireworks
+#@658 firm
 firm
+#@659 fist
 fist
+#@660 flame
 flame
+#@661 flash
 flash
+#@662 flee
 flee
+#@663 flexible
 flexible
+#@664 flesh
 flesh
+#@665 flight
 flight
+#@666 float
 float
+#@667 flood
 flood
+#@668 flour
 flour
+#@669 flow
 flow
+#@670 fluent
 fluent
+#@671 focus
 focus
+#@672 fog
 fog
+#@673 folk
 folk
+#@674 fond
 fond
+#@675 fool
 fool
+#@676 foolish
 foolish
+#@677 forbid
 forbid
+#@678 forecast
 forecast
+#@679 forehead
 forehead
+#@680 forgive
 forgive
+#@681 format
 format
+#@682 former
 former
+#@683 fortunate
 fortunate
+#@684 fortune
 fortune
+#@685 fountain
 fountain
+#@686 fragile
 fragile
+#@687 framework
 framework
+#@688 freedom
 freedom
+#@689 freeze
 freeze
+#@690 frequent
 frequent
+#@691 friction
 friction
+#@692 frontier
 frontier
+#@693 frost
 frost
+#@694 fry
 fry
+#@695 fuel
 fuel
+#@696 function
 function
+#@697 fundamental
 fundamental
+#@698 funeral
 funeral
+#@699 fur
 fur
+#@700 furnished
 furnished
+#@701 furniture
 furniture
+#@702 gain
 gain
+#@703 gallery
 gallery
+#@704 gallon
 gallon
+#@705 garage
 garage
+#@706 garbage
 garbage
+#@707 garlic
 garlic
+#@708 garment
 garment
+#@709 gas
 gas
+#@710 gather
 gather
+#@711 gay
 gay
+#@712 generation
 generation
+#@713 generous
 generous
+#@714 gentle
 gentle
+#@715 geometry
 geometry
+#@716 gesture
 gesture
+#@717 gifted
 gifted
+#@718 glance
 glance
+#@719 globe
 globe
+#@720 glory
 glory
+#@721 glue
 glue
+#@722 golf
 golf
+#@723 goods
 goods
+#@724 goose
 goose
+#@725 govern
 govern
+#@726 gradual
 gradual
+#@727 graduate
 graduate
+#@728 graduation
 graduation
+#@729 grain
 grain
+#@730 gram
 gram
+#@731 grand
 grand
+#@732 grandparents
 grandparents
+#@733 graph
 graph
+#@734 grasp
 grasp
+#@735 grateful
 grateful
+#@736 gravity
 gravity
+#@737 greedy
 greedy
+#@738 greet
 greet
+#@739 grey
 grey
+#@740 grill
 grill
+#@741 grocery
 grocery
+#@742 growth
 growth
+#@743 guarantee
 guarantee
+#@744 guidance
 guidance
+#@745 guilty
 guilty
+#@746 gymnastics
 gymnastics
+#@747 habit
 habit
+#@748 haircut
 haircut
+#@749 hammer
 hammer
+#@750 handful
 handful
+#@751 handle
 handle
+#@752 handwriting
 handwriting
+#@753 handy
 handy
+#@754 happiness
 happiness
+#@755 harbour
 harbour
+#@756 hardship
 hardship
+#@757 harm
 harm
+#@758 harmful
 harmful
+#@759 harmony
 harmony
+#@760 harvest
 harvest
+#@761 hatch
 hatch
+#@762 headline
 headline
+#@763 hearing
 hearing
+#@764 heel
 heel
+#@765 helicopter
 helicopter
+#@766 helmet
 helmet
+#@767 herb
 herb
+#@768 hero
 hero
+#@769 hesitate
 hesitate
+#@770 highway
 highway
+#@771 hire
 hire
+#@772 hole
 hole
+#@773 holy
 holy
+#@774 homeland
 homeland
+#@775 honey
 honey
+#@776 honour
 honour
+#@777 hook
 hook
+#@778 hopeful
 hopeful
+#@779 hopeless
 hopeless
+#@780 horrible
 horrible
+#@781 hug
 hug
+#@782 humorous
 humorous
+#@783 humour
 humour
+#@784 hunger
 hunger
+#@785 hunt
 hunt
+#@786 hunter
 hunter
+#@787 hurricane
 hurricane
+#@788 hydrogen
 hydrogen
+#@789 identity
 identity
+#@790 identification
 identification
+#@791 ignore
 ignore
+#@792 illegal
 illegal
+#@793 immigration
 immigration
+#@794 import
 import
+#@795 impossible
 impossible
+#@796 impress
 impress
+#@797 impression
 impression
+#@798 incident
 incident
+#@799 income
 income
+#@800 indeed
 indeed
+#@801 indicate
 indicate
+#@802 inform
 inform
+#@803 initial
 initial
+#@804 injury
 injury
+#@805 inn
 inn
+#@806 innocent
 innocent
+#@807 insect
 insect
+#@808 insert
 insert
+#@809 inspect
 inspect
+#@810 inspire
 inspire
+#@811 instant
 instant
+#@812 institute
 institute
+#@813 institution
 institution
+#@814 instrument
 instrument
+#@815 insurance
 insurance
+#@816 intelligence
 intelligence
+#@817 intend
 intend
+#@818 interpreter
 interpreter
+#@819 interrupt
 interrupt
+#@820 interval
 interval
+#@821 invitation
 invitation
+#@822 irrigation
 irrigation
+#@823 jam
 jam
+#@824 jar
 jar
+#@825 jaw
 jaw
+#@826 jazz
 jazz
+#@827 jeep
 jeep
+#@828 jet
 jet
+#@829 jewelry
 jewelry
+#@830 journalist
 journalist
+#@831 judge
 judge
+#@832 judgment
 judgment
+#@833 jungle
 jungle
+#@834 justice
 justice
+#@835 kangaroo
 kangaroo
+#@836 kettle
 kettle
+#@837 kindergarten
 kindergarten
+#@838 kingdom
 kingdom
+#@839 labour
 labour
+#@840 lack
 lack
+#@841 lame
 lame
+#@842 lantern
 lantern
+#@843 lap
 lap
+#@844 latter
 latter
+#@845 laundry
 laundry
+#@846 lawyer
 lawyer
+#@847 league
 league
+#@848 leak
 leak
+#@849 leather
 leather
+#@850 lecture
 lecture
+#@851 legal
 legal
+#@852 lemon
 lemon
+#@853 length
 length
+#@854 liberty
 liberty
+#@855 liberation
 liberation
+#@856 librarian
 librarian
+#@857 lid
 lid
+#@858 lightning
 lightning
+#@859 likely
 likely
+#@860 limit
 limit
+#@861 link
 link
+#@862 lip
 lip
+#@863 liquid
 liquid
+#@864 literature
 literature
+#@865 literary
 literary
+#@866 litre
 litre
+#@867 load
 load
+#@868 local
 local
+#@869 loose
 loose
+#@870 loss
 loss
+#@871 lose
 lose
+#@872 lounge
 lounge
+#@873 luggage
 luggage
+#@874 lung
 lung
+#@875 maid
 maid
+#@876 mainland
 mainland
+#@877 major
 major
+#@878 majority
 majority
+#@879 male
 male
+#@880 mankind
 mankind
+#@881 manner
 manner
+#@882 maple
 maple
+#@883 marathon
 marathon
+#@884 marble
 marble
+#@885 mask
 mask
+#@886 mass
 mass
+#@887 mat
 mat
+#@888 material
 material
+#@889 mathematics
 mathematics
+#@890 mature
 mature
+#@891 maximum
 maximum
+#@892 meanwhile
 meanwhile
+#@893 measure
 measure
+#@894 medal
 medal
+#@895 media
 media
+#@896 memorial
 memorial
+#@897 mental
 mental
+#@898 merchant
 merchant
+#@899 mercy
 mercy
+#@900 merely
 merely
+#@901 merry
 merry
+#@902 messy
 messy
+#@903 microscope
 microscope
+#@904 microwave
 microwave
+#@905 might
 might
+#@906 mild
 mild
+#@907 millionaire
 millionaire
+#@908 mineral
 mineral
+#@909 minimum
 minimum
+#@910 minister
 minister
+#@911 minority
 minority
+#@912 minus
 minus
+#@913 missile
 missile
+#@914 mist
 mist
+#@915 mistake
 mistake
+#@916 mistaken
 mistaken
+#@917 mixture
 mixture
+#@918 mm
 mm
+#@919 mobile
 mobile
+#@920 modest
 modest
+#@921 mommy
 mommy
+#@922 monument
 monument
+#@923 moral
 moral
+#@924 mosquito
 mosquito
+#@925 motivation
 motivation
+#@926 motor
 motor
+#@927 motto
 motto
+#@928 movement
 movement
+#@929 mud
 mud
+#@930 muddy
 muddy
+#@931 multiply
 multiply
+#@932 mushroom
 mushroom
+#@933 musical
 musical
+#@934 mustard
 mustard
+#@935 nail
 nail
+#@936 narrow
 narrow
+#@937 nation
 nation
+#@938 nationality
 nationality
+#@939 nationwide
 nationwide
+#@940 native
 native
+#@941 navy
 navy
+#@942 neat
 neat
+#@943 necklace
 necklace
+#@944 needle
 needle
+#@945 negotiate
 negotiate
+#@946 nephew
 nephew
+#@947 nest
 nest
+#@948 net
 net
+#@949 network
 network
+#@950 niece
 niece
+#@951 noble
 noble
+#@952 northeast
 northeast
+#@953 northwest
 northwest
+#@954 novel
 novel
+#@955 novelist
 novelist
+#@956 nowhere
 nowhere
+#@957 nuclear
 nuclear
+#@958 numb
 numb
+#@959 nursery
 nursery
+#@960 nut
 nut
+#@961 nutrition
 nutrition
+#@962 obey
 obey
+#@963 observe
 observe
+#@964 obtain
 obtain
+#@965 obvious
 obvious
+#@966 occupation
 occupation
+#@967 occupy
 occupy
+#@968 occur
 occur
+#@969 offence
 offence
+#@970 official
 official
+#@971 offshore
 offshore
-Olympic
+#@972 olympic
+olympic
+#@973 opening
 opening
+#@974 opera
 opera
+#@975 operate
 operate
+#@976 operator
 operator
+#@977 oppose
 oppose
+#@978 optimistic
 optimistic
+#@979 optional
 optional
+#@980 oral
 oral
+#@981 orbit
 orbit
+#@982 ordinary
 ordinary
+#@983 organise
 organise
+#@984 organization
 organization
+#@985 origin
 origin
+#@986 otherwise
 otherwise
+#@987 ought
 ought
+#@988 outcome
 outcome
+#@989 outdoors
 outdoors
+#@990 outer
 outer
+#@991 outgoing
 outgoing
+#@992 outing
 outing
+#@993 outline
 outline
+#@994 output
 output
+#@995 outstanding
 outstanding
+#@996 outward
 outward
+#@997 oval
 oval
+#@998 overcome
 overcome
+#@999 overhead
 overhead
+#@1000 overlook
 overlook
+#@1001 overweight
 overweight
+#@1002 owe
 owe
+#@1003 ownership
 ownership
+#@1004 oxygen
 oxygen
+#@1005 pace
 pace
+#@1006 packet
 packet
+#@1007 pain
 pain
+#@1008 painful
 painful
+#@1009 painter
 painter
+#@1010 pale
 pale
+#@1011 pan
 pan
+#@1012 panic
 panic
+#@1013 paperwork
 paperwork
+#@1014 paragraph
 paragraph
+#@1015 parallel
 parallel
+#@1016 parcel
 parcel
+#@1017 parking
 parking
+#@1018 participate
 participate
+#@1019 particular
 particular
+#@1020 partly
 partly
+#@1021 partner
 partner
+#@1022 passer-by
 passer-by
+#@1023 passive
 passive
+#@1024 patent
 patent
+#@1025 patience
 patience
+#@1026 pattern
 pattern
+#@1027 pause
 pause
+#@1028 pavement
 pavement
-P.E.
-P.C.
+#@1029 p.e.
+p.e.
+#@1030 p.c.
+p.c.
+#@1031 pea
 pea
+#@1032 peach
 peach
+#@1033 pedestrian
 pedestrian
+#@1034 pence
 pence
+#@1035 penny
 penny
+#@1036 pension
 pension
+#@1037 pepper
 pepper
+#@1038 per
 per
+#@1039 percentage
 percentage
+#@1040 perform
 perform
+#@1041 performer
 performer
+#@1042 perfume
 perfume
+#@1043 permanent
 permanent
+#@1044 permission
 permission
+#@1045 permit
 permit
+#@1046 personnel
 personnel
+#@1047 personally
 personally
+#@1048 persuade
 persuade
+#@1049 pest
 pest
+#@1050 petrol
 petrol
+#@1051 phenomenon
 phenomenon
+#@1052 photograph
 photograph
+#@1053 photographer
 photographer
+#@1054 phrase
 phrase
+#@1055 physical
 physical
+#@1056 physician
 physician
+#@1057 pile
 pile
+#@1058 pill
 pill
+#@1059 pillow
 pillow
+#@1060 pin
 pin
+#@1061 pine
 pine
+#@1062 pineapple
 pineapple
+#@1063 ping-pong
 ping-pong
+#@1064 pint
 pint
+#@1065 pipe
 pipe
+#@1066 platform
 platform
+#@1067 pleased
 pleased
+#@1068 plot
 plot
+#@1069 plug
 plug
+#@1070 plus
 plus
-p.m./pm, P.M. /PM
+#@1071 p.m./pm, p.m. /pm
+p.m./pm, p.m. /pm
+#@1072 poet
 poet
+#@1073 poison
 poison
+#@1074 poisonous
 poisonous
+#@1075 pole
 pole
+#@1076 policeman/ policewoman
 policeman/ policewoman
+#@1077 polish
 polish
+#@1078 political
 political
+#@1079 politician
 politician
+#@1080 politics
 politics
+#@1081 pollution
 pollution
+#@1082 popcorn
 popcorn
+#@1083 port
 port
+#@1084 porter
 porter
+#@1085 positive
 positive
+#@1086 possess
 possess
+#@1087 possession
 possession
+#@1088 possibility
 possibility
+#@1089 postage
 postage
+#@1090 poster
 poster
+#@1091 pot
 pot
+#@1092 potential
 potential
+#@1093 pour
 pour
+#@1094 powder
 powder
+#@1095 power
 power
+#@1096 powerful
 powerful
+#@1097 practical
 practical
+#@1098 practise
 practise
+#@1099 pray
 pray
+#@1100 prayer
 prayer
+#@1101 precious
 precious
+#@1102 precise
 precise
+#@1103 predict
 predict
+#@1104 prefer
 prefer
+#@1105 preference
 preference
+#@1106 pregnant
 pregnant
+#@1107 prejudice
 prejudice
+#@1108 premier
 premier
+#@1109 preparation
 preparation
+#@1110 prescription
 prescription
+#@1111 presentation
 presentation
+#@1112 preserve
 preserve
+#@1113 press
 press
+#@1114 pretend
 pretend
+#@1115 preview
 preview
+#@1116 previous
 previous
+#@1117 primitive
 primitive
+#@1118 principle
 principle
+#@1119 privilege
 privilege
+#@1120 probably
 probably
+#@1121 procedure
 procedure
+#@1122 process
 process
+#@1123 product
 product
+#@1124 production
 production
+#@1125 profession
 profession
+#@1126 professor
 professor
+#@1127 profit
 profit
+#@1128 programme
 programme
+#@1129 prohibit
 prohibit
+#@1130 project
 project
+#@1131 promote
 promote
+#@1132 properly
 properly
+#@1133 psychology
 psychology
+#@1134 pub
 pub
+#@1135 publish
 publish
+#@1136 pulse
 pulse
+#@1137 pump
 pump
+#@1138 punishment
 punishment
+#@1139 purchase
 purchase
+#@1140 pure
 pure
+#@1141 purpose
 purpose
+#@1142 puzzle
 puzzle
+#@1143 pyramid
 pyramid
+#@1144 qualification
 qualification
+#@1145 quality
 quality
+#@1146 quantity
 quantity
+#@1147 queue
 queue
+#@1148 quit
 quit
+#@1149 quiz
 quiz
+#@1150 racial
 racial
+#@1151 radiation
 radiation
+#@1152 radioactive
 radioactive
+#@1153 rag
 rag
+#@1154 rail
 rail
+#@1155 rainbow
 rainbow
+#@1156 rainfall
 rainfall
+#@1157 random
 random
+#@1158 range
 range
+#@1159 rank
 rank
+#@1160 rare
 rare
+#@1161 rate
 rate
+#@1162 raw
 raw
+#@1163 ray
 ray
+#@1164 razor
 razor
+#@1165 react
 react
+#@1166 reading
 reading
+#@1167 reality
 reality
+#@1168 reason
 reason
+#@1169 reasonable
 reasonable
+#@1170 rebuild
 rebuild
+#@1171 receipt
 receipt
+#@1172 receiver
 receiver
+#@1173 reception
 reception
+#@1174 recipe
 recipe
+#@1175 recognise
 recognise
+#@1176 recommend
 recommend
+#@1177 recover
 recover
+#@1178 recreation
 recreation
+#@1179 reduce
 reduce
+#@1180 refer
 refer
+#@1181 referee
 referee
+#@1182 reference
 reference
+#@1183 reflect
 reflect
+#@1184 reform
 reform
+#@1185 refresh
 refresh
+#@1186 refrigerator
 refrigerator
+#@1187 regardless
 regardless
+#@1188 register
 register
+#@1189 regular
 regular
+#@1190 regulation
 regulation
+#@1191 reject
 reject
+#@1192 relate
 relate
+#@1193 relationship
 relationship
+#@1194 relative
 relative
+#@1195 relay
 relay
+#@1196 reliable
 reliable
+#@1197 relief
 relief
+#@1198 religion
 religion
+#@1199 religious
 religious
+#@1200 rely
 rely
+#@1201 remark
 remark
+#@1202 remote
 remote
+#@1203 remove
 remove
+#@1204 rent
 rent
+#@1205 replace
 replace
+#@1206 reporter
 reporter
+#@1207 represent
 represent
+#@1208 representative
 representative
+#@1209 republic
 republic
+#@1210 reputation
 reputation
+#@1211 request
 request
+#@1212 requirement
 requirement
+#@1213 rescue
 rescue
+#@1214 resemble
 resemble
+#@1215 reservation
 reservation
+#@1216 reserve
 reserve
+#@1217 resist
 resist
+#@1218 respect
 respect
+#@1219 respond
 respond
+#@1220 responsibility
 responsibility
+#@1221 restriction
 restriction
+#@1222 retire
 retire
+#@1223 revision
 revision
+#@1224 revolution
 revolution
+#@1225 reward
 reward
+#@1226 rhyme
 rhyme
+#@1227 rid
 rid
+#@1228 ridiculous
 ridiculous
+#@1229 rigid
 rigid
+#@1230 ripe
 ripe
+#@1231 roast
 roast
+#@1232 rob
 rob
+#@1233 rocket
 rocket
+#@1234 roll
 roll
+#@1235 roof
 roof
+#@1236 root
 root
+#@1237 rot
 rot
+#@1238 rough
 rough
+#@1239 routine
 routine
+#@1240 royal
 royal
+#@1241 rude
 rude
+#@1242 rugby
 rugby
+#@1243 ruin
 ruin
+#@1244 sacred
 sacred
+#@1245 sacrifice
 sacrifice
+#@1246 sadness
 sadness
+#@1247 sailor
 sailor
+#@1248 salary
 salary
+#@1249 salesman/woman
 salesman/woman
+#@1250 salty
 salty
+#@1251 salute
 salute
+#@1252 satellite
 satellite
+#@1253 satisfy
 satisfy
+#@1254 scan
 scan
+#@1255 scar
 scar
+#@1256 scare
 scare
+#@1257 scenery
 scenery
+#@1258 sceptical/skeptical
 sceptical/skeptical
+#@1259 schedule
 schedule
+#@1260 scholar
 scholar
+#@1261 scholarship
 scholarship
+#@1262 schoolboy/girl
 schoolboy/girl
+#@1263 scientific
 scientific
+#@1264 scissors
 scissors
+#@1265 scratch
 scratch
+#@1266 scream
 scream
+#@1267 sculpture
 sculpture
+#@1268 seal
 seal
+#@1269 seaside
 seaside
+#@1270 section
 section
+#@1271 secure
 secure
+#@1272 security
 security
+#@1273 seed
 seed
+#@1274 seek
 seek
+#@1275 seize
 seize
+#@1276 select
 select
+#@1277 self
 self
+#@1278 selfish
 selfish
+#@1279 seminar
 seminar
+#@1280 senior
 senior
+#@1281 sensitive
 sensitive
+#@1282 separation
 separation
+#@1283 serve
 serve
+#@1284 session
 session
+#@1285 settle
 settle
+#@1286 settlement
 settlement
+#@1287 severe
 severe
+#@1288 sex
 sex
+#@1289 shade
 shade
+#@1290 shake
 shake
+#@1291 shall
 shall
+#@1292 shallow
 shallow
+#@1293 shark
 shark
+#@1294 sharp
 sharp
+#@1295 shave
 shave
+#@1296 sheet
 sheet
+#@1297 shelf
 shelf
+#@1298 shelter
 shelter
+#@1299 shock
 shock
+#@1300 shore
 shore
+#@1301 shortly
 shortly
+#@1302 shot
 shot
+#@1303 shrink
 shrink
+#@1304 shut
 shut
+#@1305 shuttle
 shuttle
+#@1306 sickness
 sickness
+#@1307 sideroad/sidewalk
 sideroad/sidewalk
+#@1308 sideways
 sideways
+#@1309 sigh
 sigh
+#@1310 signal
 signal
+#@1311 signature
 signature
+#@1312 significance
 significance
+#@1313 silver
 silver
+#@1314 sincerely
 sincerely
+#@1315 sink
 sink
+#@1316 ski
 ski
+#@1317 skin
 skin
+#@1318 skip
 skip
+#@1319 slave
 slave
+#@1320 slavery
 slavery
+#@1321 sleeve
 sleeve
+#@1322 slice
 slice
+#@1323 slide
 slide
+#@1324 slight
 slight
+#@1325 slim
 slim
+#@1326 slip
 slip
+#@1327 smell
 smell
+#@1328 soccer
 soccer
+#@1329 socialism
 socialism
+#@1330 socialist
 socialist
+#@1331 socket
 socket
+#@1332 software
 software
+#@1333 soil
 soil
+#@1334 solar
 solar
+#@1335 somehow
 somehow
+#@1336 sorrow
 sorrow
+#@1337 soul
 soul
+#@1338 southeast
 southeast
+#@1339 southwest
 southwest
+#@1340 spare
 spare
+#@1341 spear
 spear
+#@1342 specialist
 specialist
+#@1343 specific
 specific
+#@1344 spell
 spell
+#@1345 spelling
 spelling
+#@1346 spin
 spin
+#@1347 spiritual
 spiritual
+#@1348 spit
 spit
+#@1349 splendid
 splendid
+#@1350 split
 split
+#@1351 spoken
 spoken
+#@1352 spokesman/woman
 spokesman/woman
+#@1353 sponsor
 sponsor
+#@1354 spot
 spot
+#@1355 spray
 spray
+#@1356 spread
 spread
+#@1357 spy
 spy
+#@1358 squeeze
 squeeze
+#@1359 squirrel
 squirrel
+#@1360 stable
 stable
+#@1361 stadium
 stadium
+#@1362 staff
 staff
+#@1363 stage
 stage
+#@1364 stain
 stain
+#@1365 stainless
 stainless
+#@1366 stand
 stand
+#@1367 stare
 stare
+#@1368 starvation
 starvation
+#@1369 starve
 starve
+#@1370 statement
 statement
+#@1371 statesman/woman
 statesman/woman
+#@1372 statistics
 statistics
+#@1373 statue
 statue
+#@1374 status
 status
+#@1375 steady
 steady
+#@1376 steak
 steak
+#@1377 steal
 steal
+#@1378 steep
 steep
+#@1379 storage
 storage
+#@1380 stove
 stove
+#@1381 straightforward
 straightforward
+#@1382 strait
 strait
+#@1383 strength
 strength
+#@1384 strengthen
 strengthen
+#@1385 string
 string
+#@1386 struggle
 struggle
+#@1387 stubborn
 stubborn
+#@1388 studio
 studio
+#@1389 style
 style
+#@1390 subjective
 subjective
+#@1391 submit
 submit
+#@1392 subscribe
 subscribe
+#@1393 substitute
 substitute
+#@1394 suck
 suck
+#@1395 suffer
 suffer
+#@1396 suffering
 suffering
+#@1397 suit
 suit
+#@1398 suitable
 suitable
+#@1399 suitcase
 suitcase
+#@1400 suite
 suite
+#@1401 summary
 summary
+#@1402 sunlight
 sunlight
+#@1403 super
 super
+#@1404 superb
 superb
+#@1405 superior
 superior
+#@1406 support
 support
+#@1407 supreme
 supreme
+#@1408 surgeon
 surgeon
+#@1409 surround
 surround
+#@1410 surrounding
 surrounding
+#@1411 survival
 survival
+#@1412 survive
 survive
+#@1413 suspect
 suspect
+#@1414 suspension
 suspension
+#@1415 swallow
 swallow
+#@1416 swap
 swap
+#@1417 swear
 swear
+#@1418 sweat
 sweat
+#@1419 sweep
 sweep
+#@1420 swell
 swell
+#@1421 swift
 swift
+#@1422 switch
 switch
+#@1423 sword
 sword
+#@1424 sympathy
 sympathy
+#@1425 symphony
 symphony
+#@1426 symptom
 symptom
+#@1427 system
 system
+#@1428 systematic
 systematic
+#@1429 tablet
 tablet
+#@1430 tailor
 tailor
+#@1431 talent
 talent
+#@1432 tank
 tank
+#@1433 tap
 tap
+#@1434 target
 target
+#@1435 tasty
 tasty
+#@1436 tax
 tax
+#@1437 taxpayer
 taxpayer
+#@1438 tear
 tear
+#@1439 tease
 tease
+#@1440 technical
 technical
+#@1441 technique
 technique
+#@1442 teenager
 teenager
+#@1443 telescope
 telescope
+#@1444 temple
 temple
+#@1445 temporary
 temporary
+#@1446 tend
 tend
+#@1447 tendency
 tendency
+#@1448 tennis
 tennis
+#@1449 tense
 tense
+#@1450 tension
 tension
+#@1451 terminal
 terminal
+#@1452 terror
 terror
+#@1453 textbook
 textbook
+#@1454 thankful
 thankful
+#@1455 theatre
 theatre
+#@1456 theft
 theft
+#@1457 theoretical
 theoretical
+#@1458 theory
 theory
+#@1459 therefore
 therefore
+#@1460 thief
 thief
+#@1461 thirst
 thirst
+#@1462 thorough
 thorough
+#@1463 thrill
 thrill
+#@1464 thriller
 thriller
+#@1465 throughout
 throughout
+#@1466 thunder
 thunder
+#@1467 thus
 thus
+#@1468 tick
 tick
+#@1469 tight
 tight
+#@1470 tin
 tin
+#@1471 tip
 tip
+#@1472 tire
 tire
+#@1473 tissue
 tissue
+#@1474 title
 title
+#@1475 toast
 toast
+#@1476 tobacco
 tobacco
+#@1477 tolerate
 tolerate
+#@1478 tomb
 tomb
+#@1479 topic
 topic
+#@1480 tough
 tough
+#@1481 tourism
 tourism
+#@1482 tournament
 tournament
+#@1483 toward
 toward
+#@1484 track
 track
+#@1485 tractor
 tractor
+#@1486 tradition
 tradition
+#@1487 transform
 transform
+#@1488 translation
 translation
+#@1489 translator
 translator
+#@1490 transparent
 transparent
+#@1491 transport
 transport
+#@1492 trap
 trap
+#@1493 traveler
 traveler
+#@1494 treat
 treat
+#@1495 trend
 trend
+#@1496 trial
 trial
+#@1497 triangle
 triangle
+#@1498 trick
 trick
+#@1499 troop
 troop
+#@1500 truly
 truly
+#@1501 trunk
 trunk
-T-shirt
+#@1502 t-shirt
+t-shirt
+#@1503 tube
 tube
+#@1504 tune
 tune
+#@1505 turkey
 turkey
+#@1506 turning
 turning
+#@1507 tutor
 tutor
+#@1508 twin
 twin
+#@1509 twist
 twist
+#@1510 type
 type
+#@1511 typhoon
 typhoon
+#@1512 tyre
 tyre
+#@1513 unable
 unable
+#@1514 uncertain
 uncertain
+#@1515 uncomfortable
 uncomfortable
+#@1516 unconscious
 unconscious
+#@1517 unemployment
 unemployment
+#@1518 unfit
 unfit
+#@1519 unfortunate
 unfortunate
+#@1520 unfortunately ad
 unfortunately ad
+#@1521 union
 union
+#@1522 unique
 unique
+#@1523 unite
 unite
+#@1524 universal
 universal
+#@1525 universe
 universe
+#@1526 unlike
 unlike
+#@1527 unrest
 unrest
+#@1528 unwilling
 unwilling
+#@1529 update
 update
+#@1530 upon
 upon
+#@1531 upper
 upper
+#@1532 upset
 upset
+#@1533 upward
 upward
+#@1534 urban
 urban
+#@1535 urge
 urge
+#@1536 urgent
 urgent
+#@1537 user
 user
+#@1538 vacant
 vacant
+#@1539 vague
 vague
+#@1540 vain
 vain
+#@1541 valid
 valid
+#@1542 valley
 valley
+#@1543 valuable
 valuable
+#@1544 variety
 variety
+#@1545 various
 various
+#@1546 vase
 vase
+#@1547 vast
 vast
+#@1548 version
 version
+#@1549 vertical
 vertical
+#@1550 vest
 vest
+#@1551 via
 via
+#@1552 victim
 victim
+#@1553 view
 view
+#@1554 vinegar
 vinegar
+#@1555 violate
 violate
+#@1556 violence
 violence
+#@1557 violent
 violent
+#@1558 virtue
 virtue
+#@1559 virus
 virus
+#@1560 visa
 visa
+#@1561 visual
 visual
+#@1562 vital
 vital
+#@1563 vivid
 vivid
+#@1564 vocabulary
 vocabulary
+#@1565 volcano
 volcano
+#@1566 voluntary
 voluntary
+#@1567 vote
 vote
+#@1568 voyage
 voyage
+#@1569 wage
 wage
+#@1570 waist
 waist
+#@1571 waiter
 waiter
+#@1572 waiting-room
 waiting-room
+#@1573 waitress
 waitress
+#@1574 wallet
 wallet
+#@1575 walnut
 walnut
+#@1576 wander
 wander
+#@1577 ward
 ward
+#@1578 warmth
 warmth
+#@1579 wave
 wave
+#@1580 wax
 wax
+#@1581 web
 web
+#@1582 weakness
 weakness
+#@1583 wealthy
 wealthy
+#@1584 wedding
 wedding
+#@1585 weed
 weed
+#@1586 weekly
 weekly
+#@1587 welfare
 welfare
+#@1588 wherever
 wherever
+#@1589 whichever pro
 whichever pro
+#@1590 whisper
 whisper
+#@1591 whistle
 whistle
+#@1592 widespread
 widespread
+#@1593 widow
 widow
+#@1594 wildlife
 wildlife
+#@1595 willing
 willing
+#@1596 wipe
 wipe
+#@1597 wire
 wire
+#@1598 wisdom
 wisdom
+#@1599 withdraw
 withdraw
+#@1600 within
 within
+#@1601 witness
 witness
+#@1602 wolf
 wolf
+#@1603 wool
 wool
+#@1604 worldwide
 worldwide
+#@1605 worm
 worm
+#@1606 worried
 worried
+#@1607 worthwhile
 worthwhile
+#@1608 worthy
 worthy
+#@1609 wrist
 wrist
+#@1610 yell
 yell
+#@1611 youth
 youth
+#@1612 yummy
 yummy
+#@1613 zip
 zip
+#@1614 zone
 zone
+#@1615 zoom
 zoom
-
-# ------------------------------------------------------------
-# Lesson corpus (课文精读, lessons-data.js) — appended 2026-07-19
-# 词条原型/课文词形/短语按短条目多音色合成; 整句超过 40 字符,
-# 生成器自动只用 1 个音色 (LONG_ENTRY_VOICES), 控制包体。
-# App 内「导出词表」也会自动附带本节, 手工重导出不会丢失。
-# 57 word form(s), 97 phrase(s), 19 sentence(s).
-# ------------------------------------------------------------
-# -- word forms --
+#@1616 lesson-corpus
 according to
-review
-medical
-journal
-risk
-regularly
-effective
-lengthen
-lengthening
-cycling
-authors
-published
-cause
-causes
-race
-fitness
-benefits
-contribute to
-contributing to
-injuries
-conditioned
-athletes
-rule
-rules
-require
-knee
-knees
-straight
-swing
-remain
-contact
-at all times
-activity
-physically
-demanding
-calculation
-calculations
-calorie
-calories
-pound
-hit
-step
-create
-as a result
-associated
-uncommon
-strange
-form
-considerable
-stress
-ankles
-hip
-hips
-adopting
-coach
-experienced
-proper
-# -- phrases --
 according to the report
 according to plan
+review
 a review of evidence
 book review
 under review
 evidence of / for
 solid evidence
+medical
 medical journal
 medical care
+journal
 an academic journal
 keep a journal
 benefit from
@@ -1705,92 +3558,143 @@ for the benefit of
 be overweight
 reduce the risk of
 reduce ... to ...
+risk
 at risk
 take a risk
 risk doing sth.
+regularly
 exercise regularly
+effective
 be effective at / in doing sth.
 take effective measures
+lengthen
+lengthening
 lengthen life
+cycling
 go cycling
+authors
 the author of the book
+published
 be published in
+cause
+causes
 the cause of
 cause and effect
-race walking
-a relay race
-physical fitness
-fitness benefits
-share benefits with
-contribute to fewer injuries
-contribute ... to ...
-suffer an injury
-a knee injury
-well-conditioned athletes
-a professional athlete
-track and field
-keep track of
-obey / break the rules
-as a rule
-require that sb. (should) do
-meet the requirements
-runner's knee
-on one’s knees
-stay straight
-go straight ahead
-the leg swing
-remain in contact with
-remain silent
-in contact with
-keep in contact with
-stay alert at all times
-be attractive to
-outdoor activities
-take part in an activity
-an assistant professor
-a shop assistant
-a professor of exercise science
-physically demanding
-physically and mentally
-a demanding job
-according to most calculations
-do a calculation
-at a pace of
-keep pace with
-burn calories
-be high / low in calories
-approximately twice as many as
-pound the body
-hit the ground
-step by step
-take steps to do
-create pressure
-as a result of
-be associated with
-associate ... with ...
-it is not uncommon for sb. to do
-a strange form
-in the form of
-fill in a form
-considerable stress
-place / put stress on
-under stress
-twist one’s ankle
-be cautious about / in
-adopt a method
-adopt a suggestion
-consult sb. about sth.
-consult a dictionary
-a head coach
-be experienced in
-proper technique
-learn proper technique
-# -- sentences --
 according to a review of evidence in a medical journal, runners live three years longer than non-runners.
 you don't have to run fast or for long to see the benefit.
 you may drink, smoke, be overweight and still reduce your risk of dying early by running.
 while running regularly can't make you live forever, the review says it is more effective at lengthening life than walking, cycling or swimming.
 two of the authors of the review also made a study published in 2014 that showed a mere five to 10 minutes a day of running reduced the risk of heart disease and early deaths from all causes.
+race
+race walking
+a relay race
+fitness
+physical fitness
+fitness benefits
+benefits
+share benefits with
+contribute to
+contributing to
+contribute to fewer injuries
+contribute ... to ...
+injuries
+suffer an injury
+a knee injury
+conditioned
+well-conditioned athletes
+athletes
+a professional athlete
+track and field
+keep track of
+rule
+rules
+obey / break the rules
+as a rule
+require
+require that sb. (should) do
+meet the requirements
+knee
+knees
+runner's knee
+on one’s knees
+straight
+stay straight
+go straight ahead
+swing
+the leg swing
+remain
+remain in contact with
+remain silent
+contact
+in contact with
+keep in contact with
+at all times
+stay alert at all times
+be attractive to
+activity
+outdoor activities
+take part in an activity
+an assistant professor
+a shop assistant
+a professor of exercise science
+physically
+physically demanding
+physically and mentally
+demanding
+a demanding job
+calculation
+calculations
+according to most calculations
+do a calculation
+at a pace of
+keep pace with
+burn calories
+calorie
+calories
+be high / low in calories
+approximately twice as many as
+pound
+pound the body
+hit
+hit the ground
+step
+step by step
+take steps to do
+create
+create pressure
+as a result
+as a result of
+associated
+be associated with
+associate ... with ...
+uncommon
+it is not uncommon for sb. to do
+strange
+a strange form
+form
+in the form of
+fill in a form
+considerable
+considerable stress
+stress
+place / put stress on
+under stress
+ankles
+twist one’s ankle
+hip
+hips
+be cautious about / in
+adopting
+adopt a suggestion
+consult sb. about sth.
+consult a dictionary
+coach
+a head coach
+experienced
+be experienced in
+proper
+proper technique
+learn proper technique
 race walking shares many fitness benefits with running, research shows, while most likely contributing to fewer injuries.
 it does, however, have its own problem.
 race walkers are conditioned athletes.
@@ -1805,3 +3709,359 @@ as a result, she says, some of the injuries associated with running, such as run
 but the sport's strange form does place considerable stress on the ankles and hips, so people with a history of such injuries might want to be cautious in adopting the sport.
 in fact, anyone wishing to try race walking should probably first consult a coach or experienced racer to learn proper technique, she says.
 it takes some practice.
+sheets
+a sheet of paper
+damp with sweat
+in a cold sweat
+racing
+one's heart is racing
+chase
+chased
+chase after
+nightmare
+have a nightmare
+fill
+filled
+be filled with
+fear
+for fear of
+given
+given that
+unsettling
+haunting
+dream
+dreams
+dream of / about
+limited
+be limited to
+master
+master a skill
+lucid
+lucid dreaming
+be aware of / that
+control
+out of control
+take control of
+typically
+consider
+consider ... (to be) ...
+consider doing sth.
+occasional
+symptoms
+a symptom of
+disorder
+a sleep disorder
+result from
+result in
+unpleasant
+an unpleasant experience
+certain
+be certain of / about
+drug
+drugs
+take drugs
+treat a disease
+treat sb. to sth.
+therapy
+therapies
+physical therapy
+rigorous
+rigorous research
+analyze
+analyzed
+analyze data
+available
+be available to sb.
+clinical
+complicated
+struggling
+struggle to do sth.
+struggle with
+an expert on / in
+an associate professor
+point
+points
+at this point
+point out
+the sleep cycle
+the sheets are damp with sweat.
+you're cold, but your heart is racing as if a killer just chased you down a dark street.
+it was just a nightmare, you tell yourself; there's nothing to be afraid of.
+but you're still filled with fear.
+given how unsettling and haunting nightmares can be, is there a way for dreamers to avoid, or even turn off, these bad dreams as they happen?
+research is limited, but some studies suggest that people who can master lucid dreaming—that is, the ability to be aware that a nightmare is happening and possibly even control it without waking up—may hold the answer.
+nightmares are part of the human experience, especially for kids.
+doctors typically don't consider occasional nightmares a problem.
+they can just be symptoms of a sleep disorder that can result from an unpleasant experience, stress, or certain drugs.
+to treat the disorder, there are a number of medicines and therapies that are backed by rigorous research, according to the american academy of sleep medicine, which analyzed the available research on the treatment of nightmare disorder in a recent review published in the journal of clinical sleep medicine.
+however, nightmares are complicated, and researchers are still struggling to understand them, said dr. rachel salas, an expert on sleep disorders and an associate professor at johns hopkins medicine in baltimore.
+what we do know is that people tend to have different kinds of nightmares at different points during the sleep cycle.
+survey
+a new survey by
+conduct a survey
+according to a recent survey
+foundation
+the national sleep foundation
+lay a solid foundation for
+fall
+fallen
+fall asleep
+fall behind
+asleep
+fall asleep at school
+be fast asleep
+depend
+depends
+depend a lot on your age
+depend on
+it all depends
+ideal
+be ideal for
+an ideal place to live
+guess
+guess what
+make a guess
+bedtime
+before bedtime
+a bedtime story
+opportunity
+opportunities
+opportunities to stay awake
+take the opportunity to do sth
+awake
+stay awake
+keep sb awake
+researcher
+a sleep researcher
+do research on
+medical school
+brown university medical school
+go to medical school
+activities
+activities at bedtime
+take part in after-class activities
+excited
+get kids all excited
+be excited about
+calm down
+keep calm
+experts
+an expert on sth
+be expert at doing sth
+body chemicals
+a chemical reaction
+level
+levels
+changing levels of body chemicals
+at the national level
+hormone
+hormones
+growth hormone
+teenagers
+a problem for teenagers
+make it hard for teenagers to fall asleep
+adult
+adult characteristics
+grow into an adult
+characteristics
+develop adult characteristics
+be characteristic of
+sleepiness
+such a problem for teenagers
+districts
+school districts
+a business district
+be pleased with
+be pleased to do sth
+result
+results
+be pleased with the results
+getting less sleep has become a bad habit for most american kids.
+according to a new survey by the national sleep foundation, 51% of kids aged 10 to 18 go to bed at 10 pm or later on school nights, even though they have to get up early.
+last year the foundation reported that nearly 60% of 7- to 12-year-olds said they felt tired during the day, and 15% said they had fallen asleep at school.
+how much sleep you need depends a lot on your age.
+babies need a lot of rest: most of them sleep about 18 hours a day!
+adults need about eight hours.
+for most school-age children, ten hours is ideal.
+but the new national sleep foundation survey found that 35% of 10- to 12-year-olds get only seven or eight hours.
+and guess what almost half of the surveyed kids said they do before bedtime?
+watch tv.
+"more children are going to bed with tvs on, and there are more opportunities to stay awake, with more homework, the internet and the phone," says dr. mary carskadon, a sleep researcher at brown university medical school.
+she says these activities at bedtime can get kids all excited and make it hard for them to calm down and sleep.
+other experts say part of the problem is chemical.
+changing levels of body chemicals called hormones not only make teenagers bodies develop adult characteristics, but also make it hard for teenagers to fall asleep before 11 pm.
+because sleepiness is such a problem for teenagers, some school districts have decided to start high school classes later than they used to.
+three years ago, schools in edina, minnesota, changed the start time from 7:25 am to 8:30 am.
+students, parents and teachers are pleased with the results.
+turning soil
+rich soil
+pull
+pulling
+pulling weeds
+pull up
+harvesting
+harvesting cabbage
+a good harvest
+cabbage
+grow cabbage
+tough work
+a tough decision
+middle
+middle school
+in the middle of
+at first
+at first it is
+at first sight
+urban areas
+urban life
+sprout
+sprouts
+bean sprouts
+sprout up
+program
+a school garden program
+carry out a program
+low-income
+low-income schools
+low-income families
+aims
+aim to do sth
+aim at
+science
+science skills
+modern science and technology
+skill
+skills
+develop science skills
+communication skills
+environmental
+environmental awareness
+environmental protection
+lifestyle
+lifestyles
+healthy lifestyles
+change one's lifestyle
+neighborhood
+neighborhoods
+live in neighborhoods
+in the neighborhood of
+restaurant
+restaurants
+fast food restaurants
+eat at a restaurant
+outnumber
+outnumber grocery stores
+be outnumbered by
+grocery stores
+do the grocery shopping
+literally
+literally come to school with
+take sth literally
+snack
+snacks
+bags of snacks
+have a snack
+bottle
+bottles
+large bottles of soft drinks
+a bottle of water
+soft drink
+soft drinks
+bottles of soft drinks
+vegetables are awful
+feel awful
+dirt
+turned off by the dirt
+be covered with dirt
+insects
+scared of the insects
+harmful insects
+initially
+initially scared of
+turn off
+turned off
+be turned off by the dirt
+turn off the light
+be eager to try something new
+be eager for
+include
+include hands-on experiments
+including
+hands-on
+hands-on experiments
+hands-on experience
+experiment
+experiments
+do an experiment
+experiment with
+dissection
+flower-and-seed dissection
+tasting
+tastings
+tastings of fresh produce
+dry
+dried
+dried produce
+dry up
+produce
+fresh or dried produce
+produce crops
+cook
+cook the vegetables
+cook a meal
+occasionally
+occasionally make salads
+evaluation
+evaluations
+program evaluations
+make an evaluation of
+differently
+eat differently
+think differently
+add
+adds
+add that
+add up to
+the program's benefits
+beyond
+go beyond nutrition
+beyond one's reach
+good nutrition
+pay attention to nutrition
+gardening
+get interested in gardening
+do some gardening
+besides
+besides, working in the garden
+besides doing sth
+education
+special education students
+receive a good education
+emotional
+emotional control issues
+emotional support
+emotional control
+under control
+lose control of
+issue
+issues
+have emotional control issues
+an important issue
+successful
+feel successful
+be successful in doing sth
+turning soil, pulling weeds, and harvesting cabbage sound like tough work for middle and high school kids.
+and at first it is, says abby jaramillo, who with another teacher started urban sprouts, a school garden program at four low-income schools.
+the program aims to help students develop science skills, environmental awareness, and healthy lifestyles.
+jaramillo's students live in neighborhoods where fresh food and green space are not easy to find and fast food restaurants outnumber grocery stores.
+"the kids literally come to school with bags of snacks and large bottles of soft drinks," she says.
+"they come to us thinking vegetables are awful, dirt is awful, insects are awful."
+though some are initially scared of the insects and turned off by the dirt, most are eager to try something new.
+urban sprouts' classes, at two middle schools and two high schools, include hands-on experiments such as soil testing, flower-and-seed dissection, tastings of fresh or dried produce, and work in the garden.
+several times a year, students cook the vegetables they grow, and they occasionally make salads for their entire schools.
+program evaluations show that kids eat more vegetables as a result of the classes.
+"we have students who say they went home and talked to their parents and now they're eating differently," jaramillo says.
+she adds that the program's benefits go beyond nutrition.
+some students get so interested in gardening that they bring home seeds to start their own vegetable gardens.
+besides, working in the garden seems to have a calming effect on jaramillo's special education students, many of whom have emotional control issues.
+"they get outside," she says, "and they feel successful."
