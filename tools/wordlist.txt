@@ -2,7 +2,7 @@
 # 已导出 2026-07-22 from the app.
 # Replace tools/wordlist.txt with this file, then commit it.
 # Each block is tagged  #@<index> <word>  with a stable index.
-# voices: ash, echo
+# voices: ash, echo, fable, nova
 # (no range set - building all 1616 words; add e.g.  "# range: 1-50"  to build one batch)
 # 1616 word(s), 2443 个条目
 
