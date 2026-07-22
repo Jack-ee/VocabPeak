@@ -1,5 +1,5 @@
 # VocabPeak audio pack - word list
-# 已导出 2026-07-21 from the app.
+# 已导出 2026-07-22 from the app.
 # Replace tools/wordlist.txt with this file, then commit it.
 # Each block is tagged  #@<index> <word>  with a stable index.
 # voices: ash, echo
