@@ -1,10 +1,10 @@
 # VocabPeak audio pack - word list
-# 已导出 2026-07-22 from the app.
+# 已导出 2026-07-23 from the app.
 # Replace tools/wordlist.txt with this file, then commit it.
 # Each block is tagged  #@<index> <word>  with a stable index.
 # voices: ash, echo, fable, nova
 # (no range set - building all 1616 words; add e.g.  "# range: 1-50"  to build one batch)
-# 1616 word(s), 2443 个条目
+# 1616 word(s), 3989 个条目
 
 #@1 abandon
 abandon
@@ -4065,3 +4065,1549 @@ she adds that the program's benefits go beyond nutrition.
 some students get so interested in gardening that they bring home seeds to start their own vegetable gardens.
 besides, working in the garden seems to have a calming effect on jaramillo's special education students, many of whom have emotional control issues.
 "they get outside," she says, "and they feel successful."
+memory
+memories
+childhood memories
+in memory of
+deal with
+deal with problems
+deal with stress
+remember
+remember to do sth.
+remember doing sth.
+extremely
+extremely important
+inspired
+be inspired by
+inspire sb. to do sth.
+elegant design
+print
+printed
+print out
+in print
+grab
+grab hold of
+grab a bite
+pretend to do sth.
+start off
+start off with
+sentence
+sentences
+make a sentence
+life sentence
+paragraphs
+opening paragraph
+unending
+unending journey
+journey
+go on a journey
+life journey
+realize
+realized
+realize one's dream
+hide
+hidden
+hide from
+hide away
+on the shelf
+candy
+a piece of candy
+progress
+make progress
+in progress
+raise
+raised
+raise money
+raise awareness
+curiosity
+out of curiosity
+sign
+signs
+road signs
+traffic signs
+primary
+primary school
+primary education
+factual
+factual reading
+knowledge
+to one's knowledge
+occasionally visit
+write a novel
+historical novel
+assign
+assigned
+assign homework
+assign a task
+a type of
+blood type
+concrete evidence
+room
+make room for
+there is room for
+have an argument
+strong argument
+simple
+simple life
+complex problem
+sports complex
+escape from
+narrow escape
+burdens
+heavy burden
+bear the burden
+wonderful
+wonderful world
+mysterious
+mysterious world
+main character
+in character
+writing technique
+relax
+relax oneself
+sit back and relax
+vital part
+vital to
+satisfies
+satisfy one's desire
+be satisfied with
+a desire to learn
+have a desire for
+possibilities
+endless possibilities
+possibility of
+limitless
+limitless possibilities
+i must have always known reading was very important because the first memories i have as a child deal with books.
+there was not one night that i don't remember mom reading me a storybook by my bedside.
+i was extremely inspired by the elegant way the words sounded.
+i always wanted to know what my mom was reading.
+hearing mom say, "i can't believe what's printed in the newspaper this morning," made me want to grab it out of her hands and read it myself.
+i wanted to be like my mom and know all of the things she knew.
+so i carried around a book, and each night, just to be like her, i would pretend to be reading.
+this is how everyone learned to read.
+we would start off with sentences, then paragraphs, and then stories.
+it seemed an unending journey, but even as a six-year-old girl i realized that knowing how to read could open many doors.
+when mom said, "the c-a-n-d-y is hidden on the top shelf," i knew where the candy was.
+my progress in reading raised my curiosity, and i wanted to know everything.
+i often found myself telling my mom to drive more slowly, so that i could read all of the road signs we passed.
+most of my reading through primary, middle and high school was factual reading.
+i read for knowledge, and to make a's on my tests.
+occasionally, i would read a novel that was assigned, but i didn't enjoy this type of reading.
+i liked facts, things that are concrete.
+i thought anything abstract left too much room for argument.
+yet, now that i'm growing and the world i once knew as being so simple is becoming more complex, i find myself needing a way to escape.
+by opening a novel, i can leave behind my burdens and enter into a wonderful and mysterious world where i am now a new character.
+in these worlds i can become anyone.
+i don't have to write down what happened or what technique the author was using when he or she wrote this.
+i just read to relax.
+we're taught to read because it's necessary for much of human understanding.
+reading is a vital part of my life.
+reading satisfies my desire to keep learning.
+and i've found that the possibilities that lie within books are limitless.
+adults
+young adults
+flooded
+be flooded with
+object
+objects
+everyday objects
+assume that
+assume responsibility
+belonging
+belongings
+personal belongings
+encourage
+encourage sb. to do sth.
+donate to
+donate money
+effort
+efforts
+make an effort
+spare no effort
+toy
+toys
+play with toys
+due to
+due to illness
+promise
+promised
+promise to do sth.
+keep a promise
+fund
+school fund
+raise funds
+serious
+be serious about
+serious illness
+train
+train sb. to do sth.
+determined
+be determined to
+in theory
+expect
+expected
+expect to do sth.
+as expected
+attention
+pay attention to
+draw attention
+max
+at max
+rubber
+rubber ball
+universally
+universally available
+be available to
+readily available
+bouncing
+bounce a ball
+rolling
+roll up
+completely
+completely different
+totally
+totally agree
+become absorbed in
+became absorbed in
+become absorbed in reading
+simplicity
+the simplicity of
+full
+full attention
+at full speed
+joy
+find joy in
+with joy
+single
+a single object
+every single
+adults understand what it feels like to be flooded with objects.
+why do we often assume that more is more when it comes to kids and their belongings?
+the good news is that i can help my own kids learn earlier than i did how to live more with less.
+i found the pre-holidays a good time to encourage young children to donate less-used things, and it worked.
+because of our efforts, our daughter georgia did decide to donate a large bag of toys to a little girl whose mother was unable to pay for her holiday due to illness.
+she chose to sell a few larger objects that were less often used when we promised to put the money into her school fund (our kindergarten daughter is serious about becoming a doctor).
+for weeks, i've been thinking of bigger, deeper questions: how do we make it a habit for them?
+and how do we train ourselves to help them live with, need, and use less?
+yesterday, i sat with my son, shepherd, determined to test my own theory on this.
+i decided to play with him with only one toy for as long as it would keep his interest.
+i expected that one toy would keep his attention for about five minutes, ten minutes, max.
+i chose a red rubber ball--simple, universally available.
+we passed it, he tried to put it in his mouth, he tried bouncing it, rolling it, sitting on it, throwing it.
+it was completely, totally enough for him.
+before i knew it an hour had passed and it was time to move on to lunch.
+we both became absorbed in the simplicity of playing together.
+he had my full attention and i had his.
+my little experiment to find joy in a single object worked for both of us.
+social
+social media
+social skills
+mass media
+be curious about
+follower
+followers
+social media followers
+unfortunately
+unfortunately for
+magic
+magic list
+like magic
+though
+even though
+complete
+a complete beginner
+complete the task
+beginner
+complete beginner
+put together
+put together a list
+tips
+good tips
+useful tips
+suggest
+suggest doing sth.
+suggest that
+sketchbook
+keep a sketchbook
+study
+studies
+small studies
+case study
+inspiration
+draw inspiration from
+source of inspiration
+springboard
+a springboard for
+complex works
+throw
+throw away
+throw up
+look back on
+look back on one's journey
+brush
+paint brush
+brush up on
+mile
+miles
+brush miles
+whether
+whether...or...
+still life
+still lifes
+paint still lifes
+portrait
+portraits
+paint portraits
+landscape
+landscapes
+paint landscapes
+muscle
+muscle memory
+build muscle
+repetition
+comes with repetition
+continually
+continually challenge
+challenge
+take on challenges
+face a challenge
+comfort zone
+get out of one's comfort zone
+artistic
+artistic growth
+artistic ability
+a bit
+a bit painful
+a bit of
+painful experience
+take on
+taking on
+take on responsibility
+take up
+took up
+take up a challenge
+take up a hobby
+post
+post online
+social media post
+seeking
+seek feedback
+seek help
+accept
+accepting
+accept feedback
+constructive
+constructive feedback
+feedback
+give feedback
+positive feedback
+crucial
+be crucial to
+crucial moment
+in turn
+value
+valued
+feel valued
+respected
+feel respected
+show respect for
+straight path
+straight ahead
+roadblock
+roadblocks
+hit roadblocks
+discouraged
+feel discouraged
+discourage sb. from doing
+put in
+put in effort
+put in time
+harvest rewards
+harvest season
+rewards
+harvest the rewards
+as a reward
+as an artist who shares her journey on social media, i'm often asked by curious followers how to begin an art journey.
+unfortunately, there is no magic list i can offer.
+i do remember, though, what it was like to be a complete beginner.
+so i've put together some good tips for starting an art journey.
+start small.
+i suggest using a sketchbook for small studies.
+these small studies provide inspiration and may be a springboard for more complex works in the future.
+don't throw away your beginner art.
+you'll want to look back on your journey to see how far you've come.
+paint often and paint from life.
+there's no better way to improve than to put in those brush miles.
+whether you paint still lifes, portraits, or landscapes, paint from life as much as possible.
+you'll develop that painting muscle memory that only comes with repetition.
+continually challenge yourself to try something new.
+get out of your comfort zone.
+artistic growth can be a bit painful.
+welcome to the club; we've all been there.
+i love taking on challenges.
+i once took up a challenge to create a painting every day for a month and post the works online.
+share your work if you feel comfortable doing so.
+seeking and accepting constructive feedback is crucial to growth.
+i post my work on social media and, in turn, have met some of the kindest people.
+they make me feel valued and respected, no matter my level of artistic ability.
+the journey you're on won't follow a straight path.
+you'll hit roadblocks, and you'll feel discouraged at times.
+push through, give it time and put in the effort.
+you will harvest the rewards of an artistic life.
+twins
+identical twins
+keep
+kept
+keep doing sth.
+keep from
+sliding
+sliding door
+slide down
+the reason is obvious
+it is obvious that
+admit to
+constantly
+constantly want
+drive
+drive sb. crazy
+drive away
+apparently
+apparently know
+insist
+insisting
+insist on
+insist that
+merely a window
+kept them from attempting
+keep sb. from doing sth.
+requests
+make a request
+at the request of
+lie
+lying
+lie to sb.
+tell a lie
+discover
+discover the truth
+discover that
+wonder
+wonder if
+no wonder
+consequences
+no matter the consequences
+face the consequences
+have a fear that
+the lie we're telling
+spiritual damage
+spiritual life
+do damage to
+cause damage
+metaphorical
+metaphorical meaning
+absolutely
+absolutely know
+absolutely right
+sort
+some sort of
+all sorts of
+instead of
+instead of doing sth.
+stare at
+stare in wonder
+unreasonable
+unreasonable fear
+bottom line
+the bottom line is
+repeatedly
+repeatedly say
+hesitate to do sth.
+without hesitation
+since our twins began learning to walk, my wife and i have kept telling them that our sliding glass door is just a window.
+the reason is obvious.
+if we admit it is a door, they'll want to go outside constantly.
+it will drive us crazy.
+the kids apparently know the truth.
+but our insisting it's merely a window has kept them from attempting millions of requests to open the door.
+i hate lying to the kids.
+one day they'll wake up and discover that everything they've always known about windows is a lie.
+i wonder if parents should always tell the truth no matter the consequences.
+i have a very strong fear that the lie we're telling is doing spiritual damage to our children.
+windows and doors have important metaphorical meanings.
+i'm telling them they can't open what they absolutely know is a door.
+what if later in life they come to a metaphorical door, like an opportunity of some sort, and instead of opening the door and taking the opportunity, they just stare at it and wonder, "what if it isn't a door?"
+that is, "what if it isn't a real opportunity?"
+maybe it's an unreasonable fear.
+but the bottom line is that i shouldn't lie to my kids.
+i should just accept repeatedly having to say, "no. we can't go outside now."
+then when they come to other doors in life, be they real or metaphorical, they won't hesitate to open them and walk through.
+passion
+strong passion
+have a passion for
+make a commitment
+commitment to
+foundations
+lay the foundation
+the foundations of
+romantic
+romantic relationship
+romantic love
+relationships
+successful relationships
+build a relationship
+individual
+individuals
+unique individuals
+individual needs
+trait
+traits
+personality traits
+inherited traits
+possess a quality
+be possessed by
+lack of
+for lack of
+endure
+endure hardship
+endure to the end
+humility
+with humility
+indicator
+important indicator
+economic indicator
+confused
+be confused with
+confuse a with b
+presence
+in the presence of
+presence of mind
+admirable
+deeply admirable
+qualities
+personal qualities
+high quality
+accurately
+accurately assess
+assess one's abilities
+self-assess
+deficiency
+deficiencies
+nutritional deficiency
+deny
+denying
+deny the truth
+deny doing sth.
+strengths
+personal strengths
+strengths and weaknesses
+recognize
+recognize that
+recognize the importance of
+intelligent
+highly intelligent
+genius
+a stroke of genius
+musical genius
+advantages
+have an advantage over
+shortcoming
+shortcomings
+advantages and shortcomings
+ignore the problem
+completely ignore
+acknowledge mistakes
+identify
+identify areas for improvement
+identify with
+appear
+appears
+appear to be
+it appears that
+asset
+a huge asset
+fixed asset
+tend to
+tend to do sth.
+rate highly
+at any rate
+spouse
+legal spouse
+be likely to
+is more likely to initiate
+be more likely to
+be less likely to
+initiate
+initiate a relationship
+initiate a conversation
+many people believe that passion and commitment are the foundations of strong romantic relationships.
+but a relationship is made of two unique individuals.
+and the personality traits these individuals possess or lack can often make a relationship more- or less-likely to endure.
+recent research has found that one trait in particular--humility--is an important indicator of successful relationships.
+humility can sometimes be confused with a lack of confidence.
+but researchers have come to realize that being humble generally indicates the presence of deeply admirable personal qualities.
+being humble means you have the ability to accurately assess your deficiencies without denying your skills and strengths.
+for example, you might recognize that you are intelligent, but realize that you are not a genius.
+thus, humility leads to an honest view of one's own advantages and shortcomings.
+humble people do not ignore, avoid, or try to deny their limits or deficiencies.
+they can acknowledge mistakes, see value in things that are far from perfect and identify areas for improvement.
+perhaps it is not surprising, then, that humility appears to be a huge asset to relationships.
+one study found that people tend to rate this quality highly in their spouse.
+the study also found that someone who is humble is more likely to initiate a romantic relationship, perhaps because they are less likely to see themselves as "too good" for someone else.
+thus, a humble partner might be your ideal partner.
+take responsibility for
+sense of responsibility
+positive step
+positive attitude
+beat yourself up
+don't beat yourself up
+err
+to err is human
+forgiveness
+show forgiveness
+ask for forgiveness
+following
+the following exercise
+academic journal
+heading
+put the heading
+list
+make a list
+on the list
+personal characteristics
+caring
+caring nature
+creative
+creative thinking
+generous with
+aspects
+all aspects of
+positive aspects
+personality
+aspects of personality
+strong personality
+top
+at the top of
+top student
+act
+acts
+acts of kindness
+act as
+kindness
+show kindness to
+iron
+ironing
+do the ironing
+bake
+baked
+bake cookies
+bake a cake
+cookies
+tiring
+a tiring day
+add to
+add up
+have a go
+have a go at
+exchange thoughts
+in exchange for
+shine
+shine through
+shine in
+boost
+boost self-confidence
+boost morale
+cliche
+something of a cliche
+fixed
+fixed aspect
+fixed price
+taking responsibility for mistakes is a positive step, but don't beat yourself up about them.
+to err is human.
+it's just as important to show yourself some forgiveness.
+you can use the following writing exercise to help you do this.
+in a journal or on a piece of paper, put the heading "personal strengths".
+now list all the characteristics you like about yourself.
+are you caring?
+creative?
+generous?
+a good listener?
+fun to be around?
+they don't have to be world-changing, just aspects of your personality that you're proud of.
+at the top of a second page, put the heading "acts of kindness".
+on this one, list all the positive things you've done for others.
+it might be the time when you helped a friend with their homework, when you did the ironing without being asked, or when you baked cookies after the family had had a tiring day.
+whatever it is, no matter how small it might seem, write it down.
+you could ask a friend or family member to help add to your list.
+they might even like to have a go at doing the exercise.
+that way, you could exchange thoughts on what makes each of you special and the aspects of your personality that shine through.
+in fact, don't wait until you've made a mistake to try this--it's a great way to boost self-confidence at any time.
+it's something of a cliche that most people learn not from their successes but their mistakes.
+the thing is, it's true.
+whatever the mistake, remember it isn't a fixed aspect of your personality.
+we're all changing and learning all the time and mistakes are a positive way to develop and grow.
+riddle
+solve a riddle
+jams
+traffic jams
+have in common
+have sth. in common
+situation
+situations
+in a situation
+current situation
+extra patience
+extra time
+have patience
+lose patience
+used
+be used to
+immediately
+respond immediately
+fingertip
+fingertips
+at one's fingertips
+suggests
+research suggests
+whole
+a whole lot
+on the whole
+better off
+be better off
+tricks
+several tricks
+trick or treat
+gratitude
+show gratitude
+feel gratitude
+be optimistic about
+foster
+foster self-control
+foster growth
+self-control
+exercise self-control
+option
+have no option
+keep one's options open
+instant gratification
+instant noodles
+gratification
+psychology research
+in the long run
+get into the habit of
+get into the habit of doing sth.
+put off
+put off doing sth.
+have the belief that
+beyond belief
+state
+mental state
+in a state
+tolerate differences
+experience
+gain experience
+experience sth.
+time zone
+impatient
+get impatient
+impatient with
+circumstances
+under the circumstances
+in no circumstances
+merely uncomfortable
+gradually
+gradually become
+here's a riddle: what do traffic jams, long lines and waiting for a vacation to start all have in common?
+there's one answer: they're all situations where we could use a little extra patience.
+in the digital age, we're used to having what we need immediately and right at our fingertips.
+however, research suggests that if we practiced patience, we'd be a whole lot better off.
+here are several tricks.
+practice gratitude.
+thankfulness has a lot of benefits: research shows it makes us happier, less stressed and even more optimistic.
+it can also help us practice more patience.
+"showing thankfulness can foster self-control," said ye li, researcher at the university of california.
+make yourself wait.
+instant gratification may seem like the most "feel good" option at the time, but psychology research suggests waiting for things actually makes us happier in the long run.
+and the only way for us to get into the habit of waiting is to practice.
+start with small tasks.
+put off watching your favorite show until the weekend or wait 10 extra minutes before going for that cake.
+you'll soon find that the more patience you practice, the more you start to apply it to other, more annoying situations.
+accept the uncomfortable.
+so many of us have the belief that being comfortable is the only state we will tolerate, and when we experience something outside of our comfort zone, we get impatient about the circumstances.
+you should learn to say to yourself, "this is merely uncomfortable, not intolerable."
+you'll then gradually become more patient.
+isolation
+social isolation
+in isolation
+pose
+poses
+pose a risk
+pose a threat
+obesity
+childhood obesity
+cigarettes
+smoke cigarettes
+a pack of cigarettes
+implication
+by implication
+have implications for
+loneliness
+feel loneliness
+silent
+silent risk
+affects
+affect health
+negatively affect
+physical health
+physical exercise
+produces
+produce stress hormones
+stress hormones
+lead to
+lead to problems
+appointments
+doctor appointments
+make an appointment
+public health experts
+debating
+debate how to
+under debate
+address
+address a problem
+address the issue
+widespread loneliness
+appointed
+appoint a minister
+be appointed as
+minister for loneliness
+at some point
+make a point
+serious consequences
+as a consequence
+disconnected
+become disconnected
+start a campaign
+election campaign
+spark
+sparked
+spark conversations
+spark interest
+conversation
+conversations
+have a conversation
+difficult conversations
+supporting
+support a cause
+benches
+friendly benches
+encouraged
+be encouraged to
+chat with
+have a chat
+push
+pushing
+push to
+push for
+transportation
+public transportation
+according to a survey
+severely
+severely strained
+strained
+strained relationship
+social isolation poses more health risks than obesity or smoking 15 cigarettes a day, according to research published by brigham young university.
+the implication is that loneliness is a huge, if silent, risk factor.
+loneliness affects physical health in two ways.
+first, it produces stress hormones that can lead to many health problems.
+second, people who live alone are less likely to go to the doctor appointments, to exercise or to eat a healthy diet.
+public health experts in many countries are debating how to address widespread loneliness in our society.
+last year britain even appointed a minister for loneliness.
+"loneliness touches almost every one of us at some point," its minister for loneliness baroness barran said.
+"it can lead to very serious health consequences for individuals who become isolated and disconnected."
+barran started a "let's talk loneliness" campaign that sparked difficult conversations across britain.
+he is now supporting "friendly benches", which are public seating areas where people are encouraged to go and chat with one another.
+the minister is also pushing to stop public transportation from being cut in ways that leave people isolated.
+more than one-fifth of adults in both the united states and britain said in a 2018 survey that they often or always feel lonely.
+more than half of american adults are unmarried, and researchers have found that even among those who are married, 30% of relationships are severely strained.
+a quarter of americans now live alone, and as the song says, one is the loneliest number.
+lift
+in a lift
+give sb. a lift
+in line
+wait in line
+surrounded
+be surrounded by
+deeply
+deeply focused
+focus on
+focused on
+be focused on
+smartphone
+smartphones
+use smartphones
+struggle for
+uncomfortable silence
+silence
+in silence
+break the silence
+compromised
+compromised intelligence
+conversational
+conversational intelligence
+artificial intelligence
+emotional intelligence
+start a conversation
+awkward silence
+challenging task
+annoying
+annoying habit
+unnecessary
+unnecessary worry
+stranger
+strangers
+among strangers
+consider that
+small talk
+make small talk
+worth
+be worth the trouble
+be worth doing
+invaluable
+invaluable experience
+results in
+result in benefits
+dismiss
+dismissing
+dismiss as
+deep relationships
+exist in
+casual conversation
+casual clothes
+grease
+the grease for communication
+communication
+social communication
+means of communication
+research director
+research institute
+business
+business deal
+do business
+deal
+big deal
+connect
+connect with
+connect to
+communicate
+communicate with
+communicate effectively
+associate professor
+professor of psychology
+seek out
+interaction
+social interaction
+interact with the waiter
+significantly
+significantly higher
+positive feelings
+feeling
+feelings
+mixed feelings
+peripheral
+peripheral members
+social network
+social networking
+matter
+it doesn't matter
+what's the matter
+well-being
+sense of well-being
+promote well-being
+reach
+reach out to
+sense of belonging
+a bond with others
+form a bond
+on the basis of
+the basis of
+manners
+good manners
+bad manners
+we've all been there: in a lift, in line at the bank or on an airplane, surrounded by people who are, like us, deeply focused on their smartphones or, worse, struggling with the uncomfortable silence.
+what's the problem?
+it's possible that we all have compromised conversational intelligence.
+it's more likely that none of us start a conversation because it's awkward and challenging, or we think it's annoying and unnecessary.
+but the next time you find yourself among strangers, consider that small talk is worth the trouble.
+experts say it's an invaluable social practice that results in big benefits.
+dismissing small talk as unimportant is easy, but we can't forget that deep relationships wouldn't even exist if it weren't for casual conversation.
+small talk is the grease for social communication, says bernardo carducci, director of the shyness research institute at indiana university southeast.
+"almost every great love story and each big business deal begins with small talk," he explains.
+"the key to successful small talk is learning how to connect with others, not just communicate with them."
+in a 2014 study, elizabeth dunn, associate professor of psychology at ubc, invited people on their way into a coffee shop.
+one group was asked to seek out an interaction with its waiter; the other, to speak only when necessary.
+the results showed that those who chatted with their server reported significantly higher positive feelings and a better coffee shop experience.
+"it's not that talking to the waiter is better than talking to your husband," says dunn.
+"but interactions with peripheral members of our social network matter for our well-being also."
+dunn believes that people who reach out to strangers feel a significantly greater sense of belonging, a bond with others.
+carducci believes developing such a sense of belonging starts with small talk.
+"small talk is the basis of good manners," he says.
+vacation
+summer vacation
+take a vacation
+panoramic
+panoramic view
+a panoramic view
+in view of
+paused
+pause to do sth.
+breath
+catch one's breath
+hold one's breath
+position
+positioned
+position oneself
+panorama
+take the best photo of the panorama
+approached
+approach from behind
+approach to
+plant
+planted
+plant oneself
+sigh with relief
+appreciate the view
+appreciate one's help
+patient
+be patient with
+scanning
+scan the sun
+reviewing
+review the shot
+take a shot
+eventually take
+frustrated
+feel frustrated
+take a picture of the landscape
+prevent
+prevented
+prevent sb. from doing sth.
+be content with
+mess
+mess with
+in a mess
+get bored
+bored with
+anyway
+take the photo anyway
+her presence in the photo
+somehow come to life
+breathe
+breathes
+come to life and breathe
+engage
+engaging
+engage with
+unique beauty
+unfold
+unfolded
+unfold before
+ruined
+ruin the photo
+hang
+hangs
+hang on the wall
+her figure
+figure out
+capture
+captured
+capture a moment
+frozen
+frozen on the wall
+private
+private space
+space
+outer space
+immortalize
+immortalized
+be immortalized in
+each other's
+each others'
+each other's spaces
+remind
+remind sb. that
+remind sb. of sth.
+common
+common desire
+in common
+a desire for
+have a desire to
+reminder
+a reminder of
+separate
+separated
+be separated by
+thin
+thin square
+square
+a thin square of glass
+glass
+a square of glass
+fifteen years ago, i took a summer vacation in lecce in southern italy.
+after climbing up a hill for a panoramic view of the blue sea, white buildings and green olive trees, i paused to catch my breath and then positioned myself to take the best photo of this panorama.
+unfortunately, just as i took out my camera, a woman approached from behind, and planted herself right in front of my view.
+like me, this woman was here to stop, sigh and appreciate the view.
+patient as i was, after about 15 minutes, my camera scanning the sun and reviewing the shot i would eventually take, i grew frustrated.
+was it too much to ask her to move so i could take just one picture of the landscape?
+sure, i could have asked her, but something prevented me from doing so.
+she seemed so content in her observation.
+i didn't want to mess with that.
+another 15 minutes passed and i grew bored.
+the woman was still there.
+i decided to take the photo anyway.
+and now when i look at it, i think her presence in the photo is what makes the image interesting.
+the landscape, beautiful on its own, somehow comes to life and breathes because this woman is engaging with it.
+this photo, with the unique beauty that unfolded before me and that woman who "ruined" it, now hangs on a wall in my bedroom.
+what would she think if she knew that her figure is captured and frozen on some stranger's bedroom wall?
+a bedroom, after all, is a very private space, in which some woman i don't even know has been immortalized.
+in some ways, she lives in my house.
+perhaps we all live in each others' spaces.
+perhaps this is what photos are for: to remind us that we all appreciate beauty, that we all share a common desire for pleasure, for connection, for something that is greater than us.
+that photo is a reminder, a captured moment, an unspoken conversation between two women, separated only by a thin square of glass.
+the first step
+take steps
+exploring
+go exploring
+out of one's comfort zone
+wandering
+wander into
+wander around
+main
+the main thing
+in the main
+show up
+show up on time
+adventurous
+be adventurous
+other than
+other than that
+bring in
+bring in a topic
+broken-down
+broken-down vehicle
+vehicle
+motor vehicle
+ride
+rode
+ride the bus
+ride a bike
+silly
+silly jokes
+joke
+jokes
+tell a joke
+play a joke on
+take
+take away
+wine
+red wine
+away
+right away
+soapbox
+take away their soapbox
+host
+the host of the party
+host a party
+remove from
+turn to a topic
+off topic
+killer
+dinner-party killer
+face with
+faced with
+be faced with
+compliment
+give a compliment
+pay sb. a compliment
+awkwardness
+the weight of awkwardness
+turn around
+turn around and say
+extremely delicious
+according to jessica hagy, author of how to be interesting, it's not difficult to make yourself interesting at a dinner party.
+the first step is to go exploring, if you're out of your comfort zone or if you're wandering into somebody's house for the first time.
+so the main thing is just to show up and be adventurous, trying different foods and talking to strangers.
+people love to talk about themselves.
+if you can start the conversation with a question other than "what do you do for a living?", you'll be able to get a lot more interesting conversation out of whoever it is you're talking to.
+if you ask the question "how did you get here?", it can bring in "i have this old, broken-down vehicle" or "i rode the bus with these crazy people who were laughing at silly jokes in the back."
+it just opens up conversation.
+what about that person who has had too much to drink or won't stop talking?
+if you can't take their wine away, you should certainly try to take away their soapbox.
+if you're the host, you can ask them to help you in the kitchen with something and just remove them from the situation.
+or turn the conversation into a topic where they have little to say.
+and what about that other dinner-party killer: awkward silence?
+if you're faced with an awkward silence at a dinner party, the only thing that always gets everyone talking again is to give the host a compliment.
+he or she is the person who is feeling the weight of that awkwardness the most.
+just quickly turn around and say, "this cake is extremely delicious and you have to tell me all about it."
+so being interesting at a dinner party isn't that hard.
+mind
+come into one's mind
+make up one's mind
+uninteresting
+so uninteresting
+have a reputation for
+earn a reputation
+local cuisine
+french cuisine
+top class
+top the list
+class
+first class
+chefs
+top class chefs
+appear on
+frequently
+appear frequently
+screen
+screens
+television screens
+recipe book
+recipe for success
+bestseller
+bestseller list
+rather
+rather than
+advertising
+advertising campaign
+ready-made
+ready-made meals
+cooking
+cooking habits
+cooking skills
+stick
+sticking
+stick to
+traditional diet
+balanced diet
+slowly
+slowly declining
+declining
+on the decline
+consumer
+consumers
+britain's consumers
+applying
+apply for
+apply to
+programmes
+tv programmes
+market
+market analysts
+on the market
+analyst
+analysts
+cookery
+cookery programmes
+a wide variety of
+variety show
+ingredient
+ingredients
+quality ingredients
+main ingredient
+be confident about
+confident in
+expanding
+expand knowledge
+expand business
+obsession
+obsession with
+reflected
+be reflected through
+reflect on
+scheduling
+television scheduling
+documentary
+documentaries
+tv documentaries
+broadcast on tv
+live broadcast
+what comes into your mind when you think of british food?
+probably fish and chips, or a sunday dinner of meat and two vegetables.
+but is british food really so uninteresting?
+even though britain has a reputation for less-than-impressive cuisine, it is producing more top class chefs who appear frequently on our television screens and whose recipe books frequently top the bestseller lists.
+it's thanks to these tv chefs rather than any advertising campaign that britons are turning away from meat-and-two-veg and ready-made meals and becoming more adventurous in their cooking habits.
+it is recently reported that the number of those sticking to a traditional diet is slowly declining and around half of britain's consumers would like to change or improve their cooking in some way.
+there has been a rise in the number of students applying for food courses at uk universities and colleges.
+it seems that tv programmes have helped change what people think about cooking.
+according to a new study from market analysts, 1 in 5 britons say that watching cookery programmes on tv has encouraged them to try different food.
+almost one third say they now use a wider variety of ingredients than they used to, and just under 1 in 4 say they now buy better quality ingredients than before.
+one in four adults say that tv chefs have made them much more confident about expanding their cookery knowledge and skills, and young people are also getting more interested in cooking.
+the uk's obsession with food is reflected through television scheduling.
+cookery shows and documentaries about food are broadcast more often than before.
+with an increasing number of male chefs on tv, it's no longer "uncool" for boys to like cooking.
+explore the woods
+explore possibilities
+wood
+woods
+in the woods
+observing
+observe nature
+observe the rules
+stream
+a dirty stream
+stream of
+example
+for example
+set an example
+flowing
+flow through
+plants
+flow through plants
+rock
+rocks
+along rocks
+tiny
+tiny creatures
+natural process
+in the process of
+messes
+clean up the mess
+study agriculture
+medicine
+study medicine
+take medicine
+fishery
+fisheries
+study fisheries
+college
+in college
+go to college
+harmful bacteria
+harmful to
+bacterium
+bacteria
+combination
+a combination of
+in combination with
+figured
+figure that
+waste
+clean up waste
+a waste of time
+decide
+decided
+decide to do sth.
+remove harmful substances
+substance
+substances
+harmful substances
+sludge
+remove sludge
+constructed
+construct a series of
+series
+a series of
+fiberglass
+fiberglass tanks
+tanks
+clear fiberglass tanks
+connected
+connected to
+local ponds
+local people
+pond
+ponds
+local ponds and streams
+wait
+waited
+wait for
+little
+little by little
+ecosystem
+form an ecosystem
+within weeks
+digested
+be digested
+leave
+left
+be left
+pure water
+pure gold
+develop
+developed
+develop a facility
+develop skills
+facility
+a greenhouse-like facility
+treated
+treat sewage
+treat sb. well
+sewage
+designed
+design an eco-machine
+canal water
+ecological
+ecological design
+spare parts
+spare time
+inventor
+for the inventor
+new relationships
+organism
+organisms
+put organisms
+systems
+new systems
+self-repair
+develop self-repair
+when john todd was a child, he loved to explore the woods around his house, observing how nature solved problems.
+a dirty stream, for example, often became clear after flowing through plants and along rocks where tiny creatures lived.
+when he got older, john started to wonder if this process could be used to clean up the messes people were making.
+after studying agriculture, medicine, and fisheries in college, john went back to observing nature and asking questions.
+why can certain plants trap harmful bacteria?
+which kinds of fish can eat cancer-causing chemicals?
+with the right combination of animals and plants, he figured, maybe he could clean up waste the way nature did.
+he decided to build what he would later call an eco-machine.
+the task john set for himself was to remove harmful substances from some sludge.
+first, he constructed a series of clear fiberglass tanks connected to each other.
+then he went around to local ponds and streams and brought back some plants and animals.
+he placed them in the tanks and waited.
+little by little, these different kinds of life got used to one another and formed their own ecosystem.
+after a few weeks, john added the sludge.
+he was amazed at the results.
+the plants and animals in the eco-machine took the sludge as food and began to eat it!
+within weeks, it had all been digested, and all that was left was pure water.
+over the years, john has taken on many big jobs.
+he developed a greenhouse-like facility that treated sewage from 1,600 homes in south burlington.
+he also designed an eco-machine to clean canal water in fuzhou, a city in southeast china.
+"ecological design" is the name john gives to what he does.
+"life on earth is kind of a box of spare parts for the inventor," he says.
+"you put organisms in new relationships and observe what's happening.
+then you let these new systems develop their own ways to self-repair."
+age
+as we age
+at the age of
+even
+even if
+heart
+heart health
+by heart
+efficient
+energy efficient
+efficient in
+processing
+process information
+process oxygen
+oxygen level
+think
+think of
+think about
+rubber band
+a rubber band
+flexible schedule
+drawer
+in a drawer
+year
+years
+for 20 years
+dry skin
+break
+broken
+easily broken
+heart specialist
+fortunately
+fortunately for
+midlife
+in midlife
+enthusiastic about
+enthusiastic exerciser
+shape
+get in shape
+in good shape
+selected
+select volunteers
+otherwise healthy
+participant
+participants
+study participants
+randomly
+randomly divided
+divide
+divided
+divide into
+divided by
+participated
+participate in
+exercise program
+training program
+nonaerobic
+nonaerobic exercise
+balance training
+keep balance
+training
+weight training
+on-the-job training
+weight
+lose weight
+time
+times
+three times a week
+second
+the second group
+high-intensity
+high-intensity exercise
+aerobic
+aerobic exercise
+under the guidance of
+remarkable
+remarkable improvement
+fit
+fitter
+stronger and fitter
+fill with
+fill out
+pump blood
+heart pump
+blood
+high blood pressure
+during
+during exercise
+intense
+intense exercise
+intense heat
+sweet spot
+the sweet spot
+already
+have already
+year-long
+a year-long program
+spokeswoman
+a spokeswoman for
+repeat
+repeated
+needs to be repeated
+exactly
+not exactly
+different aspects
+exercise routine
+daily routine
+difference
+make a difference
+make the biggest difference
+as we age, even if we're healthy, the heart just isn't as efficient in processing oxygen as it used to be.
+in most people the first signs show up in their 50s or early 60s.
+and among people who don't exercise, the changes can start even sooner.
+"think of a rubber band.
+in the beginning, it is flexible, but put it in a drawer for 20 years and it will become dry and easily broken," says dr. ben levine, a heart specialist at the university of texas.
+that's what happens to the heart.
+fortunately for those in midlife, levine is finding that even if you haven't been an enthusiastic exerciser, getting in shape now may help improve your aging heart.
+levine and his research team selected volunteers aged between 45 and 64 who did not exercise much but were otherwise healthy.
+participants were randomly divided into two groups.
+the first group participated in a program of nonaerobic exercise--balance training and weight training--three times a week.
+the second group did high-intensity aerobic exercise under the guidance of a trainer for four or more days a week.
+after two years, the second group saw remarkable improvements in heart health.
+"we took these 50-year-old hearts and turned the clock back to 30- or 35-year-old hearts," says levine.
+"and the reason they got so much stronger and fitter was that their hearts could now fill a lot better and pump a lot more blood during exercise."
+but the hearts of those who participated in less intense exercise didn't change, he says.
+"the sweet spot in life to start exercising, if you haven't already, is in late middle age when the heart still has flexibility," levine says.
+"we put healthy 70-year-olds through a year-long exercise training program, and nothing happened to them at all."
+dr. nieca goldberg, a spokeswoman for the american heart association, says levine's findings are a great start.
+but the study was small and needs to be repeated with far larger groups of people to determine exactly which aspects of an exercise routine make the biggest difference.
