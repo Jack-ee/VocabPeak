@@ -165,9 +165,10 @@ ok(/st\.gi === gi && st\.idx === idx/.test(src), '自动跳题额外校验位置
 const idx  = fs.readFileSync(path.join(DIR, 'index.html'), 'utf8');
 const sw   = fs.readFileSync(path.join(DIR, 'sw.js'), 'utf8');
 const vs   = [...idx.matchAll(/\?v=(\d+)/g)].map(m => m[1]);
-ok(new Set(vs).size === 1 && vs[0] === '118', 'index.html 全部 ?v=118 (' + new Set(vs).size + ' 种)');
-ok(/const CACHE_NAME = 'hsv-v21'/.test(sw), 'sw.js CACHE_NAME = hsv-v21');
-ok(/hsv-v21 \(\?v=118\)/.test(sw), 'sw.js 顶部有本版变更日志');
+ok(new Set(vs).size === 1 && Number(vs[0]) >= 118, 'index.html ?v 全部一致且 >= 118');
+const swV = (sw.match(/const CACHE_NAME = 'hsv-v(\d+)'/) || [])[1];
+ok(swV && Number(swV) >= 21, 'sw.js CACHE_NAME >= hsv-v21');
+ok(new RegExp('hsv-v' + swV + ' \\(\\?v=' + vs[0] + '\\)').test(sw), 'sw.js 变更日志与当前版本号对应');
 ok(/settings-lesson-group/.test(idx), 'index.html 有每组题量设置项');
 const app = fs.readFileSync(path.join(DIR, 'app.js'), 'utf8');
 ok(/getPref\('lesson_group_size', '30'\)/.test(app), 'app.js 加载该设置');

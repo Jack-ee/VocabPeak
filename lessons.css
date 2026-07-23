@@ -74,17 +74,21 @@
     margin      : 2px 0 12px;
 }
 .ls-back {
-    background    : var(--bg-surface);
-    border        : none;
-    border-radius : 10px;
-    width         : 36px;
-    height        : 36px;
-    font-size     : 18px;
-    color         : var(--text-primary);
-    cursor        : pointer;
-    flex-shrink   : 0;
+    background      : var(--bg-surface);
+    border          : 1.5px solid var(--accent);
+    border-radius   : 12px;
+    width           : 40px;
+    height          : 40px;
+    display         : flex;
+    align-items     : center;
+    justify-content : center;
+    color           : var(--accent);
+    cursor          : pointer;
+    flex-shrink     : 0;
+    transition      : background 0.15s;
 }
-.ls-back:hover { background: var(--bg-hover); }
+.ls-back:hover { background: var(--accent-bg); }
+.ls-back .ls-ico { width: 22px; height: 22px; }
 .ls-head-text  { flex: 1; min-width: 0; }
 .ls-head-switch {
     display     : flex;
@@ -346,19 +350,23 @@
 /* 上下题导航: 手指目标 >=40px, 主色描边, 一眼可见 —— 原来的
    小灰按钮在句子和选项之间容易被完全忽略。 */
 .ls-nav-btn {
-    background    : var(--bg-surface);
-    border        : 1.5px solid var(--accent);
-    border-radius : 12px;
-    min-width     : 52px;
-    min-height    : 40px;
-    padding       : 6px 14px;
-    font-size     : 19px;
-    font-weight   : 700;
-    line-height   : 1;
-    color         : var(--accent);
-    cursor        : pointer;
-    transition    : background 0.15s, transform 0.1s;
+    background      : var(--bg-surface);
+    border          : 1.5px solid var(--accent);
+    border-radius   : 12px;
+    min-width       : 52px;
+    min-height      : 40px;
+    padding         : 6px 14px;
+    font-size       : 15px;
+    font-weight     : 700;
+    line-height     : 1;
+    color           : var(--accent);
+    cursor          : pointer;
+    display         : inline-flex;
+    align-items     : center;
+    justify-content : center;
+    transition      : background 0.15s, transform 0.1s;
 }
+.ls-ico { width: 20px; height: 20px; display: block; }
 .ls-nav-btn:hover:not(:disabled) { background: var(--accent-bg); }
 .ls-nav-btn:active:not(:disabled) { transform: scale(0.94); }
 .ls-nav-btn:disabled {
@@ -504,6 +512,7 @@
     gap                   : 10px;
 }
 .ls-opt {
+    font-weight   : 600;
     padding       : 12px 8px;
     border        : 1px solid var(--bg-accent);
     border-radius : 12px;
@@ -728,7 +737,8 @@
         border-radius : 18px;
     }
     .ls-sheet-overlay.open { align-items: center; }
-    .ls-opts { max-width: 520px; margin: 0 auto; }
+    /* 选项与句子卡片同宽对齐 (居中窄条会和整页版式脱节) */
+    .ls-opts { max-width: none; }
 }
 
 /* ════════════════════════════════════════════════════════
@@ -790,4 +800,91 @@
 @media (min-width: 769px) {
     .ls-mixed-card { max-width: 860px; margin: 0 auto 12px; }
     .ls-mixed-btns button { flex: 0 0 auto; min-width: 160px; }
+}
+
+/* ════════════════════════════════════════════════════════
+   组芯片 / 会话恢复 / 补句译 (v119)
+   ════════════════════════════════════════════════════════ */
+
+/* 组号芯片行: 题目页与设置页通用, 点击直跳该组 */
+.ls-grp-row {
+    display     : flex;
+    align-items : center;
+    gap         : 6px;
+    flex-wrap   : wrap;
+    font-size   : 12px;
+    color       : var(--text-tertiary);
+    margin      : 0 0 10px;
+}
+.ls-grp-chip {
+    display       : inline-flex;
+    align-items   : center;
+    gap           : 5px;
+    background    : var(--bg-surface);
+    border        : 1px solid var(--bg-accent);
+    border-radius : 999px;
+    padding       : 4px 10px;
+    font-size     : 13px;
+    font-weight   : 700;
+    color         : var(--text-secondary);
+    cursor        : pointer;
+}
+.ls-grp-chip .ls-grp-n {
+    font-size   : 11px;
+    font-weight : 500;
+    color       : var(--text-tertiary);
+}
+.ls-grp-chip.cur {
+    border-color : var(--accent);
+    background   : var(--accent-bg);
+    color        : var(--accent-text);
+}
+.ls-grp-chip.full { border-style: dashed; }
+.ls-grp-chip.full .ls-grp-n::after { content: ' \2713'; color: var(--accent); }
+.ls-grp-chip:hover { border-color: var(--accent); }
+
+/* 「继续上次」恢复区 */
+.ls-resume-box {
+    background    : var(--accent-bg);
+    border        : 1.5px dashed var(--accent);
+    border-radius : 14px;
+    padding       : 12px 14px;
+    margin-bottom : 16px;
+    text-align    : left;
+}
+.ls-resume-box .ls-grp-row { margin: 8px 0 10px; }
+.ls-resume-title {
+    font-size   : 13.5px;
+    font-weight : 700;
+    color       : var(--accent-text);
+}
+.ls-resume-box .ls-setup-note { margin-top: 8px; }
+
+/* 补句译弹层 */
+.ls-zhfix { padding: 4px 2px 8px; }
+.ls-zhfix-info {
+    font-size     : 13px;
+    color         : var(--text-secondary);
+    line-height   : 1.7;
+    margin-bottom : 12px;
+}
+.ls-zhfix-btn { width: 100%; margin-bottom: 10px; }
+.ls-zhfix-or {
+    text-align : center;
+    font-size  : 11.5px;
+    color      : var(--text-tertiary);
+    margin     : 2px 0 10px;
+}
+.ls-zhfix-noai {
+    font-size     : 12px;
+    color         : var(--text-tertiary);
+    line-height   : 1.7;
+    margin-bottom : 10px;
+}
+.ls-zhfix-ta { min-height: 110px; margin-bottom: 10px; }
+.ls-zhfix-msg {
+    font-size  : 12px;
+    color      : #c0392b;
+    min-height : 16px;
+    line-height: 1.6;
 }

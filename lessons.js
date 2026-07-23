@@ -184,6 +184,82 @@ window.Lessons = (function () {
         };
     }
 
+    // ─── SVG 图标 (粗描边, 替代细箭头字符) ──────────────────
+    // 字符箭头 (← →) 线条过细且各系统字体渲染不一; 内联 SVG 用
+    // 2.6px 描边 + 圆头, 视觉重量与按钮匹配。
+    const ICON_PREV = '<svg class="ls-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>';
+    const ICON_NEXT = '<svg class="ls-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>';
+    const ICON_BACK = '<svg class="ls-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>';
+
+    // ─── 练习会话持久化 (DB pref 'lesson_sess') ─────────────
+    // 进行中的填空/匹配会话按课持久化, 关掉应用再回来能接着做,
+    // 也能直接跳进任意一组 —— 解决「中途停就前功尽弃」和
+    // 「第一二组无法切换」。结构 (压缩存储):
+    //   { 课ID或__mixed: { c: 填空会话, m: 匹配会话 } }
+    //   填空: { mode, hint, g:[[词条ID..]..], gi, idx, o:选项序, a:{id:[对,细节]}, ts }
+    //   匹配: { g:[[短语key..]..], gi, done:[key..], miss:{key:n}, missKeys:[..], ts }
+    // 整卷/全部完成时清除; 词条按 ID 还原, 课被删则条目自动失效。
+    function sessKey() { return curLesson ? curLesson.id : '__mixed'; }
+    function loadSessStore() {
+        try { return JSON.parse(window.DB?.getPref?.('lesson_sess', '{}') || '{}') || {}; }
+        catch (e) { return {}; }
+    }
+    function saveSessStore(s) {
+        try { window.DB?.setPref?.('lesson_sess', JSON.stringify(s)); } catch (e) {}
+    }
+    function getSess(slot) {
+        const e = loadSessStore()[sessKey()];
+        return (e && e[slot]) || null;
+    }
+    function putSess(slot, data) {
+        const s = loadSessStore();
+        const k = sessKey();
+        (s[k] = s[k] || {})[slot] = data;
+        saveSessStore(s);
+    }
+    function clearSess(slot) {
+        const s = loadSessStore();
+        const k = sessKey();
+        if (!s[k]) return;
+        delete s[k][slot];
+        if (!Object.keys(s[k]).length) delete s[k];
+        saveSessStore(s);
+    }
+
+    function persistClozeSess() {
+        const st = clozeState;
+        if (!st) return;
+        const a = {};
+        Object.keys(st.answers).forEach(id => {
+            const x = st.answers[id];
+            a[id] = [x.ok ? 1 : 0,
+                     x.pickedId != null ? x.pickedId : (x.typed != null ? x.typed : null)];
+        });
+        putSess('c', {
+            mode : st.mode,
+            hint : st.hint ? 1 : 0,
+            g    : st.groups.map(g => g.map(w => w.id)),
+            gi   : st.gi,
+            idx  : st.idx,
+            o    : st.opts,
+            a    : a,
+            ts   : Date.now()
+        });
+    }
+
+    function persistMatchSess() {
+        const st = matchState;
+        if (!st) return;
+        putSess('m', {
+            g        : st.groups.map(g => g.map(p => p.key)),
+            gi       : st.gi,
+            done     : Array.from(st.doneSet || []),
+            miss     : st.misses || {},
+            missKeys : Object.keys(st.missLog || {}),
+            ts       : Date.now()
+        });
+    }
+
     function allSentences(lesson) {
         const out = [];
         (lesson.paras || []).forEach(p => (p.sentences || []).forEach(s => out.push(s)));
@@ -352,7 +428,7 @@ window.Lessons = (function () {
         root.innerHTML = `
             <div class="ls-lesson">
                 <div class="ls-head">
-                    <button class="ls-back" id="ls-back" title="\u5168\u90E8\u8BFE\u6587">\u2190</button>
+                    <button class="ls-back" id="ls-back" title="\u5168\u90E8\u8BFE\u6587">${ICON_BACK}</button>
                     <div class="ls-head-text">
                         <button class="ls-head-switch" id="ls-lesson-switch" title="\u5207\u6362\u8BFE\u6587">
                             <span class="ls-head-title">${esc(l.title)}</span>
@@ -388,7 +464,7 @@ window.Lessons = (function () {
         root.innerHTML = `
             <div class="ls-lesson">
                 <div class="ls-head">
-                    <button class="ls-back" id="ls-back" title="\u5168\u90E8\u8BFE\u6587">\u2190</button>
+                    <button class="ls-back" id="ls-back" title="\u5168\u90E8\u8BFE\u6587">${ICON_BACK}</button>
                     <div class="ls-head-text">
                         <div class="ls-head-title">\u{1F4CA} ${title}</div>
                         <div class="ls-head-sub">\u4ECE\u5168\u90E8\u8BFE\u7A0B\u62BD\u9898 \u00b7 \u9519\u8FC7\u7684\u4F18\u5148\u91CD\u73B0</div>
@@ -411,6 +487,7 @@ window.Lessons = (function () {
             const s = ms.p;
             panel.innerHTML = `
                 <div class="ls-cloze-setup">
+                    ${matchResumeHtml()}
                     <div class="ls-setup-title">\u4ECE\u5168\u90E8\u8BFE\u7A0B\u7684 ${s.total} \u5BF9\u77ED\u8BED\u91CC\u62BD ${Math.min(size, s.total)} \u5BF9\u7EC3\u4E00\u7EC4</div>
                     <div class="ls-setup-sub">\u5DF2\u7EC3 ${s.seen} \u5BF9 \u00b7 \u5F85\u5F3A\u5316 ${s.wrong} \u5BF9 \u00b7 \u672A\u7EC3 ${s.total - s.seen} \u5BF9</div>
                     <div class="ls-setup-btns">
@@ -422,6 +499,7 @@ window.Lessons = (function () {
             const s = ms.w;
             panel.innerHTML = `
                 <div class="ls-cloze-setup">
+                    ${clozeResumeHtml()}
                     <div class="ls-setup-title">\u4ECE\u5168\u90E8\u8BFE\u7A0B\u7684 ${s.total} \u4E2A\u8BCD\u91CC\u62BD ${Math.min(size, s.total)} \u9898\u7EC3\u4E00\u7EC4</div>
                     <div class="ls-setup-sub">\u5DF2\u7EC3 ${s.seen} \u8BCD \u00b7 \u5F85\u5F3A\u5316 ${s.wrong} \u8BCD \u00b7 \u672A\u7EC3 ${s.total - s.seen} \u8BCD</div>
                     <div class="ls-setup-btns">
@@ -516,11 +594,15 @@ window.Lessons = (function () {
                  + `<button class="ls-para-play" data-para="${esc(p.id)}" title="\u64AD\u653E\u672C\u6BB5">\u25B6</button>`
                  + `${trBtn}${inner}</p>${zhDiv}`;
         }).join('');
+        // 导入课缺句译时给修补入口 (内置课语料自带, 不会出现)
+        const needZhFix = isUserLesson(curLesson.id)
+            && allSentences(curLesson).some(x => !x.zh);
         panel.innerHTML = `
             <div class="ls-read">
                 <div class="ls-read-bar">
                     <button class="wl-btn-primary" id="ls-play-all">\u25B6 \u64AD\u653E\u5168\u6587</button>
                     ${hasZh ? '<button class="ls-tool-btn" id="ls-read-zh-all" title="\u663E\u793A/\u9690\u85CF\u5168\u90E8\u8BD1\u6587">\u8BD1\u6587</button>' : ''}
+                    ${needZhFix ? '<button class="ls-tool-btn ls-zhfix-open" id="ls-zh-fix" title="\u7ED9\u672C\u8BFE\u8865\u5168\u53E5\u7EA7\u4E2D\u6587\u8BD1\u6587">\u{1F310} \u8865\u53E5\u8BD1</button>' : ''}
                     <span class="ls-read-hint">\u70B9\u53E5\u5B50\u542C\u5355\u53E5 \u00b7 \u70B9\u84DD\u8272\u8BCD\u770B\u8BE6\u89E3${hasZh ? ' \u00b7 \u70B9 \u8BD1 \u770B\u6BB5\u8BD1' : ''}</span>
                 </div>
                 <div class="ls-text">${paras}</div>
@@ -623,6 +705,82 @@ window.Lessons = (function () {
     }
 
     // ─── 填空 (选择 / 拼写) ─────────────────────────────────
+    // 设置页的「继续上次」区块: 有未完成会话时列出各组进度芯片,
+    // 可整体继续也可点组直跳; 重新开始会覆盖旧存档。
+    function clozeResumeHtml() {
+        const sess = getSess('c');
+        if (!sess || !Array.isArray(sess.g)) return '';
+        const total = sess.g.reduce((n, g) => n + g.length, 0);
+        const done  = Object.keys(sess.a || {}).length;
+        if (!done || done >= total) return '';
+        const chips = sess.g.map((g, i) => {
+            const gd  = g.filter(id => sess.a && sess.a[id]).length;
+            const cls = 'ls-grp-chip' + (gd === g.length ? ' full' : '');
+            return `<button class="${cls}" data-resumegrp="${i}">${i + 1}<span class="ls-grp-n">${gd}/${g.length}</span></button>`;
+        }).join('');
+        const modeZh = sess.mode === 'choice' ? '\u9009\u62E9\u586B\u7A7A' : '\u62FC\u5199\u586B\u7A7A';
+        return `
+            <div class="ls-resume-box">
+                <div class="ls-resume-title">\u23F3 \u4E0A\u6B21\u8FDB\u5EA6: ${modeZh} \u00b7 \u5DF2\u7B54 ${done} / ${total}</div>
+                <div class="ls-grp-row">\u7EC4:${chips}</div>
+                <button class="wl-btn-primary" id="ls-cloze-resume-sess">\u25B6 \u7EE7\u7EED\u4E0A\u6B21</button>
+                <div class="ls-setup-note">\u70B9\u7EC4\u53F7\u76F4\u63A5\u8DF3\u8FDB\u90A3\u4E00\u7EC4\uFF1B\u4E0B\u65B9\u91CD\u65B0\u5F00\u59CB\u4F1A\u6E05\u6389\u4E0A\u6B21\u8FDB\u5EA6\u3002</div>
+            </div>`;
+    }
+
+    // 从存档恢复填空会话。词条按 ID 从当前语料还原, 课被删/改过
+    // 导致缺失的条目自动剔除; targetGi 指定则落到该组首道未答题。
+    function resumeClozeSess(targetGi) {
+        const sess = getSess('c');
+        if (!sess || !Array.isArray(sess.g)) return false;
+        const pool = curLesson ? (curLesson.words || []).slice() : mixedWordPool();
+        const byId = {};
+        pool.forEach(w => { byId[w.id] = w; });
+        const groups = sess.g.map(g => g.map(id => byId[id]).filter(Boolean))
+                             .filter(g => g.length);
+        if (!groups.length) { clearSess('c'); toast('\u4E0A\u6B21\u8FDB\u5EA6\u5DF2\u5931\u6548'); return false; }
+        const answers = {};
+        Object.keys(sess.a || {}).forEach(id => {
+            if (!byId[id]) return;
+            const pair = sess.a[id];
+            const ans  = { ok: !!pair[0] };
+            if (pair[1] != null) {
+                if (sess.mode === 'choice') ans.pickedId = pair[1];
+                else                        ans.typed    = pair[1];
+            }
+            answers[id] = ans;
+        });
+        const opts = {};
+        Object.keys(sess.o || {}).forEach(id => {
+            if (byId[id] && Array.isArray(sess.o[id])) opts[id] = sess.o[id];
+        });
+        clozeState = {
+            kind    : curLesson ? 'lesson' : 'mixed',
+            mode    : sess.mode === 'spell' ? 'spell' : 'choice',
+            hint    : !!sess.hint,
+            showZh  : (window.DB?.getPref?.('lesson_cloze_zh', '1') !== '0'),
+            pool    : pool,
+            groups  : groups,
+            gi      : 0,
+            idx     : 0,
+            opts    : opts,
+            answers : answers,
+            autoT   : 0
+        };
+        const st = clozeState;
+        if (targetGi != null) {
+            st.gi = Math.max(0, Math.min(targetGi, groups.length - 1));
+            const un = groups[st.gi].findIndex(w => !answers[w.id]);
+            st.idx = un >= 0 ? un : 0;
+        } else {
+            st.gi  = Math.max(0, Math.min(sess.gi || 0, groups.length - 1));
+            st.idx = Math.max(0, Math.min(sess.idx || 0, groups[st.gi].length - 1));
+        }
+        persistClozeSess();
+        renderClozeQuestion();
+        return true;
+    }
+
     function renderClozeSetup(panel) {
         clozeState = null;
         const p     = loadProgress()[curLesson.id] || {};
@@ -633,6 +791,7 @@ window.Lessons = (function () {
         const grp   = grpN > 1 ? `\uFF0C\u5206 ${grpN} \u7EC4\u7EC3 (\u6BCF\u7EC4\u7EA6 ${size} \u9898\uFF0C\u53EF\u5728\u8BBE\u7F6E\u91CC\u6539)` : '';
         panel.innerHTML = `
             <div class="ls-cloze-setup">
+                ${clozeResumeHtml()}
                 <div class="ls-setup-title">\u7528\u539F\u6587\u53E5\u5B50\u6316\u7A7A\u84DD\u8272\u8BCD\uFF0C\u5171 ${total} \u9898${grp}</div>
                 <div class="ls-setup-sub">${best}</div>
                 <div class="ls-setup-btns">
@@ -668,6 +827,7 @@ window.Lessons = (function () {
             answers : {},                                  // wid -> { ok, pickedId?, typed? }
             autoT   : 0                                    // 答对自动跳题令牌
         };
+        persistClozeSess();
         renderClozeQuestion();
     }
 
@@ -694,6 +854,7 @@ window.Lessons = (function () {
             answers : {},
             autoT   : 0
         };
+        persistClozeSess();
         renderClozeQuestion();
     }
 
@@ -807,19 +968,29 @@ window.Lessons = (function () {
                 ? `\u7B2C ${st.gi + 1}/${st.groups.length} \u7EC4 \u00b7 ${st.idx + 1} / ${queue.length} \u00b7 \u5DF2\u7B54 ${answered}`
                 : `${st.idx + 1} / ${queue.length} \u00b7 \u5DF2\u7B54 ${answered}`);
 
+        // 分组会话: 组号芯片一键跳组 (含各组已答数), 不必按顺序做完
+        const grpRow = (st.groups.length > 1)
+            ? `<div class="ls-grp-row">\u7EC4:${st.groups.map((g, i) => {
+                    const gd  = g.filter(x => st.answers[x.id]).length;
+                    const cls = 'ls-grp-chip' + (i === st.gi ? ' cur' : '') + (gd === g.length ? ' full' : '');
+                    return `<button class="${cls}" data-jumpgrp="${i}">${i + 1}<span class="ls-grp-n">${gd}/${g.length}</span></button>`;
+                }).join('')}</div>`
+            : '';
+
         panel.innerHTML = `
             <div class="ls-cloze">
                 <div class="ls-cloze-top">
                     <div class="ls-cloze-navs">
-                        <button class="ls-nav-btn" id="ls-cloze-prev"${st.idx === 0 ? ' disabled' : ''} title="\u4E0A\u4E00\u9898">\u2190</button>
+                        <button class="ls-nav-btn" id="ls-cloze-prev"${(st.idx === 0 && st.gi === 0) ? ' disabled' : ''} title="\u4E0A\u4E00\u9898">${ICON_PREV}</button>
                         <span class="ls-cloze-prog">${prog}</span>
-                        <button class="ls-nav-btn ls-nav-next" id="ls-cloze-nextq" title="\u4E0B\u4E00\u9898">${isLast ? endLabel : '\u2192'}</button>
+                        <button class="ls-nav-btn ls-nav-next" id="ls-cloze-nextq" title="\u4E0B\u4E00\u9898">${isLast ? endLabel : ICON_NEXT}</button>
                     </div>
                     <div class="ls-cloze-tools">
                         <button class="ls-tool-btn${st.showZh ? ' on' : ''}" id="ls-zh-toggle" title="\u663E\u793A/\u9690\u85CF\u6574\u53E5\u8BD1\u6587">\u4E2D\u6587</button>
                         <button class="ls-cloze-quit" id="ls-cloze-quit">\u9000\u51FA</button>
                     </div>
                 </div>
+                ${grpRow}
                 ${srcLine}
                 <div class="ls-cloze-sent">${clozeSentenceHtml(lesson, w, ans)}</div>
                 ${zhLine}
@@ -837,9 +1008,21 @@ window.Lessons = (function () {
     }
 
     function clozeGoPrev() {
-        if (!clozeState || clozeState.idx === 0) return;
-        clozeState.autoT++;                    // 手动导航使挂起的自动跳题失效
-        clozeState.idx--;
+        const st = clozeState;
+        if (!st) return;
+        st.autoT++;                            // 手动导航使挂起的自动跳题失效
+        if (st.idx === 0) {
+            // 组首继续往前 = 回上一组最后一题, 组间可自由往返
+            if (st.gi > 0) {
+                st.gi--;
+                st.idx = clozeQueue(st).length - 1;
+                persistClozeSess();
+                renderClozeQuestion();
+            }
+            return;
+        }
+        st.idx--;
+        persistClozeSess();
         renderClozeQuestion();
     }
     function clozeGoNext() {
@@ -853,6 +1036,7 @@ window.Lessons = (function () {
             return;
         }
         st.idx++;
+        persistClozeSess();
         renderClozeQuestion();
     }
     function nextClozeGroup() {
@@ -861,6 +1045,18 @@ window.Lessons = (function () {
         st.autoT++;
         st.gi++;
         st.idx = 0;
+        persistClozeSess();
+        renderClozeQuestion();
+    }
+    // 跳到第 gi 组: 落到该组第一道未答题 (全答过则落到第一题回看)
+    function jumpToClozeGroup(gi) {
+        const st = clozeState;
+        if (!st || gi < 0 || gi >= st.groups.length) return;
+        st.autoT++;
+        st.gi = gi;
+        const un = st.groups[gi].findIndex(w => !st.answers[w.id]);
+        st.idx = un >= 0 ? un : 0;
+        persistClozeSess();
         renderClozeQuestion();
     }
     function toggleClozeZh() {
@@ -879,6 +1075,7 @@ window.Lessons = (function () {
         catch (e) {}
         bumpPracRec('w', w.id, isCorrect);          // 练习档案: 综合练习按它选题
         if (!isCorrect) reinforceWord(w);           // 答错 → 生词本 + 拉回到期复习
+        persistClozeSess();                         // 会话进度落盘, 关掉再回来能接着做
         speak(w.surface);
         renderClozeQuestion();                      // 状态驱动重渲染: 选项着色/回填/反馈
         if (isCorrect) {
@@ -951,6 +1148,8 @@ window.Lessons = (function () {
         const pct        = doneWords.length
             ? Math.round(correct * 100 / doneWords.length) : 0;
 
+        if (!unanswered) clearSess('c');   // 整卷答完, 进度存档使命完成
+
         // 单课: 最佳成绩只在完整作答时刷新, 保证历史成绩可比。
         let recordLine = '';
         if (st.kind === 'lesson' && curLesson) {
@@ -1000,7 +1199,7 @@ window.Lessons = (function () {
         if (!st) return;
         for (let g = 0; g < st.groups.length; g++) {
             const i = st.groups[g].findIndex(w => !st.answers[w.id]);
-            if (i >= 0) { st.gi = g; st.idx = i; renderClozeQuestion(); return; }
+            if (i >= 0) { st.gi = g; st.idx = i; persistClozeSess(); renderClozeQuestion(); return; }
         }
         renderClozeQuestion();
     }
@@ -1014,6 +1213,57 @@ window.Lessons = (function () {
                 en: ph.en, zh: ph.zh, key: w.id + '|' + ph.en, word: w, _lesson: curLesson
             })));
         return out;
+    }
+
+    // 短语页/综合短语设置页的「继续上次」区块 (与填空同款交互)
+    function matchResumeHtml() {
+        const sess = getSess('m');
+        if (!sess || !Array.isArray(sess.g)) return '';
+        const total = sess.g.reduce((n, g) => n + g.length, 0);
+        const done  = (sess.done || []).length;
+        if (!done || done >= total) return '';
+        const doneSet = new Set(sess.done || []);
+        const chips = sess.g.map((g, i) => {
+            const gd  = g.filter(k => doneSet.has(k)).length;
+            const cls = 'ls-grp-chip' + (gd === g.length ? ' full' : '');
+            return `<button class="${cls}" data-resumemgrp="${i}">${i + 1}<span class="ls-grp-n">${gd}/${g.length}</span></button>`;
+        }).join('');
+        return `
+            <div class="ls-resume-box">
+                <div class="ls-resume-title">\u23F3 \u4E0A\u6B21\u8FDB\u5EA6: \u5DF2\u5339\u914D ${done} / ${total} \u5BF9</div>
+                <div class="ls-grp-row">\u7EC4:${chips}</div>
+                <button class="wl-btn-primary" id="ls-match-resume-sess">\u25B6 \u7EE7\u7EED\u4E0A\u6B21</button>
+                <div class="ls-setup-note">\u5DF2\u914D\u5E73\u7684\u4E0D\u91CD\u505A\uFF1B\u91CD\u65B0\u5F00\u59CB\u4F1A\u6E05\u6389\u4E0A\u6B21\u8FDB\u5EA6\u3002</div>
+            </div>`;
+    }
+
+    // 从存档恢复匹配会话。短语按 key 从当前语料还原, 缺失剔除。
+    function resumeMatchSess(targetGi) {
+        const sess = getSess('m');
+        if (!sess || !Array.isArray(sess.g)) return false;
+        const pool  = curLesson ? lessonPhrases() : mixedPhrasePool();
+        const byKey = {};
+        pool.forEach(p => { byKey[p.key] = p; });
+        const groups = sess.g.map(g => g.map(k => byKey[k]).filter(Boolean))
+                             .filter(g => g.length);
+        if (!groups.length) { clearSess('m'); toast('\u4E0A\u6B21\u8FDB\u5EA6\u5DF2\u5931\u6548'); return false; }
+        initMatchState(curLesson ? 'lesson' : 'mixed', groups);
+        const st = matchState;
+        (sess.done || []).forEach(k => { if (byKey[k]) st.doneSet.add(k); });
+        st.matched = st.doneSet.size;
+        st.misses  = sess.miss || {};
+        (sess.missKeys || []).forEach(k => { if (byKey[k]) st.missLog[k] = byKey[k]; });
+        // 落点: 指定组, 或存档组, 组已配平则找第一个没配平的组
+        let gi = (targetGi != null) ? targetGi : (sess.gi || 0);
+        gi = Math.max(0, Math.min(gi, groups.length - 1));
+        if (targetGi == null && groups[gi].every(p => st.doneSet.has(p.key))) {
+            const un = groups.findIndex(g => g.some(p => !st.doneSet.has(p.key)));
+            if (un >= 0) gi = un;
+        }
+        st.gi = gi;
+        persistMatchSess();
+        startMatchGroup();
+        return true;
     }
 
     function renderPhrases(panel) {
@@ -1039,6 +1289,7 @@ window.Lessons = (function () {
             : '\u5148\u6D4F\u89C8\u719F\u6089\uFF0C\u518D\u5339\u914D\u68C0\u9A8C';
         panel.innerHTML = `
             <div class="ls-phrases">
+                ${matchResumeHtml()}
                 <div class="ls-read-bar">
                     <button class="wl-btn-primary" id="ls-match-start">\u{1F3AE} \u4E2D\u82F1\u5339\u914D\u7EC3\u4E60</button>
                     <span class="ls-read-hint">${hint}</span>
@@ -1047,19 +1298,155 @@ window.Lessons = (function () {
             </div>`;
     }
 
+    // ─── 补句译 (导入课数据修补) ────────────────────────────
+    // 旧导入课没有句级译文, 填空页「中文」只能回退显示词义。
+    // 两条补全路: ① 已配 AI Key (设置 → AI) 时一键在线翻译
+    // (DeepSeek/豆包国内直连, Claude/OpenAI 需网络可达);
+    // ② 复制提示词发给任意 AI, 把返回 JSON 粘回来。
+    // 译文合并后随用户课存 localStorage, 并同步到云端。
+    function zhFixPrompt(lesson) {
+        const sents = allSentences(lesson);
+        const lines = sents.map((s, i) => `${i + 1}. ${s.text}`).join('\n');
+        return '\u4F60\u662F\u82F1\u8BED\u6559\u6750\u7FFB\u8BD1\u52A9\u624B\u3002\u628A\u4E0B\u5217\u82F1\u6587\u8BFE\u6587\u53E5\u5B50\u9010\u53E5\u7FFB\u8BD1\u6210\u8D34\u5408\u4E2D\u56FD\u9AD8\u4E2D\u6559\u6750\u8BED\u4F53\u7684\u4E2D\u6587\u3002\n'
+             + '\u53EA\u8F93\u51FA\u4E00\u4E2A JSON \u5BF9\u8C61\uFF0C\u4E0D\u8981\u4EFB\u4F55\u89E3\u91CA\u6587\u5B57\u548C Markdown \u6807\u8BB0:\n'
+             + '{ "zh": ["\u7B2C1\u53E5\u8BD1\u6587", "\u7B2C2\u53E5\u8BD1\u6587", ...] }\n'
+             + `\u6570\u7EC4\u957F\u5EA6\u5FC5\u987B\u662F ${sents.length}\uFF0C\u987A\u5E8F\u4E0E\u7F16\u53F7\u4E00\u4E00\u5BF9\u5E94\u3002\n\n${lines}`;
+    }
+
+    // 把译文数组合并进课文并保存; 段译缺失时由句译拼接。
+    function applySentenceZh(lesson, zhArr) {
+        if (!Array.isArray(zhArr)) return { ok: false, err: '\u8FD4\u56DE\u7684\u4E0D\u662F zh \u6570\u7EC4' };
+        const flat = allSentences(lesson);
+        if (zhArr.length !== flat.length) {
+            return { ok: false, err: `\u53E5\u6570\u4E0D\u7B26: \u8BFE\u6587 ${flat.length} \u53E5\uFF0C\u8BD1\u6587 ${zhArr.length} \u6761` };
+        }
+        flat.forEach((sen, i) => {
+            const z = String(zhArr[i] || '').trim().replace(/\s+/g, ' ');
+            if (z) sen.zh = z;
+        });
+        (lesson.paras || []).forEach(pa => {
+            if (!pa.zh && (pa.sentences || []).every(x => x.zh)) {
+                pa.zh = pa.sentences.map(x => x.zh).join('');
+            }
+        });
+        if (isUserLesson(lesson.id) && window.DB?.saveUserLessons) {
+            window.DB.saveUserLessons(userLessons().map(l => l.id === lesson.id ? lesson : l));
+        }
+        return { ok: true };
+    }
+
+    function openZhFixSheet() {
+        const sheet   = root.querySelector('#ls-sheet');
+        const overlay = root.querySelector('#ls-sheet-overlay');
+        if (!sheet || !overlay || !curLesson) return;
+        const n     = allSentences(curLesson).filter(x => !x.zh).length;
+        const hasAI = !!window.AIEngine?.hasAPIKey?.();
+        sheet.innerHTML = `
+            <div class="ls-sheet-head">
+                <div class="ls-sheet-word">\u{1F310} \u8865\u5168\u53E5\u8BD1</div>
+                <button class="ls-sheet-close" id="ls-sheet-close">\u00d7</button>
+            </div>
+            <div class="ls-zhfix">
+                <div class="ls-zhfix-info">\u672C\u8BFE\u8FD8\u6709 ${n} \u53E5\u6CA1\u6709\u4E2D\u6587\u8BD1\u6587\u3002\u8865\u5168\u540E\uFF0C\u586B\u7A7A\u9875\u7684\u300C\u4E2D\u6587\u300D\u5F00\u5173\u4F1A\u663E\u793A\u6574\u53E5\u8BD1\u6587\uFF0C\u8BFE\u6587\u9875\u4E5F\u80FD\u770B\u6BB5\u8BD1\u3002</div>
+                ${hasAI
+                    ? `<button class="wl-btn-primary ls-zhfix-btn" id="ls-zhfix-ai">\u{1F916} \u7528 AI \u81EA\u52A8\u7FFB\u8BD1\uFF08\u8054\u7F51\uFF09</button>
+                       <div class="ls-zhfix-or">\u2014 \u6216\u624B\u52A8\u8D34\u8BD1\u6587 \u2014</div>`
+                    : `<div class="ls-zhfix-noai">\u8FD8\u6CA1\u914D AI Key\uFF08\u8BBE\u7F6E \u2192 AI \u53EF\u914D DeepSeek / \u8C46\u5305\uFF0C\u56FD\u5185\u76F4\u8FDE\uFF09\u3002\u4E5F\u53EF\u4EE5\u624B\u52A8\u8D34\u8BD1\u6587:</div>`}
+                <button class="wl-btn-secondary ls-zhfix-btn" id="ls-zhfix-copy">\u{1F4CB} \u590D\u5236\u7FFB\u8BD1\u63D0\u793A\u8BCD</button>
+                <textarea class="ls-import-textarea ls-zhfix-ta" id="ls-zhfix-ta" placeholder='\u628A AI \u8FD4\u56DE\u7684 JSON \u7C98\u5230\u8FD9\u91CC\uFF0C\u5F62\u5982 { "zh": ["...", "..."] }'></textarea>
+                <button class="wl-btn-primary ls-zhfix-btn" id="ls-zhfix-apply">\u2713 \u5BFC\u5165\u8BD1\u6587</button>
+                <div class="ls-zhfix-msg" id="ls-zhfix-msg"></div>
+            </div>`;
+        overlay.classList.add('open');
+    }
+
+    async function runZhFixAI() {
+        const btn = root.querySelector('#ls-zhfix-ai');
+        const msg = root.querySelector('#ls-zhfix-msg');
+        if (!btn || !curLesson || !window.AIEngine?.callClaudeJSON) return;
+        btn.disabled    = true;
+        btn.textContent = '\u23F3 \u7FFB\u8BD1\u4E2D\u2026 (\u5341\u51E0\u79D2)';
+        if (msg) msg.textContent = '';
+        try {
+            const sents  = allSentences(curLesson);
+            const system = '\u4F60\u662F\u82F1\u8BED\u6559\u6750\u7FFB\u8BD1\u52A9\u624B\u3002\u53EA\u8F93\u51FA JSON\uFF0C\u4E0D\u8981\u4EFB\u4F55\u89E3\u91CA\u3002';
+            const user   = zhFixPrompt(curLesson);
+            const out    = await window.AIEngine.callClaudeJSON(system, user,
+                               { maxTokens: Math.min(200 + sents.length * 120, 8000) });
+            const res    = applySentenceZh(curLesson, out && out.zh);
+            if (!res.ok) throw new Error(res.err);
+            toast('\u2713 \u53E5\u8BD1\u5DF2\u8865\u5168\u5E76\u4FDD\u5B58');
+            closeWordSheet();
+            switchTab(curTab);                 // 重渲染: 课文页出「译文」按钮
+        } catch (e) {
+            btn.disabled    = false;
+            btn.textContent = '\u{1F916} \u7528 AI \u81EA\u52A8\u7FFB\u8BD1\uFF08\u8054\u7F51\uFF09';
+            if (msg) msg.textContent = '\u7FFB\u8BD1\u5931\u8D25: '
+                + (window.AIEngine?.friendlyError?.(e) || e.message || e);
+        }
+    }
+
+    function applyZhFixPaste() {
+        const ta  = root.querySelector('#ls-zhfix-ta');
+        const msg = root.querySelector('#ls-zhfix-msg');
+        if (!ta || !curLesson) return;
+        if (!ta.value.trim()) { if (msg) msg.textContent = '\u5148\u7C98\u8D34 JSON'; return; }
+        try {
+            const out = JSON.parse(stripFences(ta.value));
+            const res = applySentenceZh(curLesson, out && out.zh);
+            if (!res.ok) throw new Error(res.err);
+            toast('\u2713 \u53E5\u8BD1\u5DF2\u8865\u5168\u5E76\u4FDD\u5B58');
+            closeWordSheet();
+            switchTab(curTab);
+        } catch (e) {
+            if (msg) msg.textContent = '\u5BFC\u5165\u5931\u8D25: ' + (e.message || e);
+        }
+    }
+
+    function copyZhFixPrompt() {
+        const text = zhFixPrompt(curLesson);
+        let ok = false;
+        try {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity  = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            ok = document.execCommand('copy');
+            ta.remove();
+        } catch (e) {}
+        if (ok) { toast('\u{1F4CB} \u63D0\u793A\u8BCD\u5DF2\u590D\u5236\uFF0C\u53BB\u7C98\u7ED9 AI \u5427'); return; }
+        if (navigator.clipboard?.writeText) {
+            navigator.clipboard.writeText(text)
+                .then(() => toast('\u{1F4CB} \u63D0\u793A\u8BCD\u5DF2\u590D\u5236\uFF0C\u53BB\u7C98\u7ED9 AI \u5427'))
+                .catch(() => { const ta = root.querySelector('#ls-zhfix-ta'); if (ta) { ta.value = text; ta.select(); toast('\u81EA\u52A8\u590D\u5236\u4E0D\u53EF\u7528\uFF0C\u5DF2\u586B\u5165\u4E0B\u65B9\u6587\u672C\u6846\uFF0C\u8BF7 Ctrl+C'); } });
+        } else {
+            const ta = root.querySelector('#ls-zhfix-ta');
+            if (ta) { ta.value = text; ta.select(); toast('\u81EA\u52A8\u590D\u5236\u4E0D\u53EF\u7528\uFF0C\u5DF2\u586B\u5165\u4E0B\u65B9\u6587\u672C\u6846\uFF0C\u8BF7 Ctrl+C'); }
+        }
+    }
+
     const MATCH_ROUND_SIZE = 5;
+
+    function initMatchState(kind, groups) {
+        matchState = {
+            kind    : kind,
+            groups  : groups,
+            gi      : 0,
+            total   : groups.reduce((n, g) => n + g.length, 0),
+            matched : 0,          // = doneSet.size, 冗余存一份省得反复取
+            doneSet : new Set(),  // 已配平短语 key (跨组, 会话持久化的主体)
+            misses  : {},         // key -> 错配次数 (跨组累计)
+            missLog : {}          // key -> pair (错过的短语, 结果页列出)
+        };
+    }
 
     function startMatch() {
         const pairs = shuffle(lessonPhrases());
         if (pairs.length < 2) { toast('\u77ED\u8BED\u592A\u5C11\uFF0C\u65E0\u6CD5\u5339\u914D'); return; }
-        matchState = {
-            kind    : 'lesson',
-            groups  : chunkGroups(pairs, getLessonGroupSize()),
-            gi      : 0,
-            total   : pairs.length,
-            matched : 0,          // 全程累计
-            missLog : {}          // key -> pair (全程错过的短语, 结果页列出)
-        };
+        initMatchState('lesson', chunkGroups(pairs, getLessonGroupSize()));
+        persistMatchSess();
         startMatchGroup();
     }
 
@@ -1069,26 +1456,29 @@ window.Lessons = (function () {
         if (pool.length < 2) { toast('\u8FD8\u6CA1\u6709\u53EF\u7EC3\u7684\u77ED\u8BED'); return; }
         const size  = getLessonGroupSize() || 30;
         const pairs = pickSmartGroup(pool, loadPracRec().p, size, it => it.key);
-        matchState = {
-            kind    : 'mixed',
-            groups  : [pairs],
-            gi      : 0,
-            total   : pairs.length,
-            matched : 0,
-            missLog : {}
-        };
+        initMatchState('mixed', [pairs]);
+        persistMatchSess();
         startMatchGroup();
     }
 
     function startMatchGroup() {
         const st = matchState;
         if (!st) return;
-        st.remaining = st.groups[st.gi].slice();
-        st.misses    = {};        // 本组内: key -> 错配次数
+        // 已配平的不再出现 —— 恢复会话/跳组时直接从断点续
+        st.remaining = st.groups[st.gi].filter(p => !st.doneSet.has(p.key));
         st.round     = [];
         st.selEn     = null;
         st.selZh     = null;
         nextMatchRound();
+    }
+
+    // 跳到第 gi 组 (进度保留, 已配平的对不重做)
+    function jumpToMatchGroup(gi) {
+        const st = matchState;
+        if (!st || gi < 0 || gi >= st.groups.length) return;
+        st.gi = gi;
+        persistMatchSess();
+        startMatchGroup();
     }
 
     function nextMatchRound() {
@@ -1117,12 +1507,21 @@ window.Lessons = (function () {
         // 错位排列 (sattolo): 保证任何一行中文都不与左列英文对齐。
         const zhs = sattolo(st.round.map((p, i) => ({ i: i, zh: p.zh }))).map(o =>
             `<button class="ls-match-item" data-mzh="${o.i}">${esc(o.zh)}</button>`).join('');
+        // 组芯片: 各组进度一目了然, 点击直跳 (已配平的对不重做)
+        const grpRow = grouped
+            ? `<div class="ls-grp-row">\u7EC4:${st.groups.map((g, i) => {
+                    const gd  = g.filter(x => st.doneSet.has(x.key)).length;
+                    const cls = 'ls-grp-chip' + (i === st.gi ? ' cur' : '') + (gd === g.length ? ' full' : '');
+                    return `<button class="${cls}" data-jumpmgrp="${i}">${i + 1}<span class="ls-grp-n">${gd}/${g.length}</span></button>`;
+                }).join('')}</div>`
+            : '';
         panel.innerHTML = `
             <div class="ls-match">
                 <div class="ls-cloze-top">
                     <span class="ls-cloze-prog">${prog}</span>
                     <button class="ls-cloze-quit" id="ls-match-quit">\u9000\u51FA</button>
                 </div>
+                ${grpRow}
                 <div class="ls-match-cols">
                     <div class="ls-match-col">${ens}</div>
                     <div class="ls-match-col">${zhs}</div>
@@ -1149,10 +1548,12 @@ window.Lessons = (function () {
         const enBtn = root.querySelector(`.ls-match-item[data-men="${st.selEn}"]`);
         const zhBtn = root.querySelector(`.ls-match-item[data-mzh="${st.selZh}"]`);
         if (st.selEn === st.selZh) {
-            st.matched++;
             const pair = st.round[st.selEn];
-            // 本对配平即记档案: 本组内没错配过才算「对」。
+            st.doneSet.add(pair.key);
+            st.matched = st.doneSet.size;
+            // 本对配平即记档案: 没错配过才算「对」。
             bumpPracRec('p', pair.key, !st.misses[pair.key]);
+            persistMatchSess();               // 每配平一对就落盘
             [enBtn, zhBtn].forEach(b => { b.classList.remove('sel'); b.classList.add('done'); b.disabled = true; });
             speak(pair.en);
             st.selEn = null;
@@ -1173,6 +1574,7 @@ window.Lessons = (function () {
                 st.misses[p.key]  = (st.misses[p.key] || 0) + 1;
                 st.missLog[p.key] = p;
             });
+            persistMatchSess();               // 错配记录也落盘, 恢复后小结不失真
             [enBtn, zhBtn].forEach(b => b.classList.add('miss'));
             setTimeout(() => {
                 [enBtn, zhBtn].forEach(b => b && b.classList.remove('miss', 'sel'));
@@ -1186,11 +1588,21 @@ window.Lessons = (function () {
     function renderMatchGroupDone() {
         const st = matchState;
         if (!st) return;
-        if (st.gi >= st.groups.length - 1) { renderMatchDone(); return; }
+        // 全部组都配平才进总结果 (跳组做完最后一组时, 前面可能还有欠账)
+        const allDone = st.groups.every(g => g.every(p => st.doneSet.has(p.key)));
+        if (allDone) { renderMatchDone(); return; }
+        if (st.gi >= st.groups.length - 1) {
+            // 最后一组配平但前面有未完成组 → 引导回去补
+            const backGi = st.groups.findIndex(g => g.some(p => !st.doneSet.has(p.key)));
+            jumpToMatchGroup(backGi >= 0 ? backGi : 0);
+            toast('\u8FD8\u6709\u672A\u5B8C\u6210\u7684\u7EC4\uFF0C\u5DF2\u5E26\u4F60\u56DE\u53BB');
+            return;
+        }
         const panel = root.querySelector('#ls-panel');
         if (!panel) return;
-        const missN = Object.keys(st.misses).length;
-        const nextN = st.groups[st.gi + 1].length;
+        const gkeys = new Set(st.groups[st.gi].map(p => p.key));
+        const missN = Object.keys(st.misses).filter(k => gkeys.has(k)).length;
+        const nextN = st.groups[st.gi + 1].filter(p => !st.doneSet.has(p.key)).length;
         panel.innerHTML = `
             <div class="ls-result">
                 <div class="ls-result-score">\u7B2C ${st.gi + 1} \u7EC4 \u2713</div>
@@ -1207,6 +1619,7 @@ window.Lessons = (function () {
         const st = matchState;
         if (!st || st.gi >= st.groups.length - 1) return;
         st.gi++;
+        persistMatchSess();
         startMatchGroup();
     }
 
@@ -1215,6 +1628,7 @@ window.Lessons = (function () {
         if (!panel || !matchState) return;
         const st     = matchState;
         const missed = Object.keys(st.missLog).map(k => st.missLog[k]);
+        clearSess('m');                       // 全部配平, 进度存档使命完成
         if (st.kind === 'lesson' && curLesson) {
             bumpProgress(curLesson.id, { matchDone: true });
             renderHeaderProgress();
@@ -1688,6 +2102,24 @@ window.Lessons = (function () {
         // 综合练习入口 (主页卡片)
         if (t.closest('#ls-mixed-cloze')) { openMixed('cloze'); return; }
         if (t.closest('#ls-mixed-match')) { openMixed('match'); return; }
+
+        // 会话恢复与组间跳转
+        if (t.closest('#ls-cloze-resume-sess')) { resumeClozeSess(null); return; }
+        const rg = t.closest('[data-resumegrp]');
+        if (rg) { resumeClozeSess(Number(rg.dataset.resumegrp)); return; }
+        const jg = t.closest('[data-jumpgrp]');
+        if (jg) { jumpToClozeGroup(Number(jg.dataset.jumpgrp)); return; }
+        if (t.closest('#ls-match-resume-sess')) { resumeMatchSess(null); return; }
+        const rmg = t.closest('[data-resumemgrp]');
+        if (rmg) { resumeMatchSess(Number(rmg.dataset.resumemgrp)); return; }
+        const jmg = t.closest('[data-jumpmgrp]');
+        if (jmg) { jumpToMatchGroup(Number(jmg.dataset.jumpmgrp)); return; }
+
+        // 补句译 (导入课数据修补)
+        if (t.closest('#ls-zh-fix'))       { openZhFixSheet(); return; }
+        if (t.closest('#ls-zhfix-ai'))     { runZhFixAI(); return; }
+        if (t.closest('#ls-zhfix-copy'))   { copyZhFixPrompt(); return; }
+        if (t.closest('#ls-zhfix-apply'))  { applyZhFixPaste(); return; }
 
         // 填空 —— 单课与综合共用同一套渲染, 按 curLesson 分流启动函数,
         // 退出/返回按 curLesson 决定回单课 tab 还是回综合设置页。
