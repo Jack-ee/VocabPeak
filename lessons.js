@@ -19,11 +19,12 @@ window.Lessons = (function () {
 
     // ─── State ──────────────────────────────────────────────
     let root        = null;   // #ls-root
-    let curLesson   = null;   // 当前课对象 (null = 课程列表页)
-    let curTab      = 'read'; // read | cloze | phrases
+    let curLesson   = null;   // 当前课对象 (null = 课程列表页或综合练习)
+    let curTab      = 'read'; // read | cloze | phrases | mixed
     let playToken   = 0;      // 递增令牌: 任何一次新播放/停止都使旧链失效
-    let clozeState  = null;   // 进行中的填空测验
-    let matchState  = null;   // 进行中的短语匹配
+    let clozeState  = null;   // 进行中的填空测验 (kind: lesson | mixed)
+    let matchState  = null;   // 进行中的短语匹配 (kind: lesson | mixed)
+    let mixedKind   = null;   // 综合练习页当前类型: cloze | match
 
     // ─── Helpers ────────────────────────────────────────────
     function esc(s) {
@@ -65,6 +66,122 @@ window.Lessons = (function () {
             const t = a[i]; a[i] = a[j]; a[j] = t;
         }
         return a;
+    }
+
+    // 词边界查找: 返回 needle 作为完整词/短语在 hay 中出现的下标,
+    // 找不到返回 -1。裸 indexOf 会命中子串 ("run" 匹配进 "runners",
+    // "runners" 匹配进 "non-runners"), 挖空和高亮位置就会错到别的
+    // 词中间。相邻字符是字母/数字/连字符即视为词内, 继续向后找。
+    function isWordChar(ch) { return /[A-Za-z0-9-]/.test(ch || ''); }
+    function findWordStart(hay, needle) {
+        if (!needle) return -1;
+        let from = 0;
+        for (;;) {
+            const i = hay.indexOf(needle, from);
+            if (i < 0) return -1;
+            const before = i > 0 ? hay[i - 1] : '';
+            const after  = hay[i + needle.length] || '';
+            if (!isWordChar(before) && !isWordChar(after)) return i;
+            from = i + 1;
+        }
+    }
+
+    // 每组题量 (设置 → 学习 → 课文练习每组题量): 0 = 不分组。
+    // 长课词条五六十个, 一口气做不完就前功尽弃 —— 按组切分,
+    // 每组结束是一个自然的休息点。
+    function getLessonGroupSize() {
+        const n = parseInt(window.DB?.getPref?.('lesson_group_size', '30'), 10);
+        return (isNaN(n) || n < 0) ? 30 : n;
+    }
+
+    // 把题目切成若干组: 剩余不足 1.5 组时并作一组收尾, 避免出现
+    // 只有三五题的碎尾组 (47 题按 30 切成 [30, 17], 31 题不切)。
+    function chunkGroups(items, size) {
+        if (!size || items.length <= size * 1.5) return [items.slice()];
+        const groups = [];
+        let rest = items.slice();
+        while (rest.length > size * 1.5) {
+            groups.push(rest.slice(0, size));
+            rest = rest.slice(size);
+        }
+        if (rest.length) groups.push(rest);
+        return groups;
+    }
+
+    // ─── 练习档案 (DB pref 'lesson_mixed') ──────────────────
+    // 覆盖全部课程的词条/短语练习记录, 单课练习与综合练习共写:
+    //   w: { 词条ID: [练过次数, 错误次数, 最近时间, 最近一次是否对] }
+    //   p: { 词条ID|短语en: 同上 }
+    // 综合练习按它选题: 上次做错的 → 没练过的 → 最久没练的。
+    function loadPracRec() {
+        try {
+            const r = JSON.parse(window.DB?.getPref?.('lesson_mixed', '{}') || '{}') || {};
+            if (!r.w || typeof r.w !== 'object') r.w = {};
+            if (!r.p || typeof r.p !== 'object') r.p = {};
+            return r;
+        } catch (e) { return { w: {}, p: {} }; }
+    }
+    function savePracRec(r) {
+        try { window.DB?.setPref?.('lesson_mixed', JSON.stringify(r)); } catch (e) {}
+    }
+    function bumpPracRec(kind, key, ok) {
+        const r   = loadPracRec();
+        const map = kind === 'p' ? r.p : r.w;
+        const e   = map[key] || [0, 0, 0, 1];
+        e[0] += 1;
+        if (!ok) e[1] += 1;
+        e[2] = Date.now();
+        e[3] = ok ? 1 : 0;
+        map[key] = e;
+        savePracRec(r);
+    }
+
+    // ─── 综合练习: 全课程题池与智能选题 ─────────────────────
+    function mixedWordPool() {
+        const out = [];
+        lessons().forEach(l => (l.words || []).forEach(w =>
+            out.push(Object.assign({}, w, { _lesson: l }))));
+        return out;
+    }
+    function mixedPhrasePool() {
+        const out = [];
+        lessons().forEach(l => (l.words || []).forEach(w =>
+            (w.phrases || []).forEach(ph => out.push({
+                en: ph.en, zh: ph.zh, key: w.id + '|' + ph.en, word: w, _lesson: l
+            }))));
+        return out;
+    }
+    // 智能选一组: 上次做错的最优先 (错得多的在前), 其次没练过的,
+    // 最后按最久没练排; 截取一组后打乱出题顺序。
+    function pickSmartGroup(pool, recMap, size, keyOf) {
+        const wrong = [], fresh = [], seen = [];
+        pool.forEach(it => {
+            const e = recMap[keyOf(it)];
+            if (!e || !e[0]) fresh.push(it);
+            else if (!e[3])  wrong.push({ it: it, e: e });
+            else             seen.push({ it: it, e: e });
+        });
+        wrong.sort((a, b) => (b.e[1] - a.e[1]) || (a.e[2] - b.e[2]));
+        seen.sort((a, b) => a.e[2] - b.e[2]);
+        const ordered = wrong.map(x => x.it)
+            .concat(shuffle(fresh))
+            .concat(seen.map(x => x.it));
+        return shuffle(ordered.slice(0, size || ordered.length));
+    }
+    function mixedStats() {
+        const rec = loadPracRec();
+        const cnt = (pool, map, keyOf) => {
+            let seen = 0, wrong = 0;
+            pool.forEach(it => {
+                const e = map[keyOf(it)];
+                if (e && e[0]) { seen++; if (!e[3]) wrong++; }
+            });
+            return { total: pool.length, seen: seen, wrong: wrong };
+        };
+        return {
+            w: cnt(mixedWordPool(),   rec.w, it => it.id),
+            p: cnt(mixedPhrasePool(), rec.p, it => it.key)
+        };
     }
 
     function allSentences(lesson) {
@@ -165,7 +282,11 @@ window.Lessons = (function () {
     // ─── Render: 课程列表 ───────────────────────────────────
     function renderHome() {
         stopPlay();
-        curLesson = null;
+        curLesson  = null;
+        curTab     = 'read';
+        clozeState = null;      // 卫生清理: 离开练习页时挂起的状态一律作废
+        matchState = null;
+        mixedKind  = null;
         try { window.DB?.setPref?.('lesson_last', ''); } catch (e) {}
         const prog  = loadProgress();
         const cards = lessons().map(l => {
@@ -188,6 +309,18 @@ window.Lessons = (function () {
                 </div>
             </div>`;
         }).join('');
+        // 综合练习入口: 跨全部课程抽题, 优先重现做错的与没练过的。
+        const ms    = mixedStats();
+        const mixed = (ms.w.total || ms.p.total) ? `
+            <div class="ls-mixed-card">
+                <div class="ls-mixed-title">\u{1F4CA} \u7EFC\u5408\u7EC3\u4E60<span class="ls-mixed-tag">\u5168\u90E8\u8BFE\u7A0B</span></div>
+                <div class="ls-mixed-stat">\u8BCD\u6C47 \u5DF2\u7EC3 ${ms.w.seen}/${ms.w.total}\uFF0C\u5F85\u5F3A\u5316 ${ms.w.wrong}
+                    \u00b7 \u77ED\u8BED \u5DF2\u7EC3 ${ms.p.seen}/${ms.p.total}\uFF0C\u5F85\u5F3A\u5316 ${ms.p.wrong}</div>
+                <div class="ls-mixed-btns">
+                    <button class="wl-btn-primary"   id="ls-mixed-cloze">\u270F\uFE0F \u7EFC\u5408\u586B\u7A7A</button>
+                    <button class="wl-btn-secondary" id="ls-mixed-match">\u{1F517} \u7EFC\u5408\u77ED\u8BED</button>
+                </div>
+            </div>` : '';
         root.innerHTML = `
             <div class="ls-home">
                 <div class="ls-home-head">
@@ -197,6 +330,7 @@ window.Lessons = (function () {
                     </div>
                     <button class="wl-btn-secondary ls-import-btn" id="ls-import-open">\uFF0B \u5BFC\u5165\u8BFE\u6587</button>
                 </div>
+                ${mixed}
                 <div class="ls-card-list">${cards || '<div class="ls-empty">\u6682\u65E0\u8BFE\u6587\u3002</div>'}</div>
             </div>
             <div class="ls-sheet-overlay" id="ls-import-overlay">
@@ -213,6 +347,7 @@ window.Lessons = (function () {
         curTab     = tab || 'read';
         clozeState = null;
         matchState = null;
+        mixedKind  = null;
         try { window.DB?.setPref?.('lesson_last', id); } catch (e) {}
         root.innerHTML = `
             <div class="ls-lesson">
@@ -237,6 +372,66 @@ window.Lessons = (function () {
             </div>`;
         renderHeaderProgress();
         switchTab(curTab);
+    }
+
+    // ─── Render: 综合练习页 (跨全部课程) ───────────────────
+    // 与单课页共用 #ls-panel 与全部练习渲染函数; curLesson 置空,
+    // 题目自带 _lesson 引用, 渲染时按题取所属课文。
+    function openMixed(kind) {
+        stopPlay();
+        curLesson  = null;
+        curTab     = 'mixed';
+        mixedKind  = kind;                 // cloze | match
+        clozeState = null;
+        matchState = null;
+        const title = kind === 'match' ? '\u7EFC\u5408\u77ED\u8BED\u5339\u914D' : '\u7EFC\u5408\u586B\u7A7A';
+        root.innerHTML = `
+            <div class="ls-lesson">
+                <div class="ls-head">
+                    <button class="ls-back" id="ls-back" title="\u5168\u90E8\u8BFE\u6587">\u2190</button>
+                    <div class="ls-head-text">
+                        <div class="ls-head-title">\u{1F4CA} ${title}</div>
+                        <div class="ls-head-sub">\u4ECE\u5168\u90E8\u8BFE\u7A0B\u62BD\u9898 \u00b7 \u9519\u8FC7\u7684\u4F18\u5148\u91CD\u73B0</div>
+                    </div>
+                    <div class="ls-head-prog"></div>
+                </div>
+                <div class="ls-panel" id="ls-panel"></div>
+            </div>`;
+        renderMixedSetupPanel();
+    }
+
+    function renderMixedSetupPanel() {
+        const panel = root.querySelector('#ls-panel');
+        if (!panel) return;
+        clozeState = null;
+        matchState = null;
+        const ms   = mixedStats();
+        const size = getLessonGroupSize() || 30;
+        if (mixedKind === 'match') {
+            const s = ms.p;
+            panel.innerHTML = `
+                <div class="ls-cloze-setup">
+                    <div class="ls-setup-title">\u4ECE\u5168\u90E8\u8BFE\u7A0B\u7684 ${s.total} \u5BF9\u77ED\u8BED\u91CC\u62BD ${Math.min(size, s.total)} \u5BF9\u7EC3\u4E00\u7EC4</div>
+                    <div class="ls-setup-sub">\u5DF2\u7EC3 ${s.seen} \u5BF9 \u00b7 \u5F85\u5F3A\u5316 ${s.wrong} \u5BF9 \u00b7 \u672A\u7EC3 ${s.total - s.seen} \u5BF9</div>
+                    <div class="ls-setup-btns">
+                        <button class="wl-btn-primary" id="ls-match-start">\u{1F3AE} \u5F00\u59CB\u5339\u914D</button>
+                    </div>
+                    <div class="ls-setup-note">\u9009\u9898\u987A\u5E8F: \u4E0A\u6B21\u9519\u8FC7\u7684 \u2192 \u8FD8\u6CA1\u7EC3\u8FC7\u7684 \u2192 \u6700\u4E45\u6CA1\u7EC3\u7684\u3002\u6BCF\u7EC4\u9898\u91CF\u5728\u8BBE\u7F6E \u2192 \u5B66\u4E60\u91CC\u6539\u3002</div>
+                </div>`;
+        } else {
+            const s = ms.w;
+            panel.innerHTML = `
+                <div class="ls-cloze-setup">
+                    <div class="ls-setup-title">\u4ECE\u5168\u90E8\u8BFE\u7A0B\u7684 ${s.total} \u4E2A\u8BCD\u91CC\u62BD ${Math.min(size, s.total)} \u9898\u7EC3\u4E00\u7EC4</div>
+                    <div class="ls-setup-sub">\u5DF2\u7EC3 ${s.seen} \u8BCD \u00b7 \u5F85\u5F3A\u5316 ${s.wrong} \u8BCD \u00b7 \u672A\u7EC3 ${s.total - s.seen} \u8BCD</div>
+                    <div class="ls-setup-btns">
+                        <button class="wl-btn-primary"   id="ls-cloze-choice">\u{1F520} \u9009\u62E9\u586B\u7A7A\uFF084 \u9009 1\uFF09</button>
+                        <button class="wl-btn-secondary" id="ls-cloze-spell">\u2328\uFE0F \u62FC\u5199\u586B\u7A7A\uFF08\u952E\u5165\uFF09</button>
+                    </div>
+                    <label class="ls-setup-hintopt"><input type="checkbox" id="ls-cloze-hint" checked> \u62FC\u5199\u6A21\u5F0F\u663E\u793A\u9996\u5B57\u6BCD\u63D0\u793A</label>
+                    <div class="ls-setup-note">\u9009\u9898\u987A\u5E8F: \u4E0A\u6B21\u505A\u9519\u7684 \u2192 \u8FD8\u6CA1\u7EC3\u8FC7\u7684 \u2192 \u6700\u4E45\u6CA1\u7EC3\u7684\u3002\u6BCF\u7EC4\u9898\u91CF\u5728\u8BBE\u7F6E \u2192 \u5B66\u4E60\u91CC\u6539\u3002</div>
+                </div>`;
+        }
     }
 
     // 课程切换下拉: 课内页点标题展开, 点选切课并保持当前学习步骤。
@@ -282,20 +477,25 @@ window.Lessons = (function () {
     }
 
     // ─── 课文 (听读 + 点词) ─────────────────────────────────
-    // 句子内的蓝色词: 按该句关联的词条把 surface 首次出现包成
-    // <span class="ls-word">。先整体转义再做纯文本替换 —— surface
-    // 不含 HTML 特殊字符 (语料约定)，替换是安全的。
+    // 句子内的蓝色词: 按该句关联的词条把 surface 的首个词边界命中
+    // 包成 <span class="ls-word">。先在原文上定位、再分段转义拼接:
+    // 定位与转义解耦, 撇号等被 esc 改写的字符不影响边界判断,
+    // "run" 也不会命中进 "runners"。
     function sentenceHtml(lesson, s) {
-        let html  = esc(s.text);
-        const ws  = (lesson.words || []).filter(w => w.sent === s.id);
-        ws.forEach(w => {
-            const surf = esc(w.surface);
-            const idx  = html.indexOf(surf);
-            if (idx < 0) return;
-            html = html.slice(0, idx)
-                 + `<span class="ls-word" data-wid="${esc(w.id)}">${surf}</span>`
-                 + html.slice(idx + surf.length);
+        const hits = (lesson.words || [])
+            .filter(w => w.sent === s.id)
+            .map(w => ({ w: w, at: findWordStart(s.text, w.surface) }))
+            .filter(x => x.at >= 0)
+            .sort((a, b) => a.at - b.at);
+        let html = '';
+        let pos  = 0;
+        hits.forEach(x => {
+            if (x.at < pos) return;                 // 与前一命中重叠, 保留靠前者
+            html += esc(s.text.slice(pos, x.at))
+                 + `<span class="ls-word" data-wid="${esc(x.w.id)}">${esc(x.w.surface)}</span>`;
+            pos = x.at + x.w.surface.length;
         });
+        html += esc(s.text.slice(pos));
         const hard = s.hard ? ' ls-hard' : '';
         const mark = s.hard ? '<span class="ls-hard-mark" title="\u96BE\u53E5">\u96BE</span>' : '';
         return `<span class="ls-sent${hard}" data-sid="${esc(s.id)}">${html}${mark}</span>`;
@@ -392,9 +592,10 @@ window.Lessons = (function () {
         root.querySelector('#ls-sheet-overlay')?.classList.remove('open');
     }
 
-    function addWordToNotebook(w) {
-        if (!window.DB?.upsertNotebookWord) { toast('\u751F\u8BCD\u672C\u4E0D\u53EF\u7528'); return; }
-        const s  = sentenceById(curLesson, w.sent);
+    function addWordToNotebook(w, silent) {
+        if (!window.DB?.upsertNotebookWord) { if (!silent) toast('\u751F\u8BCD\u672C\u4E0D\u53EF\u7528'); return; }
+        const lesson = w._lesson || curLesson;
+        const s  = lesson ? sentenceById(lesson, w.sent) : null;
         const en = (w.phrases || []).map(p => p.en).join(' \u00b7 ');
         const cn = (w.phrases || []).map(p => p.zh).join(' \u00b7 ');
         window.DB.upsertNotebookWord({
@@ -403,21 +604,36 @@ window.Lessons = (function () {
             collo   : en,
             colloCn : cn,
             context : s ? s.text : '',
-            source  : '\u8BFE\u6587 ' + curLesson.id + ' ' + curLesson.title,
-            tags    : ['\u8BFE\u6587', curLesson.id]
+            source  : lesson ? ('\u8BFE\u6587 ' + lesson.id + ' ' + lesson.title) : '\u8BFE\u6587',
+            tags    : ['\u8BFE\u6587'].concat(lesson ? [lesson.id] : [])
         });
         window.App?.updateNotebookBadge?.();
-        toast('\u{1F4D6} \u5DF2\u52A0\u5165\u751F\u8BCD\u672C: ' + w.lemma);
+        if (!silent) toast('\u{1F4D6} \u5DF2\u52A0\u5165\u751F\u8BCD\u672C: ' + w.lemma);
+    }
+
+    // 答错自动强化: 静默加入生词本 (已有则合并不重复), 再把该词
+    // 的复习状态拉回「到期」—— 单词模块的到期复习队列 (遗忘曲线
+    // 1/3/7/14/30/60 天) 即刻可见, 后续按间隔复习强化。
+    function reinforceWord(w) {
+        if (!window.DB?.upsertNotebookWord) return;
+        try {
+            addWordToNotebook(w, true);
+            window.DB.flagQuizMistake?.(w.lemma);
+        } catch (e) {}
     }
 
     // ─── 填空 (选择 / 拼写) ─────────────────────────────────
     function renderClozeSetup(panel) {
         clozeState = null;
-        const p    = loadProgress()[curLesson.id] || {};
-        const best = (p.clozeBest != null) ? `\u5386\u53F2\u6700\u4F73: ${p.clozeBest}%` : '\u5C1A\u672A\u7EC3\u4E60';
+        const p     = loadProgress()[curLesson.id] || {};
+        const best  = (p.clozeBest != null) ? `\u5386\u53F2\u6700\u4F73: ${p.clozeBest}%` : '\u5C1A\u672A\u7EC3\u4E60';
+        const total = (curLesson.words || []).length;
+        const size  = getLessonGroupSize();
+        const grpN  = chunkGroups((curLesson.words || []), size).length;
+        const grp   = grpN > 1 ? `\uFF0C\u5206 ${grpN} \u7EC4\u7EC3 (\u6BCF\u7EC4\u7EA6 ${size} \u9898\uFF0C\u53EF\u5728\u8BBE\u7F6E\u91CC\u6539)` : '';
         panel.innerHTML = `
             <div class="ls-cloze-setup">
-                <div class="ls-setup-title">\u7528\u539F\u6587\u53E5\u5B50\u6316\u7A7A\u84DD\u8272\u8BCD\uFF0C\u5171 ${(curLesson.words || []).length} \u9898</div>
+                <div class="ls-setup-title">\u7528\u539F\u6587\u53E5\u5B50\u6316\u7A7A\u84DD\u8272\u8BCD\uFF0C\u5171 ${total} \u9898${grp}</div>
                 <div class="ls-setup-sub">${best}</div>
                 <div class="ls-setup-btns">
                     <button class="wl-btn-primary"   id="ls-cloze-choice">\u{1F520} \u9009\u62E9\u586B\u7A7A\uFF084 \u9009 1\uFF09</button>
@@ -427,47 +643,87 @@ window.Lessons = (function () {
             </div>`;
     }
 
+    // 当前组的题目数组。答案/选项序始终按词条 ID 全局记录,
+    // 组只是把长队列切成带休息点的段落。
+    function clozeQueue(st) { return st.groups[st.gi]; }
+    function clozeTotalAll(st) {
+        return st.groups.reduce((n, g) => n + g.length, 0);
+    }
+
     function startCloze(mode, hintOpt) {
         // 从结果页「再练一轮」进来时 setup 复选框已不在 DOM，用上一轮的值。
         const hint = (hintOpt != null)
             ? !!hintOpt
             : !!root.querySelector('#ls-cloze-hint')?.checked;
         clozeState = {
+            kind    : 'lesson',
             mode    : mode,                                // choice | spell
             hint    : hint,
             showZh  : (window.DB?.getPref?.('lesson_cloze_zh', '1') !== '0'),
-            queue   : shuffle((curLesson.words || []).slice()),
+            pool    : (curLesson.words || []).slice(),     // 干扰项抽样池
+            groups  : chunkGroups(shuffle((curLesson.words || []).slice()), getLessonGroupSize()),
+            gi      : 0,
             idx     : 0,
             opts    : {},                                  // wid -> 选项 ID 序 (稳定, 回看不重排)
-            answers : {}                                   // wid -> { ok, pickedId?, typed? }
+            answers : {},                                  // wid -> { ok, pickedId?, typed? }
+            autoT   : 0                                    // 答对自动跳题令牌
+        };
+        renderClozeQuestion();
+    }
+
+    // 综合填空: 从全部课程的词条里智能抽一组。每组即一次会话,
+    // 结束后「再来一组」按最新档案重新抽。
+    function startMixedCloze(mode, hintOpt) {
+        const hint = (hintOpt != null)
+            ? !!hintOpt
+            : !!root.querySelector('#ls-cloze-hint')?.checked;
+        const pool = mixedWordPool();
+        if (!pool.length) { toast('\u8FD8\u6CA1\u6709\u8BFE\u6587\u8BCD\u6761'); return; }
+        const size = getLessonGroupSize() || 30;   // \u300C\u4E0D\u5206\u7EC4\u300D\u65F6\u7EFC\u5408\u7EC3\u4E60\u4ECD\u6309 30 \u62BD
+        const grp  = pickSmartGroup(pool, loadPracRec().w, size, it => it.id);
+        clozeState = {
+            kind    : 'mixed',
+            mode    : mode,
+            hint    : hint,
+            showZh  : (window.DB?.getPref?.('lesson_cloze_zh', '1') !== '0'),
+            pool    : pool,
+            groups  : [grp],
+            gi      : 0,
+            idx     : 0,
+            opts    : {},
+            answers : {},
+            autoT   : 0
         };
         renderClozeQuestion();
     }
 
     // 词性重合优先的干扰项抽样。pos 形如 'n. / v.'，按词性标记求交集。
+    // pool 传入抽样范围: 单课用本课词条, 综合练习用全课程词条。
     function posTokens(pos) {
         return String(pos || '').split(/[\/\s]+/).filter(t => /\w/.test(t));
     }
-    function pickDistractors(target, n) {
-        const others = (curLesson.words || []).filter(w => w.id !== target.id);
+    function pickDistractors(target, n, pool) {
+        const others = pool.filter(w => w.id !== target.id);
         const tset   = new Set(posTokens(target.pos));
         const same   = others.filter(w => posTokens(w.pos).some(t => tset.has(t)));
         const rest   = others.filter(w => !same.includes(w));
-        const pool   = shuffle(same).concat(shuffle(rest));
-        return pool.slice(0, n);
+        const mixed  = shuffle(same).concat(shuffle(rest));
+        return mixed.slice(0, n);
     }
 
-    function clozeSentenceHtml(w, ans) {
-        const s = sentenceById(curLesson, w.sent);
+    function clozeSentenceHtml(lesson, w, ans) {
+        const s = sentenceById(lesson, w.sent);
         if (!s) return '';
-        let html = esc(s.text);
-        const surf = esc(w.surface);
-        const idx  = html.indexOf(surf);
-        if (idx >= 0) {
+        // 先按词边界在原文定位, 再分段转义 —— 见 sentenceHtml 的说明。
+        const at = findWordStart(s.text, w.surface);
+        let html;
+        if (at >= 0) {
             const blank = ans
-                ? `<span class="ls-blank ${ans.ok ? 'ok' : 'bad'}" id="ls-blank">${surf}</span>`
+                ? `<span class="ls-blank ${ans.ok ? 'ok' : 'bad'}" id="ls-blank">${esc(w.surface)}</span>`
                 : '<span class="ls-blank" id="ls-blank">______</span>';
-            html = html.slice(0, idx) + blank + html.slice(idx + surf.length);
+            html = esc(s.text.slice(0, at)) + blank + esc(s.text.slice(at + w.surface.length));
+        } else {
+            html = esc(s.text);
         }
         // 整句朗读: 有意提供 —— 未答时听原句即是「听力填空」练法。
         return `<div class="ls-cloze-sentrow">`
@@ -479,28 +735,33 @@ window.Lessons = (function () {
         const st    = clozeState;
         const panel = root.querySelector('#ls-panel');
         if (!st || !panel) return;
-        const total    = st.queue.length;
-        const w        = st.queue[st.idx];
+        const queue    = clozeQueue(st);
+        const w        = queue[st.idx];
+        const lesson   = w._lesson || curLesson;
         const ans      = st.answers[w.id] || null;
-        const answered = Object.keys(st.answers).length;
-        const isLast   = st.idx === total - 1;
+        const grouped  = st.groups.length > 1;
+        const answered = queue.filter(x => st.answers[x.id]).length;
+        const isLast   = st.idx === queue.length - 1;
+        const lastGrp  = st.gi === st.groups.length - 1;
+        const endLabel = lastGrp ? '\u4EA4\u5377' : '\u672C\u7EC4\u5B8C\u6210';
 
         let body;
         if (st.mode === 'choice') {
             // 选项顺序按题缓存: 回看已答题时不重排。统一小写显示,
             // 句首词形 (Race / As a result) 的大写会直接暴露答案。
             if (!st.opts[w.id]) {
-                st.opts[w.id] = shuffle([w].concat(pickDistractors(w, 3))).map(o => o.id);
+                st.opts[w.id] = shuffle([w].concat(pickDistractors(w, 3, st.pool))).map(o => o.id);
             }
+            const optWord = oid => st.pool.find(o => o.id === oid) || wordById(lesson, oid);
             const btns = st.opts[w.id].map((oid, oi) => {
-                const o   = wordById(curLesson, oid);
+                const o   = optWord(oid);
                 let   cls = 'ls-opt';
                 if (ans) {
-                    if (oid === w.id)            cls += ' ok';
+                    if (oid === w.id)              cls += ' ok';
                     else if (oid === ans.pickedId) cls += ' bad';
                 }
                 return `<button class="${cls}" data-opt="${esc(oid)}"${ans ? ' disabled' : ''}>`
-                     + `<span class="ls-opt-num">${oi + 1}</span>${esc(o.surface.toLowerCase())}</button>`;
+                     + `<span class="ls-opt-num">${oi + 1}</span>${esc(o ? o.surface.toLowerCase() : '')}</button>`;
             }).join('');
             body = `<div class="ls-opts">${btns}</div>`;
         } else {
@@ -518,53 +779,88 @@ window.Lessons = (function () {
                 <div class="ls-spell-meta">${hint}</div>`;
         }
 
-        // 已答题回看: 反馈区固定显示
+        // 已答题回看: 反馈区固定显示。答对会在 1 秒后自动进下一题,
+        // 手动点「下一题」仍然可用 (立即跳)。
         const feedback = ans
             ? (ans.ok
                 ? `<span class="ls-fb-ok">\u2713 \u6B63\u786E</span>`
                 : `<span class="ls-fb-bad">\u2717 \u6B63\u786E\u7B54\u6848: <b>${esc(w.surface)}</b></span>`)
               + ` <span class="ls-fb-zh">${esc(w.zh)}</span>`
-              + ` <button class="wl-btn-primary ls-fb-next" id="ls-cloze-next">${isLast ? '\u4EA4\u5377 \u2192' : '\u4E0B\u4E00\u9898 \u2192'}</button>`
+              + (ans.ok ? '' : ` <span class="ls-fb-srs">\u{1F4CC} \u5DF2\u8BB0\u5165\u5F3A\u5316\u590D\u4E60</span>`)
+              + ` <button class="wl-btn-primary ls-fb-next" id="ls-cloze-next">${isLast ? endLabel + ' \u2192' : '\u4E0B\u4E00\u9898 \u2192'}</button>`
             : '';
+
+        // 中文开关: 显示整句译文 (词义在作答后的反馈里已给出);
+        // 旧导入课没有句译时回退为词义提示。
+        const s      = sentenceById(lesson, w.sent);
+        const zhLine = st.showZh
+            ? (s && s.zh
+                ? `<div class="ls-zh-hint"><span class="ls-zh-label">\u8BD1\u6587</span>${esc(s.zh)}</div>`
+                : `<div class="ls-zh-hint"><span class="ls-zh-label">\u91CA\u4E49</span>${esc(w.zh)}</div>`)
+            : '';
+        const srcLine = (st.kind === 'mixed' && lesson)
+            ? `<div class="ls-cloze-src">\u51FA\u81EA\u300A${esc(lesson.title)}\u300B</div>`
+            : '';
+        const prog = (st.kind === 'mixed')
+            ? `\u672C\u7EC4 ${st.idx + 1} / ${queue.length} \u00b7 \u5DF2\u7B54 ${answered}`
+            : (grouped
+                ? `\u7B2C ${st.gi + 1}/${st.groups.length} \u7EC4 \u00b7 ${st.idx + 1} / ${queue.length} \u00b7 \u5DF2\u7B54 ${answered}`
+                : `${st.idx + 1} / ${queue.length} \u00b7 \u5DF2\u7B54 ${answered}`);
 
         panel.innerHTML = `
             <div class="ls-cloze">
                 <div class="ls-cloze-top">
                     <div class="ls-cloze-navs">
-                        <button class="ls-nav-btn" id="ls-cloze-prev"${st.idx === 0 ? ' disabled' : ''}>\u2190</button>
-                        <span class="ls-cloze-prog">${st.idx + 1} / ${total} \u00b7 \u5DF2\u7B54 ${answered}</span>
-                        <button class="ls-nav-btn" id="ls-cloze-nextq">${isLast ? '\u4EA4\u5377' : '\u2192'}</button>
+                        <button class="ls-nav-btn" id="ls-cloze-prev"${st.idx === 0 ? ' disabled' : ''} title="\u4E0A\u4E00\u9898">\u2190</button>
+                        <span class="ls-cloze-prog">${prog}</span>
+                        <button class="ls-nav-btn ls-nav-next" id="ls-cloze-nextq" title="\u4E0B\u4E00\u9898">${isLast ? endLabel : '\u2192'}</button>
                     </div>
                     <div class="ls-cloze-tools">
-                        <button class="ls-tool-btn${st.showZh ? ' on' : ''}" id="ls-zh-toggle" title="\u663E\u793A/\u9690\u85CF\u4E2D\u6587\u91CA\u4E49">\u4E2D\u6587</button>
+                        <button class="ls-tool-btn${st.showZh ? ' on' : ''}" id="ls-zh-toggle" title="\u663E\u793A/\u9690\u85CF\u6574\u53E5\u8BD1\u6587">\u4E2D\u6587</button>
                         <button class="ls-cloze-quit" id="ls-cloze-quit">\u9000\u51FA</button>
                     </div>
                 </div>
-                <div class="ls-cloze-sent">${clozeSentenceHtml(w, ans)}</div>
-                ${st.showZh ? `<div class="ls-zh-hint">\u91CA\u4E49: ${esc(w.zh)}</div>` : ''}
+                ${srcLine}
+                <div class="ls-cloze-sent">${clozeSentenceHtml(lesson, w, ans)}</div>
+                ${zhLine}
                 ${body}
                 <div class="ls-cloze-feedback" id="ls-cloze-feedback">${feedback}</div>
-                <div class="ls-kbd-hint">\u5FEB\u6377\u952E: \u2190 \u2192 \u5207\u6362\u9898\u76EE${st.mode === 'choice' ? ' \u00b7 1-4 \u9009\u62E9\u9009\u9879' : ''} \u00b7 \u56DE\u8F66\u4E0B\u4E00\u9898</div>
+                <div class="ls-kbd-hint">\u5FEB\u6377\u952E: \u2190 \u2192 \u5207\u6362\u9898\u76EE${st.mode === 'choice' ? ' \u00b7 1-4 \u9009\u62E9\u9009\u9879' : ''} \u00b7 \u56DE\u8F66\u4E0B\u4E00\u9898 \u00b7 \u7B54\u5BF9\u81EA\u52A8\u8FDB\u4E0B\u4E00\u9898</div>
             </div>`;
         const inp = panel.querySelector('#ls-spell-input');
         if (inp && !ans) {
             inp.focus();
             inp.addEventListener('keydown', e => {
-                if (e.key === 'Enter') { e.preventDefault(); submitSpell(); }
+                if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); submitSpell(); }
             });
         }
     }
 
     function clozeGoPrev() {
         if (!clozeState || clozeState.idx === 0) return;
+        clozeState.autoT++;                    // 手动导航使挂起的自动跳题失效
         clozeState.idx--;
         renderClozeQuestion();
     }
     function clozeGoNext() {
         const st = clozeState;
         if (!st) return;
-        if (st.idx >= st.queue.length - 1) { renderClozeResult(); return; }
+        st.autoT++;
+        const queue = clozeQueue(st);
+        if (st.idx >= queue.length - 1) {
+            if (st.gi >= st.groups.length - 1) renderClozeResult();
+            else                               renderClozeGroupResult();
+            return;
+        }
         st.idx++;
+        renderClozeQuestion();
+    }
+    function nextClozeGroup() {
+        const st = clozeState;
+        if (!st || st.gi >= st.groups.length - 1) return;
+        st.autoT++;
+        st.gi++;
+        st.idx = 0;
         renderClozeQuestion();
     }
     function toggleClozeZh() {
@@ -581,20 +877,32 @@ window.Lessons = (function () {
         st.answers[w.id] = Object.assign({ ok: isCorrect }, detail || {});
         try { window.DB?.bumpDaily?.({ quizTotal: 1, quizCorrect: isCorrect ? 1 : 0 }); }
         catch (e) {}
+        bumpPracRec('w', w.id, isCorrect);          // 练习档案: 综合练习按它选题
+        if (!isCorrect) reinforceWord(w);           // 答错 → 生词本 + 拉回到期复习
         speak(w.surface);
         renderClozeQuestion();                      // 状态驱动重渲染: 选项着色/回填/反馈
+        if (isCorrect) {
+            // 答对 1 秒后自动进下一题。令牌 + 位置双重校验:
+            // 用户在这 1 秒内手动切题/退出/重开, 定时器就作废。
+            const token = ++st.autoT;
+            const gi = st.gi, idx = st.idx;
+            setTimeout(() => {
+                if (clozeState === st && st.autoT === token
+                    && st.gi === gi && st.idx === idx) clozeGoNext();
+            }, 1000);
+        }
     }
 
     function submitChoice(optId) {
         const st = clozeState;
-        const w  = st.queue[st.idx];
+        const w  = clozeQueue(st)[st.idx];
         if (st.answers[w.id]) return;
         gradeCloze(optId === w.id, w, { pickedId: optId });
     }
 
     function submitSpell() {
         const st  = clozeState;
-        const w   = st.queue[st.idx];
+        const w   = clozeQueue(st)[st.idx];
         const inp = root.querySelector('#ls-spell-input');
         if (!inp || inp.disabled || st.answers[w.id]) return;
         const val = String(inp.value || '').trim().toLowerCase().replace(/\s+/g, ' ');
@@ -602,26 +910,59 @@ window.Lessons = (function () {
         gradeCloze(val === ans, w, { typed: inp.value });
     }
 
+    // 组间小结: 每组结束的自然休息点。中途退出的部分不算白做 ——
+    // 每题作答即刻计入日志/练习档案/错词强化, 只有「历史最佳」
+    // 需要整卷答完才刷新。
+    function renderClozeGroupResult() {
+        const st    = clozeState;
+        const panel = root.querySelector('#ls-panel');
+        if (!st || !panel) return;
+        const queue   = clozeQueue(st);
+        const done    = queue.filter(x => st.answers[x.id]);
+        const ok      = done.filter(x => st.answers[x.id].ok).length;
+        const skipped = queue.length - done.length;
+        const allN    = clozeTotalAll(st);
+        const allDone = Object.keys(st.answers).length;
+        const nextN   = st.groups[st.gi + 1].length;
+        panel.innerHTML = `
+            <div class="ls-result">
+                <div class="ls-result-score">\u7B2C ${st.gi + 1} \u7EC4 \u2713</div>
+                <div class="ls-result-sub">\u672C\u7EC4 ${ok} / ${done.length} \u9898\u6B63\u786E${
+                    skipped ? ` \u00b7 \u8DF3\u8FC7 ${skipped} \u9898` : ''} \u00b7 \u603B\u8FDB\u5EA6 ${allDone} / ${allN}</div>
+                ${skipped ? `<button class="wl-btn-secondary" id="ls-cloze-resume">\u21A9 \u56DE\u672C\u7EC4\u672A\u7B54\u9898</button>` : ''}
+                <div class="ls-result-btns">
+                    <button class="wl-btn-primary" id="ls-cloze-nextgroup">\u2192 \u7EE7\u7EED\u7B2C ${st.gi + 2} \u7EC4\uFF08${nextN} \u9898\uFF09</button>
+                    <button class="wl-btn-secondary" id="ls-cloze-quit">\u4F11\u606F\u4E00\u4E0B</button>
+                </div>
+                <div class="ls-result-note">\u5DF2\u505A\u7684\u9898\u90FD\u5DF2\u8BB0\u5F55, \u9519\u8BCD\u5DF2\u8FDB\u5F3A\u5316\u590D\u4E60 \u2014\u2014 \u4E2D\u9014\u4F11\u606F\u4E0D\u767D\u505A\u3002</div>
+            </div>`;
+    }
+
     function renderClozeResult() {
         const st    = clozeState;
         const panel = root.querySelector('#ls-panel');
         if (!st || !panel) return;
-        const total      = st.queue.length;
-        const doneWords  = st.queue.filter(w => st.answers[w.id]);
+        const allWords   = st.groups.reduce((a, g) => a.concat(g), []);
+        const total      = allWords.length;
+        const doneWords  = allWords.filter(w => st.answers[w.id]);
         const correct    = doneWords.filter(w => st.answers[w.id].ok).length;
         const wrong      = doneWords.filter(w => !st.answers[w.id].ok);
         const unanswered = total - doneWords.length;
         const pct        = doneWords.length
             ? Math.round(correct * 100 / doneWords.length) : 0;
 
-        // 最佳成绩只在完整作答时刷新, 保证历史成绩可比。
-        const prev = loadProgress()[curLesson.id] || {};
-        if (!unanswered) {
-            bumpProgress(curLesson.id, {
-                clozeBest : Math.max(pct, prev.clozeBest || 0),
-                clozeRuns : (prev.clozeRuns || 0) + 1
-            });
-            renderHeaderProgress();
+        // 单课: 最佳成绩只在完整作答时刷新, 保证历史成绩可比。
+        let recordLine = '';
+        if (st.kind === 'lesson' && curLesson) {
+            const prev = loadProgress()[curLesson.id] || {};
+            if (!unanswered) {
+                bumpProgress(curLesson.id, {
+                    clozeBest : Math.max(pct, prev.clozeBest || 0),
+                    clozeRuns : (prev.clozeRuns || 0) + 1
+                });
+                renderHeaderProgress();
+                if (pct > 0 && pct >= (prev.clozeBest || 0)) recordLine = ' \u00b7 \u65B0\u7EAA\u5F55\uFF01';
+            }
         }
 
         const wrongRows = wrong.map(w => `
@@ -630,50 +971,48 @@ window.Lessons = (function () {
                 <span class="ls-wrong-en">${esc(w.surface)}</span>
                 <span class="ls-wrong-zh">${esc(w.zh)}</span>
             </div>`).join('');
+        const mixedFoot = (st.kind === 'mixed')
+            ? (() => { const ms = mixedStats();
+                return `<div class="ls-result-note">\u603B\u8FDB\u5EA6: \u5DF2\u7EC3 ${ms.w.seen} / ${ms.w.total} \u8BCD \u00b7 \u5F85\u5F3A\u5316 ${ms.w.wrong} \u8BCD</div>`; })()
+            : '';
         panel.innerHTML = `
             <div class="ls-result">
                 <div class="ls-result-score">${pct}%</div>
                 <div class="ls-result-sub">${correct} / ${doneWords.length} \u9898\u6B63\u786E${
-                    unanswered ? ` \u00b7 \u8FD8\u6709 ${unanswered} \u9898\u672A\u4F5C\u7B54` :
-                    (pct > 0 && pct >= (prev.clozeBest || 0) ? ' \u00b7 \u65B0\u7EAA\u5F55\uFF01' : '')}</div>
+                    unanswered ? ` \u00b7 \u8FD8\u6709 ${unanswered} \u9898\u672A\u4F5C\u7B54` : recordLine}</div>
                 ${unanswered ? `<button class="wl-btn-primary" id="ls-cloze-resume">\u21A9 \u7EE7\u7EED\u4F5C\u7B54</button>` : ''}
                 ${wrong.length ? `
                     <div class="ls-result-wrong-title">\u9519\u8BCD ${wrong.length} \u4E2A</div>
                     <div class="ls-wrong-list">${wrongRows}</div>
-                    <button class="wl-btn-primary" id="ls-wrong-add">\u{1F4D6} \u9519\u8BCD\u52A0\u5165\u751F\u8BCD\u672C</button>`
+                    <div class="ls-result-note">\u2713 \u9519\u8BCD\u5DF2\u81EA\u52A8\u52A0\u5165\u751F\u8BCD\u672C\uFF0C\u4F1A\u6309\u9057\u5FD8\u66F2\u7EBF\u5B89\u6392\u5F3A\u5316\u590D\u4E60\uFF08\u5355\u8BCD \u2192 \u590D\u4E60\uFF09\u3002</div>`
                   : (!unanswered ? '<div class="ls-result-perfect">\u{1F3C6} \u5168\u5BF9\uFF0C\u6EE1\u5206\u901A\u5173\uFF01</div>' : '')}
                 <div class="ls-result-btns">
                     <button class="wl-btn-secondary" id="ls-cloze-again">\u{1F504} \u518D\u7EC3\u4E00\u8F6E</button>
                     <button class="wl-btn-secondary" id="ls-cloze-back">\u8FD4\u56DE</button>
                 </div>
+                ${mixedFoot}
             </div>`;
     }
 
-    // 从结果页回到第一道未作答的题继续。
+    // 从小结/结果页回到第一道未作答的题继续 (跨组查找)。
     function clozeResume() {
         const st = clozeState;
         if (!st) return;
-        const i = st.queue.findIndex(w => !st.answers[w.id]);
-        st.idx  = i >= 0 ? i : 0;
+        for (let g = 0; g < st.groups.length; g++) {
+            const i = st.groups[g].findIndex(w => !st.answers[w.id]);
+            if (i >= 0) { st.gi = g; st.idx = i; renderClozeQuestion(); return; }
+        }
         renderClozeQuestion();
     }
-
-    function addWrongToNotebook() {
-        const st = clozeState;
-        if (!st) return;
-        const wrong = st.queue.filter(w => st.answers[w.id] && !st.answers[w.id].ok);
-        if (!wrong.length) return;
-        wrong.forEach(w => addWordToNotebook(w));
-        toast('\u{1F4D6} ' + wrong.length + ' \u4E2A\u9519\u8BCD\u5DF2\u52A0\u5165\u751F\u8BCD\u672C');
-        const btn = root.querySelector('#ls-wrong-add');
-        if (btn) { btn.disabled = true; btn.textContent = '\u2713 \u5DF2\u52A0\u5165'; }
-    }
-
     // ─── 短语 (浏览 + 中英匹配) ─────────────────────────────
+    // 短语对携带稳定 key (词条ID|en) 与所属词条/课程引用:
+    // 练习档案按 key 记录, 综合练习据此优先重现错过的短语。
     function lessonPhrases() {
         const out = [];
         (curLesson.words || []).forEach(w =>
-            (w.phrases || []).forEach(ph => out.push({ en: ph.en, zh: ph.zh })));
+            (w.phrases || []).forEach(ph => out.push({
+                en: ph.en, zh: ph.zh, key: w.id + '|' + ph.en, word: w, _lesson: curLesson
+            })));
         return out;
     }
 
@@ -692,11 +1031,17 @@ window.Lessons = (function () {
                 ${phs}
             </div>`;
         }).join('');
+        const pairN = lessonPhrases().length;
+        const size  = getLessonGroupSize();
+        const grpN  = chunkGroups(new Array(pairN), size).length;
+        const hint  = grpN > 1
+            ? `\u5171 ${pairN} \u5BF9\uFF0C\u5206 ${grpN} \u7EC4 \u00b7 \u5148\u6D4F\u89C8\u719F\u6089\uFF0C\u518D\u5339\u914D\u68C0\u9A8C`
+            : '\u5148\u6D4F\u89C8\u719F\u6089\uFF0C\u518D\u5339\u914D\u68C0\u9A8C';
         panel.innerHTML = `
             <div class="ls-phrases">
                 <div class="ls-read-bar">
                     <button class="wl-btn-primary" id="ls-match-start">\u{1F3AE} \u4E2D\u82F1\u5339\u914D\u7EC3\u4E60</button>
-                    <span class="ls-read-hint">\u5148\u6D4F\u89C8\u719F\u6089\uFF0C\u518D\u5339\u914D\u68C0\u9A8C</span>
+                    <span class="ls-read-hint">${hint}</span>
                 </div>
                 <div class="ls-phrase-list">${rows}</div>
             </div>`;
@@ -708,20 +1053,48 @@ window.Lessons = (function () {
         const pairs = shuffle(lessonPhrases());
         if (pairs.length < 2) { toast('\u77ED\u8BED\u592A\u5C11\uFF0C\u65E0\u6CD5\u5339\u914D'); return; }
         matchState = {
-            remaining : pairs,
-            round     : [],
-            selEn     : null,
-            selZh     : null,
-            matched   : 0,
-            total     : pairs.length
+            kind    : 'lesson',
+            groups  : chunkGroups(pairs, getLessonGroupSize()),
+            gi      : 0,
+            total   : pairs.length,
+            matched : 0,          // 全程累计
+            missLog : {}          // key -> pair (全程错过的短语, 结果页列出)
         };
+        startMatchGroup();
+    }
+
+    // 综合短语匹配: 从全部课程的短语里智能抽一组。
+    function startMixedMatch() {
+        const pool = mixedPhrasePool();
+        if (pool.length < 2) { toast('\u8FD8\u6CA1\u6709\u53EF\u7EC3\u7684\u77ED\u8BED'); return; }
+        const size  = getLessonGroupSize() || 30;
+        const pairs = pickSmartGroup(pool, loadPracRec().p, size, it => it.key);
+        matchState = {
+            kind    : 'mixed',
+            groups  : [pairs],
+            gi      : 0,
+            total   : pairs.length,
+            matched : 0,
+            missLog : {}
+        };
+        startMatchGroup();
+    }
+
+    function startMatchGroup() {
+        const st = matchState;
+        if (!st) return;
+        st.remaining = st.groups[st.gi].slice();
+        st.misses    = {};        // 本组内: key -> 错配次数
+        st.round     = [];
+        st.selEn     = null;
+        st.selZh     = null;
         nextMatchRound();
     }
 
     function nextMatchRound() {
         const st = matchState;
         if (!st) return;
-        if (!st.remaining.length) { renderMatchDone(); return; }
+        if (!st.remaining.length) { renderMatchGroupDone(); return; }
         // 收尾轮若只剩 1 对, 必然左右对齐无练习价值 —— 并入本轮。
         let take = MATCH_ROUND_SIZE;
         if (st.remaining.length - take === 1) take += 1;
@@ -735,6 +1108,10 @@ window.Lessons = (function () {
         const st    = matchState;
         const panel = root.querySelector('#ls-panel');
         if (!st || !panel) return;
+        const grouped = st.groups.length > 1;
+        const prog    = grouped
+            ? `\u7B2C ${st.gi + 1}/${st.groups.length} \u7EC4 \u00b7 \u5DF2\u5339\u914D ${st.matched} / ${st.total}`
+            : `\u5DF2\u5339\u914D ${st.matched} / ${st.total}`;
         const ens = st.round.map((p, i) =>
             `<button class="ls-match-item" data-men="${i}">${esc(p.en)}</button>`).join('');
         // 错位排列 (sattolo): 保证任何一行中文都不与左列英文对齐。
@@ -743,7 +1120,7 @@ window.Lessons = (function () {
         panel.innerHTML = `
             <div class="ls-match">
                 <div class="ls-cloze-top">
-                    <span class="ls-cloze-prog">\u5DF2\u5339\u914D ${st.matched} / ${st.total}</span>
+                    <span class="ls-cloze-prog">${prog}</span>
                     <button class="ls-cloze-quit" id="ls-match-quit">\u9000\u51FA</button>
                 </div>
                 <div class="ls-match-cols">
@@ -773,15 +1150,29 @@ window.Lessons = (function () {
         const zhBtn = root.querySelector(`.ls-match-item[data-mzh="${st.selZh}"]`);
         if (st.selEn === st.selZh) {
             st.matched++;
+            const pair = st.round[st.selEn];
+            // 本对配平即记档案: 本组内没错配过才算「对」。
+            bumpPracRec('p', pair.key, !st.misses[pair.key]);
             [enBtn, zhBtn].forEach(b => { b.classList.remove('sel'); b.classList.add('done'); b.disabled = true; });
-            speak(st.round[st.selEn].en);
+            speak(pair.en);
             st.selEn = null;
             st.selZh = null;
             const prog = root.querySelector('.ls-cloze-prog');
-            if (prog) prog.textContent = `\u5DF2\u5339\u914D ${st.matched} / ${st.total}`;
+            if (prog) {
+                const grouped = st.groups.length > 1;
+                prog.textContent = grouped
+                    ? `\u7B2C ${st.gi + 1}/${st.groups.length} \u7EC4 \u00b7 \u5DF2\u5339\u914D ${st.matched} / ${st.total}`
+                    : `\u5DF2\u5339\u914D ${st.matched} / ${st.total}`;
+            }
             const left = root.querySelectorAll('.ls-match-item[data-men]:not(.done)').length;
             if (!left) setTimeout(nextMatchRound, 500);
         } else {
+            // 错配: 两个被点的短语都计一次错 —— 无法判断记错的是哪一
+            // 侧, 双计让两条都在综合练习里优先重现, 宁多勿漏。
+            [st.round[st.selEn], st.round[st.selZh]].forEach(p => {
+                st.misses[p.key]  = (st.misses[p.key] || 0) + 1;
+                st.missLog[p.key] = p;
+            });
             [enBtn, zhBtn].forEach(b => b.classList.add('miss'));
             setTimeout(() => {
                 [enBtn, zhBtn].forEach(b => b && b.classList.remove('miss', 'sel'));
@@ -791,23 +1182,67 @@ window.Lessons = (function () {
         }
     }
 
-    function renderMatchDone() {
+    // 一组配完: 还有下一组给小结, 最后一组给总结果。
+    function renderMatchGroupDone() {
+        const st = matchState;
+        if (!st) return;
+        if (st.gi >= st.groups.length - 1) { renderMatchDone(); return; }
         const panel = root.querySelector('#ls-panel');
         if (!panel) return;
-        bumpProgress(curLesson.id, { matchDone: true });
-        renderHeaderProgress();
+        const missN = Object.keys(st.misses).length;
+        const nextN = st.groups[st.gi + 1].length;
+        panel.innerHTML = `
+            <div class="ls-result">
+                <div class="ls-result-score">\u7B2C ${st.gi + 1} \u7EC4 \u2713</div>
+                <div class="ls-result-sub">${st.groups[st.gi].length} \u5BF9\u5B8C\u6210${
+                    missN ? ` \u00b7 \u9519\u8FC7 ${missN} \u5BF9` : ' \u00b7 \u96F6\u5931\u8BEF'} \u00b7 \u603B\u8FDB\u5EA6 ${st.matched} / ${st.total}</div>
+                <div class="ls-result-btns">
+                    <button class="wl-btn-primary" id="ls-match-nextgroup">\u2192 \u7EE7\u7EED\u7B2C ${st.gi + 2} \u7EC4\uFF08${nextN} \u5BF9\uFF09</button>
+                    <button class="wl-btn-secondary" id="ls-match-quit">\u4F11\u606F\u4E00\u4E0B</button>
+                </div>
+            </div>`;
+    }
+
+    function nextMatchGroup() {
+        const st = matchState;
+        if (!st || st.gi >= st.groups.length - 1) return;
+        st.gi++;
+        startMatchGroup();
+    }
+
+    function renderMatchDone() {
+        const panel = root.querySelector('#ls-panel');
+        if (!panel || !matchState) return;
+        const st     = matchState;
+        const missed = Object.keys(st.missLog).map(k => st.missLog[k]);
+        if (st.kind === 'lesson' && curLesson) {
+            bumpProgress(curLesson.id, { matchDone: true });
+            renderHeaderProgress();
+        }
         try { window.DB?.markActiveDay?.(); } catch (e) {}
+        const missRows = missed.map(p => `
+            <div class="ls-wrong-row">
+                <button class="ls-mini-speak" data-say="${esc(p.en)}">\u{1F50A}</button>
+                <span class="ls-wrong-en">${esc(p.en)}</span>
+                <span class="ls-wrong-zh">${esc(p.zh)}</span>
+            </div>`).join('');
         panel.innerHTML = `
             <div class="ls-result">
                 <div class="ls-result-score">\u{1F389}</div>
-                <div class="ls-result-sub">${matchState.total} \u5BF9\u77ED\u8BED\u5168\u90E8\u5339\u914D\u5B8C\u6210\uFF01</div>
+                <div class="ls-result-sub">${st.total} \u5BF9\u77ED\u8BED\u5168\u90E8\u5339\u914D\u5B8C\u6210\uFF01</div>
+                ${missed.length ? `
+                    <div class="ls-result-wrong-title">\u9519\u8FC7\u7684\u77ED\u8BED ${missed.length} \u5BF9</div>
+                    <div class="ls-wrong-list">${missRows}</div>
+                    <div class="ls-result-note">\u5DF2\u8BB0\u5165\u7EC3\u4E60\u6863\u6848\uFF0C\u7EFC\u5408\u7EC3\u4E60\u4F1A\u4F18\u5148\u91CD\u73B0\u8FD9\u4E9B\u77ED\u8BED\u3002</div>`
+                  : '<div class="ls-result-perfect">\u96F6\u5931\u8BEF\uFF0C\u6F02\u4EAE\uFF01</div>'}
                 <div class="ls-result-btns">
                     <button class="wl-btn-secondary" id="ls-match-again">\u{1F504} \u518D\u6765\u4E00\u8F6E</button>
-                    <button class="wl-btn-secondary" id="ls-match-back">\u8FD4\u56DE\u77ED\u8BED\u5217\u8868</button>
+                    <button class="wl-btn-secondary" id="ls-match-back">\u8FD4\u56DE</button>
                 </div>
             </div>`;
         matchState = null;
     }
+
 
     // ════════════════════════════════════════════════════════
     // 导入课文 (Windows 端粘贴 AI 识别的 JSON)
@@ -826,7 +1261,8 @@ window.Lessons = (function () {
 转写规则:
 
 1. 逐字转写英文原文，忠实于照片，保持原有段落划分。每段拆分为句子数组，一句一条;
-   并为每个段落写一段通顺、贴合教材语体的整段中文翻译，放在该段落对象的 "zh" 字段。
+   并为每一句写一句通顺、贴合教材语体的中文翻译，放在该句对象的 "zh" 字段
+   （逐句翻译即可，整段译文由应用自动拼接，不需要另写段落 zh）。
 2. 标点规范化: 英文文本中的全角标点（，。；：？！""''）一律转为对应的半角英文标点;
    撇号和引号统一用直引号 ' 和 "。数字、缩写（如 Dr. / Mass.）保持原样。
 3. 教材中蓝色（或高亮）标注的词汇逐个列出，按课文出现顺序排列:
@@ -850,10 +1286,9 @@ window.Lessons = (function () {
   "title": "课文英文标题（照片中没有标题时根据内容拟一个简短的）",
   "titleZh": "中文标题",
   "paras": [
-    { "zh": "本段的整段中文翻译。",
-      "sentences": [
-        { "text": "First sentence of the paragraph.", "hard": false },
-        { "text": "A sentence marked as difficult.",  "hard": true }
+    { "sentences": [
+        { "text": "First sentence of the paragraph.", "hard": false, "zh": "本句的中文翻译。" },
+        { "text": "A sentence marked as difficult.",  "hard": true,  "zh": "本句的中文翻译。" }
     ] }
   ],
   "words": [
@@ -866,6 +1301,7 @@ window.Lessons = (function () {
 
 输出前自检:
 - 每个 surface 必须能在某个句子的 text 中原样找到（区分大小写、含空格的短语完整匹配）
+- 每一句都有非空的 zh 句译
 - 英文句子中不残留任何全角标点或弯引号
 - 词条无重复，短语的 en 和 zh 成对出现`;
 
@@ -939,13 +1375,23 @@ window.Lessons = (function () {
             (Array.isArray(p && p.sentences) ? p.sentences : []).forEach((s, si) => {
                 const text = normEn(s && s.text);
                 if (!text) { errors.push(`\u7B2C ${pi + 1} \u6BB5\u7B2C ${si + 1} \u53E5\u4E3A\u7A7A`); return; }
-                sens.push({ id: `${pid}-S${si + 1}`, hard: !!(s && s.hard), text: text });
+                const sen = { id: `${pid}-S${si + 1}`, hard: !!(s && s.hard), text: text };
+                // 可选句译: 填空页「中文」开关显示整句译文。中文字段
+                // 不经过英文规范化, 只做去空白折叠。
+                const szh = String(s && s.zh || '').trim().replace(/\s+/g, ' ');
+                if (szh) sen.zh = szh;
+                sens.push(sen);
             });
             if (!sens.length) errors.push(`\u7B2C ${pi + 1} \u6BB5\u6CA1\u6709\u53E5\u5B50`);
             const para = { id: pid, sentences: sens };
-            // 可选段译 (schema v1 兼容扩展): 中文字段不做英文规范化
+            // 段译 (schema v1 兼容扩展): AI 没给整段译文时由句译拼接,
+            // 课文页的「译」按钮因此对只产出句译的导入课也可用。
             const pzh = String(p && p.zh || '').trim().replace(/\s+/g, ' ');
             if (pzh) para.zh = pzh;
+            else {
+                const joined = sens.map(s => s.zh || '').filter(Boolean).join('');
+                if (joined && sens.every(s => s.zh)) para.zh = joined;
+            }
             paras.push(para);
         });
         const flatSents = paras.reduce((a, p) => a.concat(p.sentences), []);
@@ -976,8 +1422,10 @@ window.Lessons = (function () {
             }
             seenSurf.add(dupKey);
 
-            // 自动关联: surface 首次精确出现的句子
-            const hit = flatSents.find(s => s.text.indexOf(surface) >= 0);
+            // 自动关联: surface 作为完整词首次出现的句子。用词边界
+            // 匹配 —— 裸 indexOf 会把 "run" 关到含 "runners" 的句子上,
+            // 挖空位置随之错位。
+            const hit = flatSents.find(s => findWordStart(s.text, surface) >= 0);
             if (!hit) {
                 const ci = flatSents.find(s => s.text.toLowerCase().indexOf(surface.toLowerCase()) >= 0);
                 errors.push(ci
@@ -1142,6 +1590,17 @@ window.Lessons = (function () {
         window.DB?.saveUserLessons?.(userLessons().filter(x => x.id !== id));
         const p = loadProgress();
         if (p[id]) { delete p[id]; saveProgress(p); }
+        // 练习档案里该课的键 (词条 ID / 短语 key 都以「课ID-」开头) 一并清除,
+        // 否则删课后综合练习的「已练/待强化」统计会一直挂着幽灵条目。
+        try {
+            const rec  = loadPracRec();
+            const pfx  = id + '-';
+            let   hit  = false;
+            ['w', 'p'].forEach(k => Object.keys(rec[k]).forEach(key => {
+                if (key.indexOf(pfx) === 0) { delete rec[k][key]; hit = true; }
+            }));
+            if (hit) savePracRec(rec);
+        } catch (e) {}
         try {
             if (window.DB?.getPref?.('lesson_last', '') === id) window.DB?.setPref?.('lesson_last', '');
         } catch (e) {}
@@ -1226,10 +1685,15 @@ window.Lessons = (function () {
         if (trBtn) { toggleParaZh(trBtn.dataset.tr); return; }
         if (t.closest('#ls-read-zh-all')) { toggleAllParaZh(); return; }
 
-        // 填空
-        if (t.closest('#ls-cloze-choice')) { startCloze('choice'); return; }
-        if (t.closest('#ls-cloze-spell'))  { startCloze('spell');  return; }
-        if (t.closest('#ls-cloze-quit'))   { switchTab('cloze');   return; }
+        // 综合练习入口 (主页卡片)
+        if (t.closest('#ls-mixed-cloze')) { openMixed('cloze'); return; }
+        if (t.closest('#ls-mixed-match')) { openMixed('match'); return; }
+
+        // 填空 —— 单课与综合共用同一套渲染, 按 curLesson 分流启动函数,
+        // 退出/返回按 curLesson 决定回单课 tab 还是回综合设置页。
+        if (t.closest('#ls-cloze-choice')) { curLesson ? startCloze('choice') : startMixedCloze('choice'); return; }
+        if (t.closest('#ls-cloze-spell'))  { curLesson ? startCloze('spell')  : startMixedCloze('spell');  return; }
+        if (t.closest('#ls-cloze-quit'))   { curLesson ? switchTab('cloze') : renderMixedSetupPanel(); return; }
         if (t.closest('#ls-cloze-prev'))   { clozeGoPrev(); return; }
         if (t.closest('#ls-cloze-nextq'))  { clozeGoNext(); return; }
         if (t.closest('#ls-zh-toggle'))    { toggleClozeZh(); return; }
@@ -1238,14 +1702,23 @@ window.Lessons = (function () {
         if (t.closest('#ls-spell-submit')) { submitSpell(); return; }
         if (t.closest('#ls-cloze-next'))   { clozeGoNext(); return; }
         if (t.closest('#ls-cloze-resume')) { clozeResume(); return; }
-        if (t.closest('#ls-wrong-add'))    { addWrongToNotebook(); return; }
-        if (t.closest('#ls-cloze-again'))  { startCloze(clozeState.mode, clozeState.hint); return; }
-        if (t.closest('#ls-cloze-back'))   { switchTab('cloze'); return; }
+        if (t.closest('#ls-cloze-nextgroup')) { nextClozeGroup(); return; }
+        if (t.closest('#ls-cloze-again')) {
+            if (!clozeState) return;
+            const m = clozeState.mode, h = clozeState.hint;
+            curLesson ? startCloze(m, h) : startMixedCloze(m, h);
+            return;
+        }
+        if (t.closest('#ls-cloze-back'))   { curLesson ? switchTab('cloze') : renderMixedSetupPanel(); return; }
 
         // 短语匹配
-        if (t.closest('#ls-match-start')) { startMatch(); return; }
-        if (t.closest('#ls-match-quit') || t.closest('#ls-match-back')) { switchTab('phrases'); return; }
-        if (t.closest('#ls-match-again')) { startMatch(); return; }
+        if (t.closest('#ls-match-start'))     { curLesson ? startMatch() : startMixedMatch(); return; }
+        if (t.closest('#ls-match-nextgroup')) { nextMatchGroup(); return; }
+        if (t.closest('#ls-match-again'))     { curLesson ? startMatch() : startMixedMatch(); return; }
+        if (t.closest('#ls-match-quit') || t.closest('#ls-match-back')) {
+            curLesson ? switchTab('phrases') : renderMixedSetupPanel();
+            return;
+        }
         const mEn = t.closest('.ls-match-item[data-men]');
         if (mEn) { pickMatch('en', Number(mEn.dataset.men), mEn); return; }
         const mZh = t.closest('.ls-match-item[data-mzh]');
@@ -1271,9 +1744,16 @@ window.Lessons = (function () {
             return;
         }
 
-        // 其余快捷键只作用于填空的题目页 (结果页/设置页不响应)
-        if (curTab !== 'cloze' || !clozeState || !root.querySelector('.ls-cloze')) return;
+        // 组小结页: 回车 = 继续下一组 (跟「回车下一题」的手感一致)
+        if (e.key === 'Enter' && root.querySelector('#ls-cloze-nextgroup')) {
+            nextClozeGroup(); e.preventDefault(); return;
+        }
+
+        // 其余快捷键只作用于填空的题目页 (结果页/设置页不响应)。
+        // 以 clozeState + 题目页 DOM 为准, 单课与综合练习通用。
+        if (!clozeState || !root.querySelector('.ls-cloze')) return;
         const st     = clozeState;
+        const queue  = clozeQueue(st);
         const tag    = (e.target && e.target.tagName) || '';
         const typing = (tag === 'INPUT' || tag === 'TEXTAREA') && !e.target.disabled;
         if (typing) return;
@@ -1281,11 +1761,11 @@ window.Lessons = (function () {
         if (e.key === 'ArrowLeft')  { clozeGoPrev(); e.preventDefault(); return; }
         if (e.key === 'ArrowRight') { clozeGoNext(); e.preventDefault(); return; }
         if (e.key === 'Enter') {
-            if (st.answers[st.queue[st.idx].id]) { clozeGoNext(); e.preventDefault(); }
+            if (st.answers[queue[st.idx].id]) { clozeGoNext(); e.preventDefault(); }
             return;
         }
         if (/^[1-4]$/.test(e.key) && st.mode === 'choice') {
-            const w = st.queue[st.idx];
+            const w = queue[st.idx];
             if (!st.answers[w.id] && st.opts[w.id]) {
                 const oid = st.opts[w.id][Number(e.key) - 1];
                 if (oid) { submitChoice(oid); e.preventDefault(); }

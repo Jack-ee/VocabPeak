@@ -903,6 +903,10 @@
         const gsEl      = document.getElementById('settings-group-size');
         if (gsEl) gsEl.value = window.DB.getPref('group_size', '50');   // 与 my-words getGroupSize 的回退值一致
 
+        // 课文练习每组题量 (填空/短语匹配/综合练习共用; 0 = 不分组)
+        const lgEl      = document.getElementById('settings-lesson-group');
+        if (lgEl) lgEl.value = window.DB.getPref('lesson_group_size', '30');
+
         // Show CN by default
         const cnEl      = document.getElementById('settings-show-cn');
         if (cnEl) cnEl.checked = window.DB.getPref('show_cn_default', 'false') === 'true';
@@ -1107,6 +1111,10 @@
         document.getElementById('settings-show-cn')?.addEventListener('change', (e) => {
             window.DB.setPref('show_cn_default', e.target.checked ? 'true' : 'false');
             window.MyWords?.render?.();
+        });
+        // 课文练习每组题量 —— 下次开始练习时生效, 不打断进行中的一轮
+        document.getElementById('settings-lesson-group')?.addEventListener('change', (e) => {
+            window.DB.setPref('lesson_group_size', String(parseInt(e.target.value, 10) || 0));
         });
 
         // AI provider / model

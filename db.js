@@ -526,6 +526,28 @@
             return entry;
         },
 
+        // Quiz-mistake hook (课文填空答错自动强化). Pulls the word's
+        // spaced-repetition state back to "due now" WITHOUT counting a
+        // review: srsLevel resets to 0 and nextReview is cleared, so the
+        // word surfaces in the My Words due queue immediately and then
+        // climbs the normal forgetting-curve intervals (1/3/7/14/30/60d)
+        // as it gets reviewed. recordReview() is wrong for this case —
+        // it would schedule the word for tomorrow and inflate the daily
+        // "reviewed" counter even though no review session happened.
+        flagQuizMistake: function(word) {
+            const nb   = this.loadNotebook();
+            const wLow = String(word || '').toLowerCase();
+            const idx  = nb.findIndex(w => String(w.word || '').toLowerCase() === wLow);
+            if (idx < 0) return null;
+            const e = nb[idx];
+            e.srsLevel     = 0;
+            e.nextReview   = null;                     // null = due now
+            e.mistakeCount = (e.mistakeCount || 0) + 1;
+            nb[idx] = e;
+            this.saveNotebook(nb);
+            return e;
+        },
+
         // Words due today (or earlier). Treats missing nextReview as
         // "due now" so the entire pre-SRS notebook surfaces on first use.
         getDueWords: function() {
