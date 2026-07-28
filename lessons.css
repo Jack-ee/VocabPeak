@@ -888,3 +888,10 @@
     min-height : 16px;
     line-height: 1.6;
 }
+
+/* 部分进度徽标 (v120): 练过但未完整完成 —— 虚线边示意「进行中」 */
+.ls-badge-part {
+    border     : 1px dashed var(--accent);
+    color      : var(--accent-text);
+    background : var(--accent-bg);
+}

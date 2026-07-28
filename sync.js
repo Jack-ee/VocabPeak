@@ -255,6 +255,75 @@ window.SyncManager = (function() {
         };
     }
 
+    // ─── 课文学习记录的字段级合并 (v120) ─────────────────────
+    // 整档快照是「后写覆盖」: 平板离线练习后, 若拉取时远端快照更新
+    // (哪怕内容更旧), 课内进度/练习档案会被整键覆盖, 主页显示回
+    // 「未开始」—— 已实际发生。学习记录本质单调增长, 覆盖没有道理,
+    // 这三个键改为逐字段合并, 两侧并集谁新/谁大取谁:
+    //   lesson_progress : listened/matchDone 取或, clozeBest/clozeRuns 取大
+    //   lesson_mixed    : 逐词条/短语取「最近练习时间」新的一侧
+    //   lesson_sess     : 逐课逐槽 (填空/匹配) 取 ts 新的一侧
+    // 合并结果比远端多时随下一次推送回云端 (同 day_ 键的并集回传)。
+    function _safeParse(s, fb) {
+        try { const v = JSON.parse(s); return (v && typeof v === 'object') ? v : fb; }
+        catch (e) { return fb; }
+    }
+    function mergeLessonProgress(localStr, remoteStr) {
+        const L = _safeParse(localStr, {});
+        const R = _safeParse(remoteStr, {});
+        const out = {};
+        new Set(Object.keys(L).concat(Object.keys(R))).forEach(id => {
+            const a = L[id] || {};
+            const b = R[id] || {};
+            const m = Object.assign({}, a, b);        // 未知字段以远端为准
+            if (a.listened  || b.listened)  m.listened  = true;
+            if (a.matchDone || b.matchDone) m.matchDone = true;
+            if (a.clozeBest != null || b.clozeBest != null) {
+                m.clozeBest = Math.max(
+                    a.clozeBest != null ? a.clozeBest : -1,
+                    b.clozeBest != null ? b.clozeBest : -1);
+            }
+            if (a.clozeRuns || b.clozeRuns) {
+                m.clozeRuns = Math.max(a.clozeRuns || 0, b.clozeRuns || 0);
+            }
+            out[id] = m;
+        });
+        return JSON.stringify(out);
+    }
+    function mergeLessonMixed(localStr, remoteStr) {
+        const L = _safeParse(localStr, {});
+        const R = _safeParse(remoteStr, {});
+        const out = { w: {}, p: {} };
+        ['w', 'p'].forEach(part => {
+            const lm = L[part] || {};
+            const rm = R[part] || {};
+            new Set(Object.keys(lm).concat(Object.keys(rm))).forEach(k => {
+                const a = lm[k];
+                const b = rm[k];
+                out[part][k] = !a ? b : (!b ? a : (((b[2] || 0) >= (a[2] || 0)) ? b : a));
+            });
+        });
+        return JSON.stringify(out);
+    }
+    function mergeLessonSess(localStr, remoteStr) {
+        const L = _safeParse(localStr, {});
+        const R = _safeParse(remoteStr, {});
+        const out = {};
+        new Set(Object.keys(L).concat(Object.keys(R))).forEach(id => {
+            const a = L[id] || {};
+            const b = R[id] || {};
+            const m = {};
+            ['c', 'm'].forEach(slot => {
+                const x = a[slot];
+                const y = b[slot];
+                const v = !x ? y : (!y ? x : (((y.ts || 0) >= (x.ts || 0)) ? y : x));
+                if (v) m[slot] = v;
+            });
+            if (Object.keys(m).length) out[id] = m;
+        });
+        return JSON.stringify(out);
+    }
+
     // Merge remote payload into local storage.
     //   • If remote _syncTime > local last-pull, apply remote wholesale.
     //   • Local keys that are NOT in the remote payload are removed,
@@ -304,6 +373,13 @@ window.SyncManager = (function() {
             let changed          = false;
             let configChanged    = false;
             let dataChangeCount  = 0;
+            let mergedUnion      = 0;   // 字段级合并后比远端多的键数 (需回推)
+
+            // 走字段级合并的课文记录键 (见上方 mergeLesson* 注释)
+            const mergeFns = {};
+            mergeFns[prefix + 'lesson_progress'] = mergeLessonProgress;
+            mergeFns[prefix + 'lesson_mixed']    = mergeLessonMixed;
+            mergeFns[prefix + 'lesson_sess']     = mergeLessonSess;
 
             // Keys that REQUIRE a page reload to take effect. Anything not
             // in this set takes effect on the next render of the relevant
@@ -317,12 +393,17 @@ window.SyncManager = (function() {
                 // an API key from another device's sync payload.
                 const accept = (k.startsWith(prefix) && !isSecretPref(k)) || (k === K_API_KEY && apiKeySyncOn);
                 if (accept) {
-                    if (localBefore[k] !== remote[k]) {
+                    let toWrite = remote[k];
+                    if (mergeFns[k] && localBefore[k] != null) {
+                        toWrite = mergeFns[k](localBefore[k], remote[k]);
+                        if (toWrite !== remote[k]) mergedUnion++;   // 并集超出远端
+                    }
+                    if (localBefore[k] !== toWrite) {
                         changed = true;
                         if (requiresReload(k)) configChanged = true;
                         else                   dataChangeCount++;
                     }
-                    localStorage.setItem(k, remote[k]);
+                    localStorage.setItem(k, toWrite);
                     localKeys.delete(k);
                 }
             });
@@ -343,6 +424,9 @@ window.SyncManager = (function() {
             if (localKeys.size > 0) {
                 localKeys.forEach(k => {
                     if (k.startsWith(dayPrefix)) { preservedDayKeys++; return; }
+                    // 课文记录键本地独有 (远端是旧快照, 还没有这些键) 时
+                    // 同样保留并计入回推 —— 否则拉一次旧快照就把离线练习抹掉
+                    if (mergeFns[k]) { mergedUnion++; return; }
                     changed = true;
                     if (requiresReload(k)) configChanged = true;
                     else                   dataChangeCount++;
@@ -351,7 +435,7 @@ window.SyncManager = (function() {
             }
 
             setLastPull(payload._syncTime || Date.now());
-            return { applied: true, changed, configChanged, dataChangeCount, preservedDayKeys };
+            return { applied: true, changed, configChanged, dataChangeCount, preservedDayKeys, mergedUnion };
         } finally {
             suspendHooks = false;
         }
@@ -400,9 +484,10 @@ window.SyncManager = (function() {
                 // → 远端还缺这几天，安排一次防抖推送把并集补上云。不会形成
                 // 推拉循环：push 成功后 lastPull 会推进到自己的 _syncTime，
                 // 下一次轮询判定为无变化；另一台设备拉到并集后 preserved=0。
-                if (result.preservedDayKeys > 0) {
-                    console.log('[Sync] Preserved ' + result.preservedDayKeys +
-                                ' local-only day log(s) — scheduling push to upload the union');
+                if (result.preservedDayKeys > 0 || result.mergedUnion > 0) {
+                    console.log('[Sync] Preserved ' + (result.preservedDayKeys || 0) +
+                                ' day log(s), merged-union ' + (result.mergedUnion || 0) +
+                                ' lesson-record key(s) — scheduling push to upload the union');
                     triggerSave();
                 }
 

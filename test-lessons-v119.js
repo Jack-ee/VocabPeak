@@ -123,9 +123,10 @@ ok(/\.ls-back \{[^}]*border          : 1\.5px solid var\(--accent\)/.test(css), 
 const idx = fs.readFileSync(path.join(DIR, 'index.html'), 'utf8');
 const sw  = fs.readFileSync(path.join(DIR, 'sw.js'), 'utf8');
 const vs  = [...idx.matchAll(/\?v=(\d+)/g)].map(m => m[1]);
-ok(new Set(vs).size === 1 && vs[0] === '119', 'index.html 全部 ?v=119');
-ok(/const CACHE_NAME = 'hsv-v22'/.test(sw), 'sw.js CACHE_NAME = hsv-v22');
-ok(/hsv-v22 \(\?v=119\)/.test(sw), 'sw.js 有 v22 变更日志');
+ok(new Set(vs).size === 1 && Number(vs[0]) >= 119, 'index.html ?v 全部一致且 >= 119');
+const swV2 = (sw.match(/const CACHE_NAME = 'hsv-v(\d+)'/) || [])[1];
+ok(swV2 && Number(swV2) >= 22, 'sw.js CACHE_NAME >= hsv-v22');
+ok(/hsv-v22 \(\?v=119\)/.test(sw), 'sw.js 变更日志保留 v22 条目');
 
 console.log('\n' + '═'.repeat(46));
 console.log(`  通过 ${pass} 项, 失败 ${fail} 项`);

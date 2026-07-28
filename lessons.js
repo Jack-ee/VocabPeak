@@ -365,13 +365,29 @@ window.Lessons = (function () {
         mixedKind  = null;
         try { window.DB?.setPref?.('lesson_last', ''); } catch (e) {}
         const prog  = loadProgress();
+        // 部分进度 (v120): 徽标只认「完整完成」三里程碑, 但练一半的
+        // 痕迹都在练习档案里 —— 显示出来, 「未开始」不再说谎。
+        const rec      = loadPracRec();
+        const sessAll  = loadSessStore();
+        const archOf   = (l) => {
+            const wp = Object.keys(rec.w).filter(k => k.indexOf(l.id + '-W') === 0).length;
+            const pp = Object.keys(rec.p).filter(k => k.indexOf(l.id + '-W') === 0).length;
+            return { w: wp, p: pp };
+        };
         const cards = lessons().map(l => {
-            const p     = prog[l.id] || {};
-            const wordN = (l.words || []).length;
+            const p      = prog[l.id] || {};
+            const wordN  = (l.words || []).length;
+            const phrN   = (l.words || []).reduce((n, w) => n + (w.phrases || []).length, 0);
+            const arch   = archOf(l);
+            const sess   = sessAll[l.id] || {};
             const badges = [];
             if (p.listened)              badges.push('<span class="ls-badge ls-badge-done">\u542C\u8BFB \u2713</span>');
             if (p.clozeBest != null)     badges.push('<span class="ls-badge">\u586B\u7A7A\u6700\u4F73 ' + p.clozeBest + '%</span>');
+            else if (sess.c)             badges.push('<span class="ls-badge ls-badge-part">\u586B\u7A7A\u7EED\u505A ' + Object.keys(sess.c.a || {}).length + '/' + wordN + '</span>');
+            else if (arch.w)             badges.push('<span class="ls-badge ls-badge-part">\u586B\u7A7A\u7EC3\u8FC7 ' + Math.min(arch.w, wordN) + '/' + wordN + '</span>');
             if (p.matchDone)             badges.push('<span class="ls-badge ls-badge-done">\u77ED\u8BED \u2713</span>');
+            else if (sess.m)             badges.push('<span class="ls-badge ls-badge-part">\u77ED\u8BED\u7EED\u505A ' + (sess.m.done || []).length + '/' + phrN + '</span>');
+            else if (arch.p)             badges.push('<span class="ls-badge ls-badge-part">\u77ED\u8BED\u7EC3\u8FC7 ' + Math.min(arch.p, phrN) + '/' + phrN + '</span>');
             const del = isUserLesson(l.id)
                 ? `<button class="ls-card-del" data-del="${esc(l.id)}" title="\u5220\u9664\u8FD9\u8BFE">\u00d7</button>`
                 : '';
@@ -539,6 +555,12 @@ window.Lessons = (function () {
         if (p.listened)          bits.push('\u542C\u2713');
         if (p.clozeBest != null) bits.push('\u586B ' + p.clozeBest + '%');
         if (p.matchDone)         bits.push('\u77ED\u2713');
+        if (!bits.length) {
+            // 没有完整里程碑时给档案里的部分进度, 与主页卡口径一致
+            const rec = loadPracRec();
+            const wp  = Object.keys(rec.w).filter(k => k.indexOf(curLesson.id + '-W') === 0).length;
+            if (wp) bits.push('\u7EC3\u8FC7 ' + Math.min(wp, (curLesson.words || []).length) + ' \u8BCD');
+        }
         el.textContent = bits.join(' \u00b7 ');
     }
 
