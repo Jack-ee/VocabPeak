@@ -154,7 +154,7 @@ ok(/id="ls-cloze-nextgroup"/.test(src) && /nextClozeGroup\(\)/.test(src), '组�
 ok(/id="ls-match-nextgroup"/.test(src) && /nextMatchGroup\(\)/.test(src), '短语组小结按钮与路由成对');
 ok(/id="ls-mixed-cloze"/.test(src) && /openMixed\('cloze'\)/.test(src), '综合填空入口与路由成对');
 ok(/id="ls-mixed-match"/.test(src) && /openMixed\('match'\)/.test(src), '综合短语入口与路由成对');
-ok(/curLesson \? startCloze/.test(src), '填空启动按 curLesson 分流单课/综合');
+ok(/curLesson \? startLessonCloze|curLesson \? startCloze/.test(src), '填空启动按 curLesson 分流单课/综合');
 ok(/if \(!clozeState \|\| !root\.querySelector\('\.ls-cloze'\)\) return;/.test(src),
    '快捷键门控改按 clozeState (综合练习页也生效)');
 ok(/e\.stopPropagation\(\); submitSpell\(\)/.test(src), '拼写框回车已阻止冒泡, 不触发全局下一题');

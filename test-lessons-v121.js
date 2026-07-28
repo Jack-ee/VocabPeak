@@ -140,8 +140,9 @@ ok(/\.ls-phrase-star/.test(css) && /\.ls-phrase-ext/.test(css), '星标与淡显
 const idx = fs.readFileSync(path.join(DIR, 'index.html'), 'utf8');
 const sw  = fs.readFileSync(path.join(DIR, 'sw.js'), 'utf8');
 const vs  = [...idx.matchAll(/\?v=(\d+)/g)].map(x => x[1]);
-ok(new Set(vs).size === 1 && vs[0] === '121', 'index.html 全部 ?v=121');
-ok(/const CACHE_NAME = 'hsv-v24'/.test(sw), 'sw.js CACHE_NAME = hsv-v24');
+ok(new Set(vs).size === 1 && Number(vs[0]) >= 121, 'index.html ?v 全部一致且 >= 121');
+const swV4 = (sw.match(/const CACHE_NAME = 'hsv-v(\d+)'/) || [])[1];
+ok(swV4 && Number(swV4) >= 24, 'sw.js CACHE_NAME >= hsv-v24');
 ok(/hsv-v24 \(\?v=121\)/.test(sw), 'sw.js 有 v24 变更日志');
 
 console.log('\n' + '═'.repeat(46));

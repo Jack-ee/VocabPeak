@@ -339,6 +339,7 @@ window.Lessons = (function () {
         });
         putSess('c', {
             mode : st.mode,
+            sm   : st.smart ? 1 : 0,
             hint : st.hint ? 1 : 0,
             g    : st.groups.map(g => g.map(w => w.id)),
             gi   : st.gi,
@@ -880,6 +881,7 @@ window.Lessons = (function () {
         });
         clozeState = {
             kind    : curLesson ? 'lesson' : 'mixed',
+            smart   : !!sess.sm,
             mode    : sess.mode === 'spell' ? 'spell' : 'choice',
             hint    : !!sess.hint,
             showZh  : (window.DB?.getPref?.('lesson_cloze_zh', '1') !== '0'),
@@ -905,6 +907,19 @@ window.Lessons = (function () {
         return true;
     }
 
+    // 本课练习档案统计 (设置页展示 + 智能开关默认值)
+    function lessonArchStats(lesson) {
+        const rec = loadPracRec();
+        const pfx = lesson.id + '-W';
+        let seen = 0, wrong = 0;
+        Object.keys(rec.w).forEach(k => {
+            if (k.indexOf(pfx) !== 0) return;
+            seen++;
+            if (!rec.w[k][3]) wrong++;
+        });
+        return { seen: seen, wrong: wrong, total: (lesson.words || []).length };
+    }
+
     function renderClozeSetup(panel) {
         clozeState = null;
         const p     = loadProgress()[curLesson.id] || {};
@@ -913,17 +928,62 @@ window.Lessons = (function () {
         const size  = getLessonGroupSize();
         const grpN  = chunkGroups((curLesson.words || []), size).length;
         const grp   = grpN > 1 ? `\uFF0C\u5206 ${grpN} \u7EC4\u7EC3 (\u6BCF\u7EC4\u7EA6 ${size} \u9898\uFF0C\u53EF\u5728\u8BBE\u7F6E\u91CC\u6539)` : '';
+        // 智能选题开关: 练过本课就默认勾上 —— 第二轮起只抽薄弱的一组,
+        // 不必每轮重刷全部四五十题; 第一次接触默认整卷, 先完整过一遍。
+        const arch  = lessonArchStats(curLesson);
+        const smart = arch.seen > 0;
+        const stats = arch.seen
+            ? `\u672C\u8BFE\u6863\u6848: \u7EC3\u8FC7 ${Math.min(arch.seen, arch.total)}/${arch.total} \u8BCD \u00b7 \u5F85\u5F3A\u5316 ${arch.wrong} \u8BCD`
+            : '';
         panel.innerHTML = `
             <div class="ls-cloze-setup">
                 ${clozeResumeHtml()}
                 <div class="ls-setup-title">\u7528\u539F\u6587\u53E5\u5B50\u6316\u7A7A\u84DD\u8272\u8BCD\uFF0C\u5171 ${total} \u9898${grp}</div>
-                <div class="ls-setup-sub">${best}</div>
+                <div class="ls-setup-sub">${best}${stats ? ' \u00b7 ' + stats : ''}</div>
+                <label class="ls-setup-smartopt"><input type="checkbox" id="ls-cloze-smart-opt"${smart ? ' checked' : ''}>
+                    \u{1F3AF} \u667A\u80FD\u9009\u9898\uFF1A\u6BCF\u6B21\u53EA\u62BD\u4E00\u7EC4\uFF08${size || 30} \u9898\uFF09\uFF0C\u505A\u9519\u7684\u548C\u6CA1\u7EC3\u8FC7\u7684\u4F18\u5148\uFF1B\u4E0D\u52FE\u5219\u6574\u5377\u5206\u7EC4\u7EC3\uFF08\u5237\u65B0\u5386\u53F2\u6700\u4F73\uFF09</label>
                 <div class="ls-setup-btns">
                     <button class="wl-btn-primary"   id="ls-cloze-choice">\u{1F520} \u9009\u62E9\u586B\u7A7A\uFF084 \u9009 1\uFF09</button>
                     <button class="wl-btn-secondary" id="ls-cloze-spell">\u2328\uFE0F \u62FC\u5199\u586B\u7A7A\uFF08\u952E\u5165\uFF09</button>
                 </div>
                 <label class="ls-setup-hintopt"><input type="checkbox" id="ls-cloze-hint" checked> \u62FC\u5199\u6A21\u5F0F\u663E\u793A\u9996\u5B57\u6BCD\u63D0\u793A</label>
             </div>`;
+    }
+
+    // 单课启动分流: 按设置页「智能选题」勾选走智能一组或整卷
+    function startLessonCloze(mode) {
+        const sm = root.querySelector('#ls-cloze-smart-opt');
+        if (sm && sm.checked) startSmartCloze(mode);
+        else                  startCloze(mode);
+    }
+
+    // 智能一组 (单课版): 与综合练习同一套选题 —— 上次做错的 →
+    // 没练过的 → 最久没练的, 每次一组。不刷新历史最佳 (那是整卷
+    // 的可比成绩), 但每题作答照常进日志/档案/错词强化。
+    function startSmartCloze(mode, hintOpt) {
+        const hint = (hintOpt != null)
+            ? !!hintOpt
+            : !!root.querySelector('#ls-cloze-hint')?.checked;
+        const pool = (curLesson.words || []).slice();
+        if (!pool.length) { toast('\u672C\u8BFE\u6CA1\u6709\u8BCD\u6761'); return; }
+        const size = getLessonGroupSize() || 30;
+        const grp  = pickSmartGroup(pool, loadPracRec().w, size, it => it.id);
+        clozeState = {
+            kind    : 'lesson',
+            smart   : true,
+            mode    : mode,
+            hint    : hint,
+            showZh  : (window.DB?.getPref?.('lesson_cloze_zh', '1') !== '0'),
+            pool    : pool,
+            groups  : [grp],
+            gi      : 0,
+            idx     : 0,
+            opts    : {},
+            answers : {},
+            autoT   : 0
+        };
+        persistClozeSess();
+        renderClozeQuestion();
     }
 
     // 当前组的题目数组。答案/选项序始终按词条 ID 全局记录,
@@ -1085,7 +1145,9 @@ window.Lessons = (function () {
             : '';
         const srcLine = (st.kind === 'mixed' && lesson)
             ? `<div class="ls-cloze-src">\u51FA\u81EA\u300A${esc(lesson.title)}\u300B</div>`
-            : '';
+            : (st.smart
+                ? '<div class="ls-cloze-src">\u{1F3AF} \u667A\u80FD\u9009\u9898\uFF1A\u505A\u9519\u7684\u548C\u6CA1\u7EC3\u8FC7\u7684\u4F18\u5148</div>'
+                : '');
         const prog = (st.kind === 'mixed')
             ? `\u672C\u7EC4 ${st.idx + 1} / ${queue.length} \u00b7 \u5DF2\u7B54 ${answered}`
             : (grouped
@@ -1274,9 +1336,10 @@ window.Lessons = (function () {
 
         if (!unanswered) clearSess('c');   // 整卷答完, 进度存档使命完成
 
-        // 单课: 最佳成绩只在完整作答时刷新, 保证历史成绩可比。
+        // 单课: 最佳成绩只在「整卷完整作答」时刷新 —— 智能一组是
+        // 30 题子集, 成绩与整卷不可比, 不入历史最佳。
         let recordLine = '';
-        if (st.kind === 'lesson' && curLesson) {
+        if (st.kind === 'lesson' && !st.smart && curLesson) {
             const prev = loadProgress()[curLesson.id] || {};
             if (!unanswered) {
                 bumpProgress(curLesson.id, {
@@ -1297,7 +1360,10 @@ window.Lessons = (function () {
         const mixedFoot = (st.kind === 'mixed')
             ? (() => { const ms = mixedStats();
                 return `<div class="ls-result-note">\u603B\u8FDB\u5EA6: \u5DF2\u7EC3 ${ms.w.seen} / ${ms.w.total} \u8BCD \u00b7 \u5F85\u5F3A\u5316 ${ms.w.wrong} \u8BCD</div>`; })()
-            : '';
+            : (st.smart && curLesson
+                ? (() => { const a = lessonArchStats(curLesson);
+                    return `<div class="ls-result-note">\u672C\u8BFE\u8FDB\u5EA6: \u7EC3\u8FC7 ${Math.min(a.seen, a.total)} / ${a.total} \u8BCD \u00b7 \u5F85\u5F3A\u5316 ${a.wrong} \u8BCD \u00b7 \u667A\u80FD\u4E00\u7EC4\u4E0D\u8BA1\u5165\u5386\u53F2\u6700\u4F73\uFF0C\u6574\u5377\u624D\u8BA1</div>`; })()
+                : '');
         panel.innerHTML = `
             <div class="ls-result">
                 <div class="ls-result-score">${pct}%</div>
@@ -2344,8 +2410,8 @@ window.Lessons = (function () {
 
         // 填空 —— 单课与综合共用同一套渲染, 按 curLesson 分流启动函数,
         // 退出/返回按 curLesson 决定回单课 tab 还是回综合设置页。
-        if (t.closest('#ls-cloze-choice')) { curLesson ? startCloze('choice') : startMixedCloze('choice'); return; }
-        if (t.closest('#ls-cloze-spell'))  { curLesson ? startCloze('spell')  : startMixedCloze('spell');  return; }
+        if (t.closest('#ls-cloze-choice')) { curLesson ? startLessonCloze('choice') : startMixedCloze('choice'); return; }
+        if (t.closest('#ls-cloze-spell'))  { curLesson ? startLessonCloze('spell')  : startMixedCloze('spell');  return; }
         if (t.closest('#ls-cloze-quit'))   { curLesson ? switchTab('cloze') : renderMixedSetupPanel(); return; }
         if (t.closest('#ls-cloze-prev'))   { clozeGoPrev(); return; }
         if (t.closest('#ls-cloze-nextq'))  { clozeGoNext(); return; }
@@ -2359,7 +2425,9 @@ window.Lessons = (function () {
         if (t.closest('#ls-cloze-again')) {
             if (!clozeState) return;
             const m = clozeState.mode, h = clozeState.hint;
-            curLesson ? startCloze(m, h) : startMixedCloze(m, h);
+            if (!curLesson)            startMixedCloze(m, h);
+            else if (clozeState.smart) startSmartCloze(m, h);
+            else                       startCloze(m, h);
             return;
         }
         if (t.closest('#ls-cloze-back'))   { curLesson ? switchTab('cloze') : renderMixedSetupPanel(); return; }

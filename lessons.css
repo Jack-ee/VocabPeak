@@ -917,3 +917,22 @@
 .ls-phrase-ext .ls-phrase-en,
 .ls-phrase-ext .ls-phrase-zh { opacity: 0.45; }
 .ls-phrase-ext .ls-mini-speak { opacity: 0.55; }
+
+/* 智能选题开关 (v122): 设置页, 与首字母提示同款但更醒目 */
+.ls-setup-smartopt {
+    display       : flex;
+    align-items   : flex-start;
+    gap           : 8px;
+    background    : var(--accent-bg);
+    border        : 1px dashed var(--accent);
+    border-radius : 12px;
+    padding       : 10px 12px;
+    margin        : 0 auto 14px;
+    max-width     : 460px;
+    font-size     : 13px;
+    line-height   : 1.65;
+    color         : var(--accent-text);
+    text-align    : left;
+    cursor        : pointer;
+}
+.ls-setup-smartopt input { margin-top: 3px; }
