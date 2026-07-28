@@ -895,3 +895,25 @@
     color      : var(--accent-text);
     background : var(--accent-bg);
 }
+
+/* ════════════════════════════════════════════════════════
+   短语精选 (v121)
+   ════════════════════════════════════════════════════════ */
+
+/* 星标: 精选(★实心主色) / 扩展(☆空心灰) */
+.ls-phrase-star {
+    background  : none;
+    border      : none;
+    font-size   : 16px;
+    line-height : 1;
+    color       : var(--text-tertiary);
+    cursor      : pointer;
+    padding     : 2px 4px;
+    flex-shrink : 0;
+}
+.ls-phrase-star.on { color: var(--accent); }
+
+/* 未入选的扩展短语: 淡显但保留可读 (浏览参考用) */
+.ls-phrase-ext .ls-phrase-en,
+.ls-phrase-ext .ls-phrase-zh { opacity: 0.45; }
+.ls-phrase-ext .ls-mini-speak { opacity: 0.55; }

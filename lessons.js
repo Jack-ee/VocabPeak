@@ -136,6 +136,104 @@ window.Lessons = (function () {
         savePracRec(r);
     }
 
+    // ─── 短语精选 (DB pref 'lesson_phrase_sel') ─────────────
+    // 一课短语动辄 80+, 匹配练习压垮人。精选是「标记」不是删除:
+    //   { 课ID: [保留的短语 key...] } —— 没有条目 = 全部视为精选。
+    // 练习 (单课匹配/综合短语) 只出精选; 浏览页保留全部作参考,
+    // 星标可手动微调; 「恢复全部」即删条目, 随时可逆。
+    const PHRASE_CAP = 40;   // 每课精选上限 (需求: 一课控制在 40 以内)
+
+    function loadPhraseSel() {
+        try { return JSON.parse(window.DB?.getPref?.('lesson_phrase_sel', '{}') || '{}') || {}; }
+        catch (e) { return {}; }
+    }
+    function savePhraseSel(m) {
+        try { window.DB?.setPref?.('lesson_phrase_sel', JSON.stringify(m)); } catch (e) {}
+    }
+    function lessonPhraseSel(lessonId) {
+        const e = loadPhraseSel()[lessonId];
+        return Array.isArray(e) ? e : null;
+    }
+    function setLessonPhraseSel(lessonId, keys) {
+        const m = loadPhraseSel();
+        if (keys == null) delete m[lessonId];
+        else              m[lessonId] = keys;
+        savePhraseSel(m);
+    }
+
+    // 某课的全部短语对 (带稳定 key 与所属引用)
+    function lessonPhrasesAll(lesson) {
+        const out = [];
+        ((lesson && lesson.words) || []).forEach(w =>
+            (w.phrases || []).forEach(ph => out.push({
+                en: ph.en, zh: ph.zh, key: w.id + '|' + ph.en, word: w, _lesson: lesson
+            })));
+        return out;
+    }
+    // 精选后的短语对 (练习用)。无精选条目 = 全部。
+    function lessonPhrasesCore(lesson) {
+        const all = lessonPhrasesAll(lesson);
+        const sel = lesson ? lessonPhraseSel(lesson.id) : null;
+        if (!sel) return all;
+        const keep = new Set(sel);
+        return all.filter(p => keep.has(p.key));
+    }
+
+    // 短语是否在课文原文中出现 (词边界、忽略大小写; 去掉尾部的
+    // sb/sth 占位词再查 —— "look forward to sth" 查 "look forward to")
+    function phraseInText(lesson, en) {
+        let needle = String(en || '').toLowerCase().trim()
+            .replace(/\s+(sb|sth)\.?$/, '');
+        if (!needle) return false;
+        return allSentences(lesson).some(s =>
+            findWordStart(String(s.text || '').toLowerCase(), needle) >= 0);
+    }
+
+    // 本地智能精选: 不联网, 规则透明, 三层取齐 ——
+    //   ① 课文原文里实际出现的搭配全部保留 (它就是课文在用的表达);
+    //   ② 还没被覆盖的词条各补 1 条该词最优 (覆盖面), 按分值排序
+    //      取到上限; 分值 = 原文出现 +3, 词条内第 1/2/3 条 +2/+1/+0;
+    //   ③ 仍有余额再按分值补其余搭配。
+    function smartPhraseSel(lesson, cap) {
+        cap = cap || PHRASE_CAP;
+        const scored = [];
+        ((lesson && lesson.words) || []).forEach(w => {
+            (w.phrases || []).forEach((ph, i) => scored.push({
+                key    : w.id + '|' + ph.en,
+                wid    : w.id,
+                inText : phraseInText(lesson, ph.en),
+                score  : (phraseInText(lesson, ph.en) ? 3 : 0) + Math.max(2 - i, 0)
+            }));
+        });
+        // ① 原文命中的全保 (超上限则按分值裁, 实际几乎不会)
+        const keep    = [];
+        const covered = new Set();
+        scored.filter(x => x.inText)
+              .sort((a, b) => b.score - a.score)
+              .slice(0, cap)
+              .forEach(x => { keep.push(x.key); covered.add(x.wid); });
+        // ② 未覆盖词条各取该词最优 1 条, 分值高的词先入
+        if (keep.length < cap) {
+            const bestOf = {};
+            scored.forEach(x => {
+                if (covered.has(x.wid) || keep.indexOf(x.key) >= 0) return;
+                if (!bestOf[x.wid] || x.score > bestOf[x.wid].score) bestOf[x.wid] = x;
+            });
+            Object.keys(bestOf).map(k => bestOf[k])
+                .sort((a, b) => b.score - a.score)
+                .slice(0, cap - keep.length)
+                .forEach(x => { keep.push(x.key); covered.add(x.wid); });
+        }
+        // ③ 余额按分值补齐
+        if (keep.length < cap) {
+            scored.filter(x => keep.indexOf(x.key) < 0)
+                  .sort((a, b) => b.score - a.score)
+                  .slice(0, cap - keep.length)
+                  .forEach(x => keep.push(x.key));
+        }
+        return keep;
+    }
+
     // ─── 综合练习: 全课程题池与智能选题 ─────────────────────
     function mixedWordPool() {
         const out = [];
@@ -143,12 +241,16 @@ window.Lessons = (function () {
             out.push(Object.assign({}, w, { _lesson: l }))));
         return out;
     }
+    // 全量池: 恢复旧会话时按 key 还原用 (旧存档可能含未入选短语)
+    function mixedPhrasePoolAll() {
+        const out = [];
+        lessons().forEach(l => lessonPhrasesAll(l).forEach(p => out.push(p)));
+        return out;
+    }
+    // 精选池: 出题与统计用 —— 各课按各自的精选条目过滤
     function mixedPhrasePool() {
         const out = [];
-        lessons().forEach(l => (l.words || []).forEach(w =>
-            (w.phrases || []).forEach(ph => out.push({
-                en: ph.en, zh: ph.zh, key: w.id + '|' + ph.en, word: w, _lesson: l
-            }))));
+        lessons().forEach(l => lessonPhrasesCore(l).forEach(p => out.push(p)));
         return out;
     }
     // 智能选一组: 上次做错的最优先 (错得多的在前), 其次没练过的,
@@ -377,7 +479,7 @@ window.Lessons = (function () {
         const cards = lessons().map(l => {
             const p      = prog[l.id] || {};
             const wordN  = (l.words || []).length;
-            const phrN   = (l.words || []).reduce((n, w) => n + (w.phrases || []).length, 0);
+            const phrN   = lessonPhrasesCore(l).length;   // 分母按精选口径
             const arch   = archOf(l);
             const sess   = sessAll[l.id] || {};
             const badges = [];
@@ -1226,16 +1328,9 @@ window.Lessons = (function () {
         renderClozeQuestion();
     }
     // ─── 短语 (浏览 + 中英匹配) ─────────────────────────────
-    // 短语对携带稳定 key (词条ID|en) 与所属词条/课程引用:
-    // 练习档案按 key 记录, 综合练习据此优先重现错过的短语。
-    function lessonPhrases() {
-        const out = [];
-        (curLesson.words || []).forEach(w =>
-            (w.phrases || []).forEach(ph => out.push({
-                en: ph.en, zh: ph.zh, key: w.id + '|' + ph.en, word: w, _lesson: curLesson
-            })));
-        return out;
-    }
+    // 短语对携带稳定 key (词条ID|en) 与所属词条/课程引用, 练习档案
+    // 按 key 记录。取数走 lessonPhrasesAll / lessonPhrasesCore:
+    // 练习只出精选, 浏览显示全部。
 
     // 短语页/综合短语设置页的「继续上次」区块 (与填空同款交互)
     function matchResumeHtml() {
@@ -1263,7 +1358,7 @@ window.Lessons = (function () {
     function resumeMatchSess(targetGi) {
         const sess = getSess('m');
         if (!sess || !Array.isArray(sess.g)) return false;
-        const pool  = curLesson ? lessonPhrases() : mixedPhrasePool();
+        const pool  = curLesson ? lessonPhrasesAll(curLesson) : mixedPhrasePoolAll();
         const byKey = {};
         pool.forEach(p => { byKey[p.key] = p; });
         const groups = sess.g.map(g => g.map(k => byKey[k]).filter(Boolean))
@@ -1290,34 +1385,135 @@ window.Lessons = (function () {
 
     function renderPhrases(panel) {
         matchState = null;
+        const all    = lessonPhrasesAll(curLesson);
+        const sel    = lessonPhraseSel(curLesson.id);
+        const keep   = sel ? new Set(sel) : null;
+        const coreN  = keep ? all.filter(p => keep.has(p.key)).length : all.length;
         const rows = (curLesson.words || []).map(w => {
-            const phs = (w.phrases || []).map(ph => `
-                <div class="ls-phrase-row">
+            const phs = (w.phrases || []).map(ph => {
+                const key  = w.id + '|' + ph.en;
+                const core = !keep || keep.has(key);
+                return `
+                <div class="ls-phrase-row${core ? '' : ' ls-phrase-ext'}">
+                    <button class="ls-phrase-star${core ? ' on' : ''}" data-star="${esc(key)}"
+                            title="${core ? '\u79FB\u51FA\u7CBE\u9009 (\u4E0D\u518D\u53C2\u4E0E\u5339\u914D\u7EC3\u4E60)' : '\u52A0\u5165\u7CBE\u9009'}">${core ? '\u2605' : '\u2606'}</button>
                     <button class="ls-mini-speak" data-say="${esc(ph.en)}">\u{1F50A}</button>
                     <span class="ls-phrase-en">${esc(ph.en)}</span>
                     <span class="ls-phrase-zh">${esc(ph.zh)}</span>
-                </div>`).join('');
+                </div>`;
+            }).join('');
             if (!phs) return '';
             return `<div class="ls-phrase-group">
                 <div class="ls-phrase-word">${esc(w.lemma)} <span class="ls-phrase-wzh">${esc(w.zh)}</span></div>
                 ${phs}
             </div>`;
         }).join('');
-        const pairN = lessonPhrases().length;
         const size  = getLessonGroupSize();
-        const grpN  = chunkGroups(new Array(pairN), size).length;
-        const hint  = grpN > 1
-            ? `\u5171 ${pairN} \u5BF9\uFF0C\u5206 ${grpN} \u7EC4 \u00b7 \u5148\u6D4F\u89C8\u719F\u6089\uFF0C\u518D\u5339\u914D\u68C0\u9A8C`
-            : '\u5148\u6D4F\u89C8\u719F\u6089\uFF0C\u518D\u5339\u914D\u68C0\u9A8C';
+        const grpN  = chunkGroups(new Array(coreN), size).length;
+        const cnt   = keep
+            ? `\u7CBE\u9009 ${coreN} / \u5171 ${all.length} \u5BF9`
+            : `\u5171 ${all.length} \u5BF9`;
+        const hint  = `${cnt}${grpN > 1 ? ` \u00b7 \u5206 ${grpN} \u7EC4` : ''}${
+            (!keep && all.length > PHRASE_CAP)
+                ? ` \u00b7 \u504F\u591A\uFF0C\u5EFA\u8BAE\u70B9\u300C\u2728 \u7CBE\u9009\u300D\u538B\u5230 ${PHRASE_CAP} \u4EE5\u5185`
+                : ''}`;
         panel.innerHTML = `
             <div class="ls-phrases">
                 ${matchResumeHtml()}
                 <div class="ls-read-bar">
-                    <button class="wl-btn-primary" id="ls-match-start">\u{1F3AE} \u4E2D\u82F1\u5339\u914D\u7EC3\u4E60</button>
+                    <button class="wl-btn-primary" id="ls-match-start">\u{1F3AE} \u5339\u914D\u7EC3\u4E60\uFF08${coreN} \u5BF9\uFF09</button>
+                    ${keep ? `<button class="ls-tool-btn" id="ls-match-start-all" title="\u542B\u672A\u5165\u9009\u7684\u6269\u5C55\u77ED\u8BED">\u7EC3\u5168\u90E8 ${all.length}</button>` : ''}
+                    <button class="ls-tool-btn" id="ls-phrase-sel-open" title="\u667A\u80FD\u7CBE\u9009\u91CD\u8981\u77ED\u8BED">\u2728 \u7CBE\u9009</button>
                     <span class="ls-read-hint">${hint}</span>
                 </div>
                 <div class="ls-phrase-list">${rows}</div>
+            </div>
+            <div class="ls-sheet-overlay" id="ls-sheet-overlay">
+                <div class="ls-sheet" id="ls-sheet"></div>
             </div>`;
+    }
+
+    // 精选弹层: 本地智能精选 (推荐) / AI 精选 / 恢复全部
+    function openPhraseSelSheet() {
+        const sheet   = root.querySelector('#ls-sheet');
+        const overlay = root.querySelector('#ls-sheet-overlay');
+        if (!sheet || !overlay || !curLesson) return;
+        const all   = lessonPhrasesAll(curLesson);
+        const sel   = lessonPhraseSel(curLesson.id);
+        const hasAI = !!window.AIEngine?.hasAPIKey?.();
+        sheet.innerHTML = `
+            <div class="ls-sheet-head">
+                <div class="ls-sheet-word">\u2728 \u7CBE\u9009\u77ED\u8BED</div>
+                <button class="ls-sheet-close" id="ls-sheet-close">\u00d7</button>
+            </div>
+            <div class="ls-zhfix">
+                <div class="ls-zhfix-info">\u672C\u8BFE\u5171 ${all.length} \u5BF9\u77ED\u8BED${sel ? `\uFF0C\u5F53\u524D\u7CBE\u9009 ${sel.length} \u5BF9` : ''}\u3002\u7CBE\u9009\u53EA\u662F\u6807\u8BB0\u4E0D\u662F\u5220\u9664: \u5339\u914D\u7EC3\u4E60\u4E0E\u7EFC\u5408\u7EC3\u4E60\u53EA\u51FA\u7CBE\u9009\uFF0C\u6D4F\u89C8\u9875\u4FDD\u7559\u5168\u90E8\uFF0C\u661F\u6807\u53EF\u9010\u6761\u5FAE\u8C03\u3002</div>
+                <button class="wl-btn-primary ls-zhfix-btn" id="ls-psel-smart">\u2728 \u667A\u80FD\u7CBE\u9009\u5230 ${PHRASE_CAP} \u4EE5\u5185\uFF08\u672C\u5730\uFF0C\u63A8\u8350\uFF09</button>
+                <div class="ls-zhfix-noai">\u89C4\u5219: \u8BFE\u6587\u539F\u6587\u51FA\u73B0\u7684\u642D\u914D\u4F18\u5148\uFF0C\u6BCF\u8BCD\u5148\u4FDD\u4E00\u6761\u517C\u987E\u8986\u76D6\u9762\u3002</div>
+                ${hasAI ? `<button class="wl-btn-secondary ls-zhfix-btn" id="ls-psel-ai">\u{1F916} AI \u7CBE\u9009\uFF08\u8054\u7F51\uFF0C\u6309\u9AD8\u8003\u4EF7\u503C\u6311\uFF09</button>` : ''}
+                ${sel ? `<button class="wl-btn-secondary ls-zhfix-btn" id="ls-psel-clear">\u21A9 \u6062\u590D\u5168\u90E8\uFF08\u6E05\u9664\u7CBE\u9009\uFF09</button>` : ''}
+                <div class="ls-zhfix-msg" id="ls-psel-msg"></div>
+            </div>`;
+        overlay.classList.add('open');
+    }
+
+    function runPhraseSelSmart() {
+        if (!curLesson) return;
+        const keep = smartPhraseSel(curLesson, PHRASE_CAP);
+        setLessonPhraseSel(curLesson.id, keep);
+        closeWordSheet();
+        toast(`\u2728 \u5DF2\u7CBE\u9009 ${keep.length} \u5BF9\uFF0C\u661F\u6807\u53EF\u5FAE\u8C03`);
+        switchTab('phrases');
+    }
+
+    async function runPhraseSelAI() {
+        const btn = root.querySelector('#ls-psel-ai');
+        const msg = root.querySelector('#ls-psel-msg');
+        if (!btn || !curLesson || !window.AIEngine?.callClaudeJSON) return;
+        btn.disabled    = true;
+        btn.textContent = '\u23F3 AI \u6311\u9009\u4E2D\u2026';
+        if (msg) msg.textContent = '';
+        try {
+            const all   = lessonPhrasesAll(curLesson);
+            const lines = all.map((p, i) => `${i + 1}. ${p.en} \u2014 ${p.zh}\uFF08\u8BCD: ${p.word.lemma}\uFF09`).join('\n');
+            const user  = `\u8BFE\u6587\u300A${curLesson.title}\u300B\u7684\u77ED\u8BED\u642D\u914D\u6E05\u5355\u5982\u4E0B\u3002`
+                + `\u8BF7\u4ECE\u4E2D\u7CBE\u9009\u4E0D\u8D85\u8FC7 ${Math.min(PHRASE_CAP, all.length)} \u6761\u6700\u503C\u5F97\u9AD8\u4E2D\u751F\u80CC\u8BB5\u7684`
+                + `\uFF08\u9AD8\u8003\u9AD8\u9891\u3001\u8BFE\u6587\u539F\u53E5\u51FA\u73B0\u3001\u8868\u8FBE\u529F\u80FD\u5F3A\u7684\u4F18\u5148\uFF1B\u540C\u4E00\u8BCD\u7684\u76F8\u8FD1\u642D\u914D\u53EA\u7559\u4E00\u6761\uFF09\u3002`
+                + `\n\u53EA\u8F93\u51FA JSON: { "keep": [\u5E8F\u53F7...] }\uFF0C\u4E0D\u8981\u4EFB\u4F55\u89E3\u91CA\u3002\n\n${lines}`;
+            const out = await window.AIEngine.callClaudeJSON(
+                '\u4F60\u662F\u9AD8\u8003\u82F1\u8BED\u5907\u8003\u4E13\u5BB6\u3002\u53EA\u8F93\u51FA JSON\u3002', user,
+                { maxTokens: 1500 });
+            const nums = (out && Array.isArray(out.keep)) ? out.keep : null;
+            if (!nums || !nums.length) throw new Error('\u8FD4\u56DE\u91CC\u6CA1\u6709 keep \u5E8F\u53F7\u6570\u7EC4');
+            const keep = [];
+            nums.forEach(n => {
+                const p = all[Number(n) - 1];
+                if (p && keep.indexOf(p.key) < 0) keep.push(p.key);
+            });
+            if (!keep.length) throw new Error('\u5E8F\u53F7\u65E0\u6CD5\u5BF9\u5E94\u77ED\u8BED');
+            setLessonPhraseSel(curLesson.id, keep.slice(0, PHRASE_CAP));
+            closeWordSheet();
+            toast(`\u{1F916} AI \u5DF2\u7CBE\u9009 ${Math.min(keep.length, PHRASE_CAP)} \u5BF9`);
+            switchTab('phrases');
+        } catch (e) {
+            btn.disabled    = false;
+            btn.textContent = '\u{1F916} AI \u7CBE\u9009\uFF08\u8054\u7F51\uFF0C\u6309\u9AD8\u8003\u4EF7\u503C\u6311\uFF09';
+            if (msg) msg.textContent = '\u7CBE\u9009\u5931\u8D25: '
+                + (window.AIEngine?.friendlyError?.(e) || e.message || e);
+        }
+    }
+
+    // 星标微调: 首次点击时把「默认全选」落成显式清单再增删
+    function togglePhraseStar(key) {
+        if (!curLesson) return;
+        const all = lessonPhrasesAll(curLesson);
+        let sel = lessonPhraseSel(curLesson.id);
+        if (!sel) sel = all.map(p => p.key);
+        const i = sel.indexOf(key);
+        if (i >= 0) sel.splice(i, 1);
+        else        sel.push(key);
+        setLessonPhraseSel(curLesson.id, sel);
+        switchTab('phrases');
     }
 
     // ─── 补句译 (导入课数据修补) ────────────────────────────
@@ -1464,8 +1660,8 @@ window.Lessons = (function () {
         };
     }
 
-    function startMatch() {
-        const pairs = shuffle(lessonPhrases());
+    function startMatch(useAll) {
+        const pairs = shuffle(useAll ? lessonPhrasesAll(curLesson) : lessonPhrasesCore(curLesson));
         if (pairs.length < 2) { toast('\u77ED\u8BED\u592A\u5C11\uFF0C\u65E0\u6CD5\u5339\u914D'); return; }
         initMatchState('lesson', chunkGroups(pairs, getLessonGroupSize()));
         persistMatchSess();
@@ -1711,8 +1907,9 @@ window.Lessons = (function () {
    多词性用 " / " 连接（如 "n. / v."）。
 6. zh 为符合中国高中教材口径的中文释义，多义项用 "; " 分隔;
    多词性时按词性分组（如 "n. 益处; 好处  v. 使受益"）。
-7. phrases 为该词 1-3 个高考高频搭配，优先收录课文原文中实际出现的搭配，
-   每条含 en 和 zh。确无合适搭配时用空数组 []。
+7. phrases 为该词的高考高频搭配，宁缺毋滥: 默认每词 1 条，特别重要的词
+   最多 2 条，优先收录课文原文中实际出现的搭配; 常见简单词直接用空数组 []。
+   全课短语总数控制在 40 条以内。每条含 en 和 zh。
 8. 照片中未拍到或无法辨认的内容不要臆造; 无法确认的词条省略并在
    JSON 的 "notes" 字段中用中文说明。
 
@@ -1738,6 +1935,7 @@ window.Lessons = (function () {
 输出前自检:
 - 每个 surface 必须能在某个句子的 text 中原样找到（区分大小写、含空格的短语完整匹配）
 - 每一句都有非空的 zh 句译
+- 全课短语总数不超过 40 条
 - 英文句子中不残留任何全角标点或弯引号
 - 词条无重复，短语的 en 和 zh 成对出现`;
 
@@ -2036,6 +2234,7 @@ window.Lessons = (function () {
                 if (key.indexOf(pfx) === 0) { delete rec[k][key]; hit = true; }
             }));
             if (hit) savePracRec(rec);
+            setLessonPhraseSel(id, null);          // 精选条目一并清理
         } catch (e) {}
         try {
             if (window.DB?.getPref?.('lesson_last', '') === id) window.DB?.setPref?.('lesson_last', '');
@@ -2165,7 +2364,16 @@ window.Lessons = (function () {
         }
         if (t.closest('#ls-cloze-back'))   { curLesson ? switchTab('cloze') : renderMixedSetupPanel(); return; }
 
+        // 短语精选
+        if (t.closest('#ls-phrase-sel-open')) { openPhraseSelSheet(); return; }
+        if (t.closest('#ls-psel-smart'))      { runPhraseSelSmart(); return; }
+        if (t.closest('#ls-psel-ai'))         { runPhraseSelAI(); return; }
+        if (t.closest('#ls-psel-clear'))      { setLessonPhraseSel(curLesson.id, null); closeWordSheet(); toast('\u5DF2\u6062\u590D\u5168\u90E8\u77ED\u8BED'); switchTab('phrases'); return; }
+        const star = t.closest('[data-star]');
+        if (star) { togglePhraseStar(star.dataset.star); return; }
+
         // 短语匹配
+        if (t.closest('#ls-match-start-all')) { startMatch(true); return; }
         if (t.closest('#ls-match-start'))     { curLesson ? startMatch() : startMixedMatch(); return; }
         if (t.closest('#ls-match-nextgroup')) { nextMatchGroup(); return; }
         if (t.closest('#ls-match-again'))     { curLesson ? startMatch() : startMixedMatch(); return; }

@@ -119,8 +119,10 @@ ok(/\.ls-badge-part \{\n    border     : 1px dashed var\(--accent\);/.test(css),
 
 const idx = fs.readFileSync(path.join(DIR, 'index.html'), 'utf8');
 const vs  = [...idx.matchAll(/\?v=(\d+)/g)].map(x => x[1]);
-ok(new Set(vs).size === 1 && vs[0] === '120', 'index.html 全部 ?v=120');
-ok(/const CACHE_NAME = 'hsv-v23'/.test(sync.length ? fs.readFileSync(path.join(DIR, 'sw.js'), 'utf8') : ''), 'sw.js CACHE_NAME = hsv-v23');
+ok(new Set(vs).size === 1 && Number(vs[0]) >= 120, 'index.html ?v 全部一致且 >= 120');
+const swS = fs.readFileSync(path.join(DIR, 'sw.js'), 'utf8');
+const swV3 = (swS.match(/const CACHE_NAME = 'hsv-v(\d+)'/) || [])[1];
+ok(swV3 && Number(swV3) >= 23, 'sw.js CACHE_NAME >= hsv-v23');
 
 console.log('\n' + '═'.repeat(46));
 console.log(`  通过 ${pass} 项, 失败 ${fail} 项`);
