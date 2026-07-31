@@ -85,8 +85,9 @@ ok(/\.ls-setup-smartopt \{/.test(css), '智能开关样式存在');
 const idx = fs.readFileSync(path.join(DIR, 'index.html'), 'utf8');
 const sw  = fs.readFileSync(path.join(DIR, 'sw.js'), 'utf8');
 const vs  = [...idx.matchAll(/\?v=(\d+)/g)].map(x => x[1]);
-ok(new Set(vs).size === 1 && vs[0] === '122', 'index.html 全部 ?v=122');
-ok(/const CACHE_NAME = 'hsv-v25'/.test(sw), 'sw.js CACHE_NAME = hsv-v25');
+ok(new Set(vs).size === 1 && Number(vs[0]) >= 122, 'index.html ?v 全部一致且 >= 122');
+const swV5 = (sw.match(/const CACHE_NAME = 'hsv-v(\d+)'/) || [])[1];
+ok(swV5 && Number(swV5) >= 25, 'sw.js CACHE_NAME >= hsv-v25');
 ok(/hsv-v25 \(\?v=122\)/.test(sw), 'sw.js 有 v25 变更日志');
 
 console.log('\n' + '═'.repeat(46));

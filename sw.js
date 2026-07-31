@@ -1,5 +1,20 @@
 // sw.js — VocabPeak Service Worker
 
+// hsv-v26 (?v=123) — 同步安全: 拉取前快照兜底 (记录误冲可回滚):
+//   • 案例复盘: 平板离线练习 (The Power of Patience), 联网首启仍在
+//     跑缓存里的旧版代码 —— init 先静默拉取、旧逻辑整档覆盖, 本机
+//     记录在 v23 合并保护送达前就被冲掉 (修复代码永远晚到一个会话
+//     的竞态)。day_ 日志因旧版已有豁免而幸存。
+//   • 兜底保险: 每次套用远端快照前, 把 lesson_progress / lesson_mixed
+//     / lesson_sess / lesson_phrase_sel / notebook / lessons_user 六键
+//     现值存入本机「拉取前快照」(键名下划线开头, 不进推送快照、不被
+//     拉取删除, 只留最近一代)。误冲后控制台 SyncManager.restorePrePull()
+//     一键回滚, 再手动同步推回云端。
+//   • 配套工具 (仓库根目录, Node 运行):
+//     merge-restore-backup.js — 从 Gist 历史版本/旧备份找回记录,
+//     按 v120 同源合并规则拼成可导入备份 (含生词本按词并集、用户课
+//     整课找回、日志补天); check-lesson-records.js 可复核合并结果。
+
 // hsv-v25 (?v=122) — 单课填空: 智能选题 (四五十题不必每轮全刷):
 //   • 词条是课文核心词汇, 不做删减 —— 与短语精选思路相反, 解法是
 //     让重复轮次自动变轻: 设置页新增「🎯 智能选题」开关, 勾上后
@@ -288,7 +303,7 @@
 
 // 缓存名与 EMPro 隔离：Cache Storage 也是按 origin 共享的，两个应用
 // 的 CACHE_NAME 必须不同，否则会互相删除对方的缓存。
-const CACHE_NAME = 'hsv-v25';
+const CACHE_NAME = 'hsv-v26';
 const ASSETS = [
     './',
     './index.html',

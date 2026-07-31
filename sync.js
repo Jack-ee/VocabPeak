@@ -375,6 +375,25 @@ window.SyncManager = (function() {
             let dataChangeCount  = 0;
             let mergedUnion      = 0;   // 字段级合并后比远端多的键数 (需回推)
 
+            // ── 拉取前安全快照 (v123) ─────────────────────────
+            // 套用远端前把学习数据的本机现值整份存起来。存储键以
+            // 下划线开头, 不匹配档案前缀 → 不进推送快照、不被拉取
+            // 删除, 永远只属于本机。仅保留最近一代, 每次套用前覆盖。
+            // 误冲后可用 SyncManager.restorePrePull() 一键回滚 ——
+            // 这是对「首次联网仍在跑旧版代码」这类竞态的兜底保险。
+            try {
+                const guardNames = ['lesson_progress', 'lesson_mixed', 'lesson_sess',
+                                    'lesson_phrase_sel', 'notebook', 'lessons_user'];
+                const stash = { ts: Date.now(), data: {} };
+                guardNames.forEach(n => {
+                    const v = localStorage.getItem(prefix + n);
+                    if (v != null) stash.data[prefix + n] = v;
+                });
+                if (Object.keys(stash.data).length) {
+                    localStorage.setItem('_' + prefix + 'prepull', JSON.stringify(stash));
+                }
+            } catch (e) { /* 配额不足等: 保险失败不阻塞正常同步 */ }
+
             // 走字段级合并的课文记录键 (见上方 mergeLesson* 注释)
             const mergeFns = {};
             mergeFns[prefix + 'lesson_progress'] = mergeLessonProgress;
@@ -796,6 +815,28 @@ window.SyncManager = (function() {
         }
     }
 
+    // 回滚到最近一次拉取前的本机学习数据快照。控制台调用:
+    //   SyncManager.restorePrePull()          // 查看并恢复
+    // 返回 { restoredKeys, savedAt } 或 null (无快照)。恢复后建议
+    // 手动点一次同步把正确数据推回云端。
+    function restorePrePull() {
+        try {
+            const raw = localStorage.getItem('_' + prefix + 'prepull');
+            if (!raw) { console.log('[Sync] \u6CA1\u6709\u62C9\u53D6\u524D\u5FEB\u7167'); return null; }
+            const stash = JSON.parse(raw);
+            if (!stash || !stash.data) return null;
+            const keys = Object.keys(stash.data);
+            keys.forEach(k => localStorage.setItem(k, stash.data[k]));
+            console.log('[Sync] \u5DF2\u56DE\u6EDA ' + keys.length + ' \u4E2A\u952E\u5230 '
+                + new Date(stash.ts).toLocaleString());
+            window.App?.showToast?.('\u5DF2\u56DE\u6EDA\u62C9\u53D6\u524D\u7684\u5B66\u4E60\u8BB0\u5F55');
+            return { restoredKeys: keys, savedAt: stash.ts };
+        } catch (e) {
+            console.warn('[Sync] restorePrePull failed', e);
+            return null;
+        }
+    }
+
     async function handleSyncClick() {
         if (!getToken()) {
             window.App?.showToast?.('Set GitHub token in Settings first.');
@@ -814,6 +855,7 @@ window.SyncManager = (function() {
     // ─── Public API ──────────────────────────────────────────
     return {
         init,
+        restorePrePull,
         triggerSave,
         pull,
         push,
