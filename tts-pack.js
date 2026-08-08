@@ -158,8 +158,18 @@ window.TTSPack = (function () {
         return u.trim().replace(/\/+$/, '');   // strip any trailing slash
     }
 
+    // 语音包密钥 (设置 → 语音): 分享者启用密钥门后由其发放; 留空
+    // 表示 Worker 未设防或本机就是所有者部署。
+    function packKey() {
+        const k = (window.DB && window.DB.getPref
+                   ? window.DB.getPref('pack_key', '') : '') || '';
+        return k.trim();
+    }
+
     function assetUrl(base, asset) {
-        return base + '?asset=' + encodeURIComponent(asset);
+        const key = packKey();
+        return base + '?asset=' + encodeURIComponent(asset)
+             + (key ? '&key=' + encodeURIComponent(key) : '');
     }
 
     // --- Download with progress -------------------------------------

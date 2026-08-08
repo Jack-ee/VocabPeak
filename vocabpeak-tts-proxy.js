@@ -29,6 +29,19 @@
  *   the same URL also serves the audio pack.
  *
  * If the audio pack lives in a different repo, edit PACK_REPO below.
+ *
+ * 语音包分发密钥 (可选, v124)
+ *   Worker 环境变量 PACK_KEYS 填逗号分隔的密钥清单 (Dashboard ->
+ *   Settings -> Variables), 例如: "family-2026,friendA-x7k2"。
+ *   设了之后, 包下载必须带 &key=<清单中任意一个>; 删掉某个密钥再
+ *   Deploy 即撤销该人的下载资格; 清空/删除 PACK_KEYS 即回到不设防。
+ *   每次下载在日志里记 key 前缀, 便于追溯 (wrangler tail 可看)。
+ *
+ *   注意: 只要 PACK_REPO 是公开仓库, Release 直链就绕得开这道门 ——
+ *   密钥只是"应用内下载"的闸。要做成真正的付费闸, 把音频包发布到
+ *   一个私有仓库, 并给 Worker 配环境变量 GH_TOKEN (fine-grained,
+ *   仅该仓库 contents:read): 配了 GH_TOKEN 本 Worker 自动改走
+ *   GitHub API 拉取私有资产, Worker 就成了唯一下载通道。
  * ============================================================
  */
 
@@ -46,6 +59,14 @@ const PACK_REPO     = 'jack-ee/VocabPeak';
 const PACK_TAG      = 'audio-pack';
 const PACK_ASSET_RE = /^vocabpeak-audio-pack[A-Za-z0-9._-]*$/;
 
+// 分发密钥校验: PACK_KEYS 为空 = 不设防; 非空 = key 必须在清单内。
+function packKeyAllowed(env, key) {
+    const list = String((env && env.PACK_KEYS) || '')
+        .split(',').map(x => x.trim()).filter(Boolean);
+    if (!list.length) return true;
+    return !!key && list.indexOf(String(key).trim()) >= 0;
+}
+
 function corsHeaders(origin) {
     const allow = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
     return {
@@ -60,22 +81,55 @@ function corsHeaders(origin) {
 
 // --- Audio pack route (GET) ---------------------------------------
 // Relays a whitelisted GitHub Release asset with CORS headers added.
-async function handlePackRequest(request, origin) {
-    const asset = new URL(request.url).searchParams.get('asset') || '';
+async function handlePackRequest(request, origin, env) {
+    const url   = new URL(request.url);
+    const asset = url.searchParams.get('asset') || '';
     if (!PACK_ASSET_RE.test(asset)) {
         return new Response('Unknown or disallowed asset name', {
             status: 400, headers: corsHeaders(origin),
         });
     }
 
-    const ghUrl = 'https://github.com/' + PACK_REPO +
-                  '/releases/download/' + PACK_TAG + '/' + asset;
+    // 分发密钥门 (设了 PACK_KEYS 才生效)。403 文案会原样出现在
+    // 应用的下载错误提示里, 用中文直说原因。
+    const key = url.searchParams.get('key') || '';
+    if (!packKeyAllowed(env, key)) {
+        console.log('[pack] DENIED asset=' + asset + ' key=' + key.slice(0, 4) + '***');
+        return new Response(
+            '\u8BED\u97F3\u5305\u5BC6\u94A5\u65E0\u6548\u6216\u5DF2\u505C\u7528 \u2014 \u8BF7\u5411\u5206\u4EAB\u8005\u6838\u5BF9 (\u8BBE\u7F6E \u2192 \u8BED\u97F3 \u2192 \u8BED\u97F3\u5305\u5BC6\u94A5)',
+            { status: 403, headers: corsHeaders(origin) });
+    }
+    console.log('[pack] asset=' + asset + (key ? ' key=' + key.slice(0, 4) + '***' : ' (open)'));
 
     let upstream;
     try {
-        // A server-side fetch follows the 302 to the CDN with no CORS
-        // restriction, so the bytes come back cleanly.
-        upstream = await fetch(ghUrl, { redirect: 'follow' });
+        if (env && env.GH_TOKEN) {
+            // 私有仓库路径: 经 GitHub API 定位资产再以 octet-stream 拉取。
+            // 配了 GH_TOKEN 即自动启用, Worker 成为唯一下载通道。
+            const gh = { 'Authorization': 'Bearer ' + env.GH_TOKEN,
+                         'User-Agent'   : 'vocabpeak-tts-proxy' };
+            const rel = await fetch('https://api.github.com/repos/' + PACK_REPO +
+                                    '/releases/tags/' + PACK_TAG, { headers: gh });
+            if (!rel.ok) {
+                return new Response('Release lookup failed (HTTP ' + rel.status + ')',
+                    { status: 502, headers: corsHeaders(origin) });
+            }
+            const meta = await rel.json();
+            const hit  = (meta.assets || []).find(a => a.name === asset);
+            if (!hit) {
+                return new Response('Asset not in release: ' + asset,
+                    { status: 404, headers: corsHeaders(origin) });
+            }
+            upstream = await fetch(hit.url, {
+                headers: Object.assign({ 'Accept': 'application/octet-stream' }, gh),
+                redirect: 'follow',
+            });
+        } else {
+            // 公开仓库路径: 直链跟随 302 到 CDN。
+            const ghUrl = 'https://github.com/' + PACK_REPO +
+                          '/releases/download/' + PACK_TAG + '/' + asset;
+            upstream = await fetch(ghUrl, { redirect: 'follow' });
+        }
     } catch (e) {
         return new Response('Pack fetch failed: ' + e, {
             status: 502, headers: corsHeaders(origin),
@@ -125,7 +179,7 @@ async function handleTtsRequest(request, origin) {
 }
 
 export default {
-    async fetch(request) {
+    async fetch(request, env) {
         const origin = request.headers.get('Origin') || '';
 
         // CORS preflight - sent before a POST because it carries an
@@ -142,7 +196,7 @@ export default {
             });
         }
 
-        if (request.method === 'GET')  return handlePackRequest(request, origin);
+        if (request.method === 'GET')  return handlePackRequest(request, origin, env);
         if (request.method === 'POST') return handleTtsRequest(request, origin);
 
         return new Response('Method not allowed', {

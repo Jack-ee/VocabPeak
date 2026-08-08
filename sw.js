@@ -1,5 +1,20 @@
 // sw.js — VocabPeak Service Worker
 
+// hsv-v27 (?v=124) — 语音包共享: 分发密钥门 (由所有者控制开关):
+//   • Worker (vocabpeak-tts-proxy.js 需重新部署): 环境变量 PACK_KEYS
+//     填逗号分隔密钥清单即启用 —— 包下载必须带 &key=清单内密钥;
+//     删密钥再 Deploy 即撤销该人资格; 清空即回到不设防。每次下载
+//     记 key 前缀日志 (wrangler tail 可追溯)。403 文案中文直说原因。
+//   • 私有仓库彻底封直链 (真收费闸的前提): 公开仓库的 Release 直链
+//     绕得开密钥门; 把音频包发到私有仓库并给 Worker 配 GH_TOKEN
+//     (fine-grained, 仅该仓库 contents:read), Worker 自动改走 GitHub
+//     API 拉私有资产, 成为唯一下载通道。
+//   • 客户端: 设置 → 语音 新增「语音包密钥」输入 (pref pack_key,
+//     device 内随快照同步, 不进课程包); tts-pack.js 下载请求自动携带。
+//     已下载到设备的语音不受密钥停用影响 (IndexedDB 本地永存)。
+//   • TTS 实时合成不设门: 各设备用自己的 OpenAI key, Worker 只是
+//     CORS 中转, 分享不产生所有者成本。
+
 // hsv-v26 (?v=123) — 同步安全: 拉取前快照兜底 (记录误冲可回滚):
 //   • 案例复盘: 平板离线练习 (The Power of Patience), 联网首启仍在
 //     跑缓存里的旧版代码 —— init 先静默拉取、旧逻辑整档覆盖, 本机
@@ -303,7 +318,7 @@
 
 // 缓存名与 EMPro 隔离：Cache Storage 也是按 origin 共享的，两个应用
 // 的 CACHE_NAME 必须不同，否则会互相删除对方的缓存。
-const CACHE_NAME = 'hsv-v26';
+const CACHE_NAME = 'hsv-v27';
 const ASSETS = [
     './',
     './index.html',

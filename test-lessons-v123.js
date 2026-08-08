@@ -70,8 +70,9 @@ section('3. 版本纪律');
 const idx = fs.readFileSync(path.join(DIR, 'index.html'), 'utf8');
 const sw  = fs.readFileSync(path.join(DIR, 'sw.js'), 'utf8');
 const vs  = [...idx.matchAll(/\?v=(\d+)/g)].map(x => x[1]);
-ok(new Set(vs).size === 1 && vs[0] === '123', 'index.html 全部 ?v=123');
-ok(/const CACHE_NAME = 'hsv-v26'/.test(sw), 'sw.js CACHE_NAME = hsv-v26');
+ok(new Set(vs).size === 1 && Number(vs[0]) >= 123, 'index.html ?v 全部一致且 >= 123');
+const swV6 = (sw.match(/const CACHE_NAME = 'hsv-v(\d+)'/) || [])[1];
+ok(swV6 && Number(swV6) >= 26, 'sw.js CACHE_NAME >= hsv-v26');
 ok(/hsv-v26 \(\?v=123\)/.test(sw), 'sw.js 有 v26 变更日志');
 ok(/restorePrePull/.test(sw), '变更日志提及回滚入口');
 

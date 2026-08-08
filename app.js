@@ -1002,6 +1002,10 @@
         if (keyEl) keyEl.value = window.DB?.getPref?.('tts_openai_key', '') || '';
         const proxyEl = document.getElementById('settings-tts-proxy');
         if (proxyEl) proxyEl.value = window.DB?.getPref?.('tts_proxy_url', '') || '';
+
+        // 语音包密钥 (分享者启用密钥门时需要)
+        const pkEl = document.getElementById('settings-pack-key');
+        if (pkEl) pkEl.value = window.DB?.getPref?.('pack_key', '') || '';
     }
 
     function populateProviderSelect() {
@@ -1064,6 +1068,9 @@
             window.DB.setPref('tts_openai_key', (e.target.value || '').replace(/[^\x21-\x7E]/g, ''));
             _neuralFailureNotified = false;
             _keyCleanWarned = false;
+        });
+        document.getElementById('settings-pack-key')?.addEventListener('input', (e) => {
+            window.DB.setPref('pack_key', (e.target.value || '').trim());
         });
         document.getElementById('settings-tts-proxy')?.addEventListener('input', (e) => {
             window.DB.setPref('tts_proxy_url', (e.target.value || '').trim());

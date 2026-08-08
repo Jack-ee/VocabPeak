@@ -22,9 +22,9 @@
          sw.js to match (e.g. 'hsv-vN+1').
          Current version: v=107
          ========================================================= -->
-    <link rel="stylesheet" href="style.css?v=123">
-    <link rel="stylesheet" href="expressions-coach.css?v=123">
-    <link rel="stylesheet" href="lessons.css?v=123">
+    <link rel="stylesheet" href="style.css?v=124">
+    <link rel="stylesheet" href="expressions-coach.css?v=124">
+    <link rel="stylesheet" href="lessons.css?v=124">
 </head>
 <body>
 
@@ -289,6 +289,8 @@ eloquent manifest scrutinize caveat
                             <select id="settings-neural-voice" class="rd-select" style="width:100%;margin-bottom:6px"></select>
                             <input type="password" id="settings-tts-key" placeholder="OpenAI 密钥 &mdash; sk-...（留空则用 AI 提供商密钥）" class="settings-input" style="width:100%;margin-bottom:6px">
                             <input type="text" id="settings-tts-proxy" placeholder="TTS 代理地址 &mdash; https://...workers.dev" class="settings-input" style="width:100%;margin-bottom:6px">
+                            <input type="text" id="settings-pack-key" placeholder="语音包密钥 &mdash; 分享者提供，可留空" class="settings-input" style="width:100%;margin-bottom:6px" autocomplete="off">
+                            <p style="font-size:10px;color:var(--text-tertiary);margin:-2px 0 6px">下载配套语音包时随请求校验；密钥被分享者停用后包下载会提示无效，已下载的语音不受影响。</p>
                             <button id="settings-tts-test" class="wl-btn-primary" style="width:100%">测试神经语音</button>
                             <div id="settings-tts-status" style="font-family:var(--font-mono);font-size:10px;color:var(--text-secondary);margin-top:5px;min-height:13px"></div>
                             <p style="font-size:10px;color:var(--text-tertiary);margin-top:4px">需要你的 Cloudflare Worker 地址 &mdash; OpenAI 禁止浏览器直连。音频首次获取后会缓存。</p>
@@ -407,30 +409,30 @@ eloquent manifest scrutinize caveat
 
 <div id="toast-container"></div>
 
-<script src="config.js?v=123"></script>
-<script src="dictionary.js?v=123"></script>
-<script src="vocab-hs-data.js?v=123"></script>
-<script src="lessons-data.js?v=123"></script>
-<script src="db.js?v=123"></script>
-<script src="ai-engine.js?v=123"></script>
-<script src="my-words.js?v=123"></script>
-<script src="cloze.js?v=123"></script>
-<script src="writing-lab.js?v=123"></script>
-<script src="vocab-drill.js?v=123"></script>
-<script src="reader.js?v=123"></script>
-<script src="lessons.js?v=123"></script>
-<script src="speaking-coach.js?v=123"></script>
-<script src="expressions-data.js?v=123"></script>
-<script src="expressions-coach.js?v=123"></script>
-<script src="sentence.js?v=123"></script>
-<script src="sentence-drill.js?v=123"></script>
-<script src="sync.js?v=123"></script>
-<script src="tts-pack.js?v=123"></script>
-<script src="app.js?v=123"></script>
+<script src="config.js?v=124"></script>
+<script src="dictionary.js?v=124"></script>
+<script src="vocab-hs-data.js?v=124"></script>
+<script src="lessons-data.js?v=124"></script>
+<script src="db.js?v=124"></script>
+<script src="ai-engine.js?v=124"></script>
+<script src="my-words.js?v=124"></script>
+<script src="cloze.js?v=124"></script>
+<script src="writing-lab.js?v=124"></script>
+<script src="vocab-drill.js?v=124"></script>
+<script src="reader.js?v=124"></script>
+<script src="lessons.js?v=124"></script>
+<script src="speaking-coach.js?v=124"></script>
+<script src="expressions-data.js?v=124"></script>
+<script src="expressions-coach.js?v=124"></script>
+<script src="sentence.js?v=124"></script>
+<script src="sentence-drill.js?v=124"></script>
+<script src="sync.js?v=124"></script>
+<script src="tts-pack.js?v=124"></script>
+<script src="app.js?v=124"></script>
 <!-- Debug panel — hidden by default, toggled via Settings → Developer.
      Script always loads so console-log capture is active even when UI
      is hidden, enabling post-mortem inspection of recent errors. -->
-<script src="debug-panel.js?v=123"></script>
+<script src="debug-panel.js?v=124"></script>
 <script>
 // --- PWA install: capture the browser's install prompt ---
 // Chrome fires beforeinstallprompt when install criteria are met.
