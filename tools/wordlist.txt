@@ -1,10 +1,10 @@
 # VocabPeak audio pack - word list
-# 已导出 2026-07-23 from the app.
+# 已导出 2026-08-09 from the app.
 # Replace tools/wordlist.txt with this file, then commit it.
 # Each block is tagged  #@<index> <word>  with a stable index.
-# voices: ash, echo, fable, nova
-# (no range set - building all 1616 words; add e.g.  "# range: 1-50"  to build one batch)
-# 1616 word(s), 3989 个条目
+# voices: alloy, ash, ballad, coral, echo, fable, nova, onyx, sage, shimmer, verse
+# (no range set - building all 1651 words; add e.g.  "# range: 1-50"  to build one batch)
+# 1651 word(s), 5179 个条目
 
 #@1 abandon
 abandon
@@ -217,11 +217,9 @@ acid test
 #@27 acknowledge
 acknowledge
 to accept or admit that something is true, or to show that you have noticed or received something.
-he acknowledged that he had made a mistake.
-acknowledge a mistake
-acknowledge receipt
+they can acknowledge mistakes, see value in things that are far from perfect and identify areas for improvement.
+acknowledge mistakes
 widely acknowledged
-acknowledge support
 #@28 acquaintance
 acquaintance
 a person you know a little but who is not a close friend; also slight knowledge of something.
@@ -361,10 +359,8 @@ an admission of guilt
 #@45 admit
 admit
 to agree that something is true, often reluctantly; also to allow someone to enter or join.
-he admitted breaking the window.
-admit a mistake
-admit doing
-be admitted to
+if we admit it is a door, they'll want to go outside constantly.
+admit to
 admit defeat
 #@46 adolescent
 adolescent
@@ -536,6 +532,9 @@ application
 apply
 #@115 appoint
 appoint
+last year britain even appointed a minister for loneliness.
+appoint a minister
+be appointed as
 #@116 appointment
 appointment
 #@117 appreciate
@@ -588,6 +587,9 @@ aside
 aspect
 #@141 assess
 assess
+being humble means you have the ability to accurately assess your deficiencies without denying your skills and strengths.
+assess one's abilities
+self-assess
 #@142 assessment
 assessment
 #@143 assist
@@ -598,6 +600,8 @@ assistance
 assistant
 #@146 associate
 associate
+in a 2014 study, elizabeth dunn, associate professor of psychology at ubc, invited people on their way into a coffee shop.
+associate professor
 #@147 association
 association
 #@148 assume
@@ -728,6 +732,9 @@ behalf
 behave
 #@211 belief
 belief
+so many of us have the belief that being comfortable is the only state we will tolerate, and when we experience something outside of our comfort zone, we get impatient about the circumstances.
+have the belief that
+beyond belief
 #@212 belly
 belly
 #@213 belt
@@ -796,6 +803,8 @@ bored
 bother
 #@245 bounce
 bounce
+we passed it, he tried to put it in his mouth, he tried bouncing it, rolling it, sitting on it, throwing it.
+bounce a ball
 #@246 bound
 bound
 #@247 boundary
@@ -846,6 +855,9 @@ bun
 bunch
 #@270 burden
 burden
+by opening a novel, i can leave behind my burdens and enter into a wonderful and mysterious world where i am now a new character.
+heavy burden
+bear the burden
 #@271 burn
 burn
 #@272 burst
@@ -874,6 +886,8 @@ calculate
 calm
 #@284 campaign
 campaign
+it's thanks to these tv chefs rather than any advertising campaign that britons are turning away from meat-and-two-veg and ready-made meals and becoming more adventurous in their cooking habits.
+advertising campaign
 #@285 canal
 canal
 #@286 candidate
@@ -904,6 +918,9 @@ cast
 castle
 #@299 casual
 casual
+dismissing small talk as unimportant is easy, but we can't forget that deep relationships wouldn't even exist if it weren't for casual conversation.
+casual conversation
+casual clothes
 #@300 catalogue
 catalogue
 #@301 catastrophe
@@ -962,6 +979,8 @@ cheerful
 cheers
 #@328 chef
 chef
+even though britain has a reputation for less-than-impressive cuisine, it is producing more top class chefs who appear frequently on our television screens and whose recipe books frequently top the bestseller lists.
+top class chefs
 #@329 chemical
 chemical
 #@330 chemist
@@ -1082,6 +1101,8 @@ conclude
 conclusion
 #@388 concrete
 concrete
+i liked facts, things that are concrete.
+concrete evidence
 #@389 condemn
 condemn
 #@390 conduct
@@ -1294,6 +1315,8 @@ depth
 description
 #@494 design
 design
+he also designed an eco-machine to clean canal water in fuzhou, a city in southeast china.
+design an eco-machine
 #@495 desire
 desire
 #@496 desperate
@@ -1536,6 +1559,9 @@ existence
 exit
 #@615 expand
 expand
+one in four adults say that tv chefs have made them much more confident about expanding their cookery knowledge and skills, and young people are also getting more interested in cooking.
+expand knowledge
+expand business
 #@616 expectation
 expectation
 #@617 expedition
@@ -1930,6 +1956,8 @@ inspire
 instant
 #@812 institute
 institute
+small talk is the grease for social communication, says bernardo carducci, director of the shyness research institute at indiana university southeast.
+research institute
 #@813 institution
 institution
 #@814 instrument
@@ -1986,6 +2014,9 @@ kingdom
 labour
 #@840 lack
 lack
+and the personality traits these individuals possess or lack can often make a relationship more- or less-likely to endure.
+lack of
+for lack of
 #@841 lame
 lame
 #@842 lantern
@@ -2068,6 +2099,9 @@ male
 mankind
 #@881 manner
 manner
+"small talk is the basis of good manners," he says.
+good manners
+bad manners
 #@882 maple
 maple
 #@883 marathon
@@ -2236,6 +2270,9 @@ observe
 obtain
 #@965 obvious
 obvious
+the reason is obvious.
+the reason is obvious
+it is obvious that
 #@966 occupation
 occupation
 #@967 occupy
@@ -2360,6 +2397,8 @@ patience
 pattern
 #@1027 pause
 pause
+after climbing up a hill for a panoramic view of the blue sea, white buildings and green olive trees, i paused to catch my breath and then positioned myself to take the best photo of this panorama.
+pause to do sth.
 #@1028 pavement
 pavement
 #@1029 p.e.
@@ -2534,6 +2573,8 @@ preserve
 press
 #@1114 pretend
 pretend
+so i carried around a book, and each night, just to be like her, i would pretend to be reading.
+pretend to do sth.
 #@1115 preview
 preview
 #@1116 previous
@@ -2628,6 +2669,8 @@ rank
 rare
 #@1161 rate
 rate
+rate highly
+at any rate
 #@1162 raw
 raw
 #@1163 ray
@@ -2728,6 +2771,9 @@ republic
 reputation
 #@1211 request
 request
+but our insisting it's merely a window has kept them from attempting millions of requests to open the door.
+make a request
+at the request of
 #@1212 requirement
 requirement
 #@1213 rescue
@@ -2792,6 +2838,8 @@ rude
 rugby
 #@1243 ruin
 ruin
+this photo, with the unique beauty that unfolded before me and that woman who "ruined" it, now hangs on a wall in my bedroom.
+ruin the photo
 #@1244 sacred
 sacred
 #@1245 sacrifice
@@ -3072,6 +3120,8 @@ straightforward
 strait
 #@1383 strength
 strength
+personal strengths
+strengths and weaknesses
 #@1384 strengthen
 strengthen
 #@1385 string
@@ -3160,6 +3210,8 @@ symphony
 symptom
 #@1427 system
 system
+then you let these new systems develop their own ways to self-repair."
+new systems
 #@1428 systematic
 systematic
 #@1429 tablet
@@ -3188,6 +3240,8 @@ tease
 technical
 #@1441 technique
 technique
+i don't have to write down what happened or what technique the author was using when he or she wrote this.
+writing technique
 #@1442 teenager
 teenager
 #@1443 telescope
@@ -3326,6 +3380,9 @@ twin
 twist
 #@1510 type
 type
+occasionally, i would read a novel that was assigned, but i didn't enjoy this type of reading.
+a type of
+blood type
 #@1511 typhoon
 typhoon
 #@1512 tyre
@@ -3394,6 +3451,9 @@ valley
 valuable
 #@1544 variety
 variety
+almost one third say they now use a wider variety of ingredients than they used to, and just under 1 in 4 say they now buy better quality ingredients than before.
+a wide variety of
+variety show
 #@1545 various
 various
 #@1546 vase
@@ -3536,7 +3596,155 @@ zip
 zone
 #@1615 zoom
 zoom
-#@1616 lesson-corpus
+#@1616 mysterious
+mysterious
+mysterious world
+#@1617 wonderful
+wonderful
+wonderful world
+#@1618 simple
+simple
+yet, now that i'm growing and the world i once knew as being so simple is becoming more complex, i find myself needing a way to escape.
+simple life
+#@1619 remember
+remember
+there was not one night that i don't remember mom reading me a storybook by my bedside.
+remember to do sth.
+remember doing sth.
+#@1620 print
+print
+hearing mom say, "i can't believe what's printed in the newspaper this morning," made me want to grab it out of her hands and read it myself.
+print out
+in print
+#@1621 knowledge
+knowledge
+i read for knowledge, and to make a's on my tests.
+to one's knowledge
+#@1622 deal with
+deal with
+i must have always known reading was very important because the first memories i have as a child deal with books.
+deal with problems
+deal with stress
+#@1623 insist
+insist
+insist on
+insist that
+#@1624 identify
+identify
+identify areas for improvement
+identify with
+#@1625 admirable
+admirable
+but researchers have come to realize that being humble generally indicates the presence of deeply admirable personal qualities.
+deeply admirable
+#@1626 initiate
+initiate
+the study also found that someone who is humble is more likely to initiate a romantic relationship, perhaps because they are less likely to see themselves as "too good" for someone else.
+initiate a relationship
+initiate a conversation
+#@1627 endure
+endure
+endure hardship
+endure to the end
+#@1628 fixed
+fixed
+whatever the mistake, remember it isn't a fixed aspect of your personality.
+fixed aspect
+fixed price
+#@1629 heading
+heading
+in a journal or on a piece of paper, put the heading "personal strengths".
+put the heading
+#@1630 list
+list
+now list all the characteristics you like about yourself.
+make a list
+on the list
+#@1631 implication
+implication
+the implication is that loneliness is a huge, if silent, risk factor.
+by implication
+have implications for
+#@1632 lead to
+lead to
+first, it produces stress hormones that can lead to many health problems.
+lead to problems
+#@1633 address
+address
+public health experts in many countries are debating how to address widespread loneliness in our society.
+address a problem
+address the issue
+#@1634 conversational
+conversational
+it's possible that we all have compromised conversational intelligence.
+conversational intelligence
+#@1635 well-being
+well-being
+"but interactions with peripheral members of our social network matter for our well-being also."
+sense of well-being
+promote well-being
+#@1636 unsettling
+unsettling
+given how unsettling and haunting nightmares can be, is there a way for dreamers to avoid, or even turn off, these bad dreams as they happen?
+#@1637 plant
+plant
+unfortunately, just as i took out my camera, a woman approached from behind, and planted herself right in front of my view.
+plant oneself
+#@1638 reminder
+reminder
+that photo is a reminder, a captured moment, an unspoken conversation between two women, separated only by a thin square of glass.
+a reminder of
+#@1639 remind
+remind
+perhaps this is what photos are for: to remind us that we all appreciate beauty, that we all share a common desire for pleasure, for connection, for something that is greater than us.
+remind sb. that
+remind sb. of sth.
+#@1640 unfold
+unfold
+unfold before
+#@1641 show up
+show up
+so the main thing is just to show up and be adventurous, trying different foods and talking to strangers.
+show up on time
+#@1642 gratification
+gratification
+instant gratification may seem like the most "feel good" option at the time, but psychology research suggests waiting for things actually makes us happier in the long run.
+instant gratification
+#@1643 foster
+foster
+"showing thankfulness can foster self-control," said ye li, researcher at the university of california.
+foster self-control
+foster growth
+#@1644 option
+option
+have no option
+keep one's options open
+#@1645 cookery
+cookery
+according to a new study from market analysts, 1 in 5 britons say that watching cookery programmes on tv has encouraged them to try different food.
+cookery programmes
+#@1646 ingredient
+ingredient
+quality ingredients
+main ingredient
+#@1647 decide
+decide
+he decided to build what he would later call an eco-machine.
+decide to do sth.
+#@1648 facility
+facility
+he developed a greenhouse-like facility that treated sewage from 1,600 homes in south burlington.
+a greenhouse-like facility
+#@1649 example
+example
+a dirty stream, for example, often became clear after flowing through plants and along rocks where tiny creatures lived.
+for example
+set an example
+#@1650 bacterium
+bacterium
+why can certain plants trap harmful bacteria?
+harmful bacteria
+#@1651 lesson-corpus
 according to
 according to the report
 according to plan
@@ -3727,7 +3935,6 @@ fear
 for fear of
 given
 given that
-unsettling
 haunting
 dream
 dreams
@@ -3788,7 +3995,6 @@ the sheets are damp with sweat.
 you're cold, but your heart is racing as if a killer just chased you down a dark street.
 it was just a nightmare, you tell yourself; there's nothing to be afraid of.
 but you're still filled with fear.
-given how unsettling and haunting nightmares can be, is there a way for dreamers to avoid, or even turn off, these bad dreams as they happen?
 research is limited, but some studies suggest that people who can master lucid dreaming—that is, the ability to be aware that a nightmare is happening and possibly even control it without waking up—may hold the answer.
 nightmares are part of the human experience, especially for kids.
 doctors typically don't consider occasional nightmares a problem.
@@ -4069,26 +4275,16 @@ memory
 memories
 childhood memories
 in memory of
-deal with
-deal with problems
-deal with stress
-remember
-remember to do sth.
-remember doing sth.
 extremely
 extremely important
 inspired
 be inspired by
 inspire sb. to do sth.
 elegant design
-print
 printed
-print out
-in print
 grab
 grab hold of
 grab a bite
-pretend to do sth.
 start off
 start off with
 sentence
@@ -4130,8 +4326,6 @@ primary school
 primary education
 factual
 factual reading
-knowledge
-to one's knowledge
 occasionally visit
 write a novel
 historical novel
@@ -4139,30 +4333,18 @@ assign
 assigned
 assign homework
 assign a task
-a type of
-blood type
-concrete evidence
 room
 make room for
 there is room for
 have an argument
 strong argument
-simple
-simple life
 complex problem
 sports complex
 escape from
 narrow escape
 burdens
-heavy burden
-bear the burden
-wonderful
-wonderful world
-mysterious
-mysterious world
 main character
 in character
-writing technique
 relax
 relax oneself
 sit back and relax
@@ -4178,13 +4360,9 @@ endless possibilities
 possibility of
 limitless
 limitless possibilities
-i must have always known reading was very important because the first memories i have as a child deal with books.
-there was not one night that i don't remember mom reading me a storybook by my bedside.
 i was extremely inspired by the elegant way the words sounded.
 i always wanted to know what my mom was reading.
-hearing mom say, "i can't believe what's printed in the newspaper this morning," made me want to grab it out of her hands and read it myself.
 i wanted to be like my mom and know all of the things she knew.
-so i carried around a book, and each night, just to be like her, i would pretend to be reading.
 this is how everyone learned to read.
 we would start off with sentences, then paragraphs, and then stories.
 it seemed an unending journey, but even as a six-year-old girl i realized that knowing how to read could open many doors.
@@ -4192,14 +4370,8 @@ when mom said, "the c-a-n-d-y is hidden on the top shelf," i knew where the cand
 my progress in reading raised my curiosity, and i wanted to know everything.
 i often found myself telling my mom to drive more slowly, so that i could read all of the road signs we passed.
 most of my reading through primary, middle and high school was factual reading.
-i read for knowledge, and to make a's on my tests.
-occasionally, i would read a novel that was assigned, but i didn't enjoy this type of reading.
-i liked facts, things that are concrete.
 i thought anything abstract left too much room for argument.
-yet, now that i'm growing and the world i once knew as being so simple is becoming more complex, i find myself needing a way to escape.
-by opening a novel, i can leave behind my burdens and enter into a wonderful and mysterious world where i am now a new character.
 in these worlds i can become anyone.
-i don't have to write down what happened or what technique the author was using when he or she wrote this.
 i just read to relax.
 we're taught to read because it's necessary for much of human understanding.
 reading is a vital part of my life.
@@ -4261,7 +4433,6 @@ universally available
 be available to
 readily available
 bouncing
-bounce a ball
 rolling
 roll up
 completely
@@ -4294,7 +4465,6 @@ yesterday, i sat with my son, shepherd, determined to test my own theory on this
 i decided to play with him with only one toy for as long as it would keep his interest.
 i expected that one toy would keep his attention for about five minutes, ten minutes, max.
 i chose a red rubber ball--simple, universally available.
-we passed it, he tried to put it in his mouth, he tried bouncing it, rolling it, sitting on it, throwing it.
 it was completely, totally enough for him.
 before i knew it an hour had passed and it was time to move on to lunch.
 we both became absorbed in the simplicity of playing together.
@@ -4464,9 +4634,6 @@ keep from
 sliding
 sliding door
 slide down
-the reason is obvious
-it is obvious that
-admit to
 constantly
 constantly want
 drive
@@ -4474,16 +4641,11 @@ drive sb. crazy
 drive away
 apparently
 apparently know
-insist
 insisting
-insist on
-insist that
 merely a window
 kept them from attempting
 keep sb. from doing sth.
 requests
-make a request
-at the request of
 lie
 lying
 lie to sb.
@@ -4524,11 +4686,8 @@ repeatedly say
 hesitate to do sth.
 without hesitation
 since our twins began learning to walk, my wife and i have kept telling them that our sliding glass door is just a window.
-the reason is obvious.
-if we admit it is a door, they'll want to go outside constantly.
 it will drive us crazy.
 the kids apparently know the truth.
-but our insisting it's merely a window has kept them from attempting millions of requests to open the door.
 i hate lying to the kids.
 one day they'll wake up and discover that everything they've always known about windows is a lie.
 i wonder if parents should always tell the truth no matter the consequences.
@@ -4565,11 +4724,6 @@ personality traits
 inherited traits
 possess a quality
 be possessed by
-lack of
-for lack of
-endure
-endure hardship
-endure to the end
 humility
 with humility
 indicator
@@ -4581,15 +4735,11 @@ confuse a with b
 presence
 in the presence of
 presence of mind
-admirable
-deeply admirable
 qualities
 personal qualities
 high quality
 accurately
 accurately assess
-assess one's abilities
-self-assess
 deficiency
 deficiencies
 nutritional deficiency
@@ -4598,8 +4748,6 @@ denying
 deny the truth
 deny doing sth.
 strengths
-personal strengths
-strengths and weaknesses
 recognize
 recognize that
 recognize the importance of
@@ -4615,10 +4763,6 @@ shortcomings
 advantages and shortcomings
 ignore the problem
 completely ignore
-acknowledge mistakes
-identify
-identify areas for improvement
-identify with
 appear
 appears
 appear to be
@@ -4628,31 +4772,21 @@ a huge asset
 fixed asset
 tend to
 tend to do sth.
-rate highly
-at any rate
 spouse
 legal spouse
 be likely to
 is more likely to initiate
 be more likely to
 be less likely to
-initiate
-initiate a relationship
-initiate a conversation
 many people believe that passion and commitment are the foundations of strong romantic relationships.
 but a relationship is made of two unique individuals.
-and the personality traits these individuals possess or lack can often make a relationship more- or less-likely to endure.
 recent research has found that one trait in particular--humility--is an important indicator of successful relationships.
 humility can sometimes be confused with a lack of confidence.
-but researchers have come to realize that being humble generally indicates the presence of deeply admirable personal qualities.
-being humble means you have the ability to accurately assess your deficiencies without denying your skills and strengths.
 for example, you might recognize that you are intelligent, but realize that you are not a genius.
 thus, humility leads to an honest view of one's own advantages and shortcomings.
 humble people do not ignore, avoid, or try to deny their limits or deficiencies.
-they can acknowledge mistakes, see value in things that are far from perfect and identify areas for improvement.
 perhaps it is not surprising, then, that humility appears to be a huge asset to relationships.
 one study found that people tend to rate this quality highly in their spouse.
-the study also found that someone who is humble is more likely to initiate a romantic relationship, perhaps because they are less likely to see themselves as "too good" for someone else.
 thus, a humble partner might be your ideal partner.
 take responsibility for
 sense of responsibility
@@ -4668,11 +4802,6 @@ ask for forgiveness
 following
 the following exercise
 academic journal
-heading
-put the heading
-list
-make a list
-on the list
 personal characteristics
 caring
 caring nature
@@ -4718,15 +4847,10 @@ boost self-confidence
 boost morale
 cliche
 something of a cliche
-fixed
-fixed aspect
-fixed price
 taking responsibility for mistakes is a positive step, but don't beat yourself up about them.
 to err is human.
 it's just as important to show yourself some forgiveness.
 you can use the following writing exercise to help you do this.
-in a journal or on a piece of paper, put the heading "personal strengths".
-now list all the characteristics you like about yourself.
 are you caring?
 creative?
 generous?
@@ -4743,7 +4867,6 @@ that way, you could exchange thoughts on what makes each of you special and the 
 in fact, don't wait until you've made a mistake to try this--it's a great way to boost self-confidence at any time.
 it's something of a cliche that most people learn not from their successes but their mistakes.
 the thing is, it's true.
-whatever the mistake, remember it isn't a fixed aspect of your personality.
 we're all changing and learning all the time and mistakes are a positive way to develop and grow.
 riddle
 solve a riddle
@@ -4780,25 +4903,15 @@ gratitude
 show gratitude
 feel gratitude
 be optimistic about
-foster
-foster self-control
-foster growth
 self-control
 exercise self-control
-option
-have no option
-keep one's options open
-instant gratification
 instant noodles
-gratification
 psychology research
 in the long run
 get into the habit of
 get into the habit of doing sth.
 put off
 put off doing sth.
-have the belief that
-beyond belief
 state
 mental state
 in a state
@@ -4824,15 +4937,12 @@ here are several tricks.
 practice gratitude.
 thankfulness has a lot of benefits: research shows it makes us happier, less stressed and even more optimistic.
 it can also help us practice more patience.
-"showing thankfulness can foster self-control," said ye li, researcher at the university of california.
 make yourself wait.
-instant gratification may seem like the most "feel good" option at the time, but psychology research suggests waiting for things actually makes us happier in the long run.
 and the only way for us to get into the habit of waiting is to practice.
 start with small tasks.
 put off watching your favorite show until the weekend or wait 10 extra minutes before going for that cake.
 you'll soon find that the more patience you practice, the more you start to apply it to other, more annoying situations.
 accept the uncomfortable.
-so many of us have the belief that being comfortable is the only state we will tolerate, and when we experience something outside of our comfort zone, we get impatient about the circumstances.
 you should learn to say to yourself, "this is merely uncomfortable, not intolerable."
 you'll then gradually become more patient.
 isolation
@@ -4847,9 +4957,6 @@ childhood obesity
 cigarettes
 smoke cigarettes
 a pack of cigarettes
-implication
-by implication
-have implications for
 loneliness
 feel loneliness
 silent
@@ -4862,8 +4969,6 @@ physical exercise
 produces
 produce stress hormones
 stress hormones
-lead to
-lead to problems
 appointments
 doctor appointments
 make an appointment
@@ -4871,13 +4976,8 @@ public health experts
 debating
 debate how to
 under debate
-address
-address a problem
-address the issue
 widespread loneliness
 appointed
-appoint a minister
-be appointed as
 minister for loneliness
 at some point
 make a point
@@ -4915,12 +5015,8 @@ severely strained
 strained
 strained relationship
 social isolation poses more health risks than obesity or smoking 15 cigarettes a day, according to research published by brigham young university.
-the implication is that loneliness is a huge, if silent, risk factor.
 loneliness affects physical health in two ways.
-first, it produces stress hormones that can lead to many health problems.
 second, people who live alone are less likely to go to the doctor appointments, to exercise or to eat a healthy diet.
-public health experts in many countries are debating how to address widespread loneliness in our society.
-last year britain even appointed a minister for loneliness.
 "loneliness touches almost every one of us at some point," its minister for loneliness baroness barran said.
 "it can lead to very serious health consequences for individuals who become isolated and disconnected."
 barran started a "let's talk loneliness" campaign that sparked difficult conversations across britain.
@@ -4951,8 +5047,6 @@ in silence
 break the silence
 compromised
 compromised intelligence
-conversational
-conversational intelligence
 artificial intelligence
 emotional intelligence
 start a conversation
@@ -4980,15 +5074,12 @@ dismissing
 dismiss as
 deep relationships
 exist in
-casual conversation
-casual clothes
 grease
 the grease for communication
 communication
 social communication
 means of communication
 research director
-research institute
 business
 business deal
 do business
@@ -5000,7 +5091,6 @@ connect to
 communicate
 communicate with
 communicate effectively
-associate professor
 professor of psychology
 seek out
 interaction
@@ -5019,9 +5109,6 @@ social networking
 matter
 it doesn't matter
 what's the matter
-well-being
-sense of well-being
-promote well-being
 reach
 reach out to
 sense of belonging
@@ -5030,26 +5117,18 @@ form a bond
 on the basis of
 the basis of
 manners
-good manners
-bad manners
 we've all been there: in a lift, in line at the bank or on an airplane, surrounded by people who are, like us, deeply focused on their smartphones or, worse, struggling with the uncomfortable silence.
 what's the problem?
-it's possible that we all have compromised conversational intelligence.
 it's more likely that none of us start a conversation because it's awkward and challenging, or we think it's annoying and unnecessary.
 but the next time you find yourself among strangers, consider that small talk is worth the trouble.
 experts say it's an invaluable social practice that results in big benefits.
-dismissing small talk as unimportant is easy, but we can't forget that deep relationships wouldn't even exist if it weren't for casual conversation.
-small talk is the grease for social communication, says bernardo carducci, director of the shyness research institute at indiana university southeast.
 "almost every great love story and each big business deal begins with small talk," he explains.
 "the key to successful small talk is learning how to connect with others, not just communicate with them."
-in a 2014 study, elizabeth dunn, associate professor of psychology at ubc, invited people on their way into a coffee shop.
 one group was asked to seek out an interaction with its waiter; the other, to speak only when necessary.
 the results showed that those who chatted with their server reported significantly higher positive feelings and a better coffee shop experience.
 "it's not that talking to the waiter is better than talking to your husband," says dunn.
-"but interactions with peripheral members of our social network matter for our well-being also."
 dunn believes that people who reach out to strangers feel a significantly greater sense of belonging, a bond with others.
 carducci believes developing such a sense of belonging starts with small talk.
-"small talk is the basis of good manners," he says.
 vacation
 summer vacation
 take a vacation
@@ -5058,7 +5137,6 @@ panoramic view
 a panoramic view
 in view of
 paused
-pause to do sth.
 breath
 catch one's breath
 hold one's breath
@@ -5070,9 +5148,7 @@ take the best photo of the panorama
 approached
 approach from behind
 approach to
-plant
 planted
-plant oneself
 sigh with relief
 appreciate the view
 appreciate one's help
@@ -5107,11 +5183,8 @@ engage
 engaging
 engage with
 unique beauty
-unfold
 unfolded
-unfold before
 ruined
-ruin the photo
 hang
 hangs
 hang on the wall
@@ -5132,16 +5205,11 @@ be immortalized in
 each other's
 each others'
 each other's spaces
-remind
-remind sb. that
-remind sb. of sth.
 common
 common desire
 in common
 a desire for
 have a desire to
-reminder
-a reminder of
 separate
 separated
 be separated by
@@ -5152,8 +5220,6 @@ a thin square of glass
 glass
 a square of glass
 fifteen years ago, i took a summer vacation in lecce in southern italy.
-after climbing up a hill for a panoramic view of the blue sea, white buildings and green olive trees, i paused to catch my breath and then positioned myself to take the best photo of this panorama.
-unfortunately, just as i took out my camera, a woman approached from behind, and planted herself right in front of my view.
 like me, this woman was here to stop, sigh and appreciate the view.
 patient as i was, after about 15 minutes, my camera scanning the sun and reviewing the shot i would eventually take, i grew frustrated.
 was it too much to ask her to move so i could take just one picture of the landscape?
@@ -5165,13 +5231,10 @@ the woman was still there.
 i decided to take the photo anyway.
 and now when i look at it, i think her presence in the photo is what makes the image interesting.
 the landscape, beautiful on its own, somehow comes to life and breathes because this woman is engaging with it.
-this photo, with the unique beauty that unfolded before me and that woman who "ruined" it, now hangs on a wall in my bedroom.
 what would she think if she knew that her figure is captured and frozen on some stranger's bedroom wall?
 a bedroom, after all, is a very private space, in which some woman i don't even know has been immortalized.
 in some ways, she lives in my house.
 perhaps we all live in each others' spaces.
-perhaps this is what photos are for: to remind us that we all appreciate beauty, that we all share a common desire for pleasure, for connection, for something that is greater than us.
-that photo is a reminder, a captured moment, an unspoken conversation between two women, separated only by a thin square of glass.
 the first step
 take steps
 exploring
@@ -5183,8 +5246,6 @@ wander around
 main
 the main thing
 in the main
-show up
-show up on time
 adventurous
 be adventurous
 other than
@@ -5234,7 +5295,6 @@ turn around and say
 extremely delicious
 according to jessica hagy, author of how to be interesting, it's not difficult to make yourself interesting at a dinner party.
 the first step is to go exploring, if you're out of your comfort zone or if you're wandering into somebody's house for the first time.
-so the main thing is just to show up and be adventurous, trying different foods and talking to strangers.
 people love to talk about themselves.
 if you can start the conversation with a question other than "what do you do for a living?", you'll be able to get a lot more interesting conversation out of whoever it is you're talking to.
 if you ask the question "how did you get here?", it can bring in "i have this old, broken-down vehicle" or "i rode the bus with these crazy people who were laughing at silly jokes in the back."
@@ -5262,7 +5322,6 @@ top the list
 class
 first class
 chefs
-top class chefs
 appear on
 frequently
 appear frequently
@@ -5276,7 +5335,6 @@ bestseller list
 rather
 rather than
 advertising
-advertising campaign
 ready-made
 ready-made meals
 cooking
@@ -5304,19 +5362,10 @@ market analysts
 on the market
 analyst
 analysts
-cookery
-cookery programmes
-a wide variety of
-variety show
-ingredient
 ingredients
-quality ingredients
-main ingredient
 be confident about
 confident in
 expanding
-expand knowledge
-expand business
 obsession
 obsession with
 reflected
@@ -5332,14 +5381,9 @@ live broadcast
 what comes into your mind when you think of british food?
 probably fish and chips, or a sunday dinner of meat and two vegetables.
 but is british food really so uninteresting?
-even though britain has a reputation for less-than-impressive cuisine, it is producing more top class chefs who appear frequently on our television screens and whose recipe books frequently top the bestseller lists.
-it's thanks to these tv chefs rather than any advertising campaign that britons are turning away from meat-and-two-veg and ready-made meals and becoming more adventurous in their cooking habits.
 it is recently reported that the number of those sticking to a traditional diet is slowly declining and around half of britain's consumers would like to change or improve their cooking in some way.
 there has been a rise in the number of students applying for food courses at uk universities and colleges.
 it seems that tv programmes have helped change what people think about cooking.
-according to a new study from market analysts, 1 in 5 britons say that watching cookery programmes on tv has encouraged them to try different food.
-almost one third say they now use a wider variety of ingredients than they used to, and just under 1 in 4 say they now buy better quality ingredients than before.
-one in four adults say that tv chefs have made them much more confident about expanding their cookery knowledge and skills, and young people are also getting more interested in cooking.
 the uk's obsession with food is reflected through television scheduling.
 cookery shows and documentaries about food are broadcast more often than before.
 with an increasing number of male chefs on tv, it's no longer "uncool" for boys to like cooking.
@@ -5354,9 +5398,6 @@ observe the rules
 stream
 a dirty stream
 stream of
-example
-for example
-set an example
 flowing
 flow through
 plants
@@ -5380,9 +5421,7 @@ study fisheries
 college
 in college
 go to college
-harmful bacteria
 harmful to
-bacterium
 bacteria
 combination
 a combination of
@@ -5392,9 +5431,7 @@ figure that
 waste
 clean up waste
 a waste of time
-decide
 decided
-decide to do sth.
 remove harmful substances
 substance
 substances
@@ -5435,14 +5472,11 @@ develop
 developed
 develop a facility
 develop skills
-facility
-a greenhouse-like facility
 treated
 treat sewage
 treat sb. well
 sewage
 designed
-design an eco-machine
 canal water
 ecological
 ecological design
@@ -5455,17 +5489,13 @@ organism
 organisms
 put organisms
 systems
-new systems
 self-repair
 develop self-repair
 when john todd was a child, he loved to explore the woods around his house, observing how nature solved problems.
-a dirty stream, for example, often became clear after flowing through plants and along rocks where tiny creatures lived.
 when he got older, john started to wonder if this process could be used to clean up the messes people were making.
 after studying agriculture, medicine, and fisheries in college, john went back to observing nature and asking questions.
-why can certain plants trap harmful bacteria?
 which kinds of fish can eat cancer-causing chemicals?
 with the right combination of animals and plants, he figured, maybe he could clean up waste the way nature did.
-he decided to build what he would later call an eco-machine.
 the task john set for himself was to remove harmful substances from some sludge.
 first, he constructed a series of clear fiberglass tanks connected to each other.
 then he went around to local ponds and streams and brought back some plants and animals.
@@ -5476,12 +5506,9 @@ he was amazed at the results.
 the plants and animals in the eco-machine took the sludge as food and began to eat it!
 within weeks, it had all been digested, and all that was left was pure water.
 over the years, john has taken on many big jobs.
-he developed a greenhouse-like facility that treated sewage from 1,600 homes in south burlington.
-he also designed an eco-machine to clean canal water in fuzhou, a city in southeast china.
 "ecological design" is the name john gives to what he does.
 "life on earth is kind of a box of spare parts for the inventor," he says.
 "you put organisms in new relationships and observe what's happening.
-then you let these new systems develop their own ways to self-repair."
 age
 as we age
 at the age of
@@ -5611,3 +5638,1201 @@ but the hearts of those who participated in less intense exercise didn't change,
 "we put healthy 70-year-olds through a year-long exercise training program, and nothing happened to them at all."
 dr. nieca goldberg, a spokeswoman for the american heart association, says levine's findings are a great start.
 but the study was small and needs to be repeated with far larger groups of people to determine exactly which aspects of an exercise routine make the biggest difference.
+dab
+a dab hand at
+when it comes to
+skilled
+be skilled at
+put up
+putting up
+put up with
+shelves
+piece together
+piecing together
+a piece of furniture
+pay
+pays
+pay sb to do sth
+credits
+credit sth to sb
+late
+builder
+accompanied
+accompany sb to a place
+holiday
+holidays
+on holiday
+rewarded
+reward sb with sth
+heavily
+involve
+involved
+be involved in
+flooring
+backbreaking
+proud
+be proud of
+losing
+pay a deposit
+tenancy
+personalise
+cover up
+holes
+charges
+free of charge
+move out
+moved out
+make the most of
+on average
+spend
+spend time doing sth
+traditionally
+terri bolton is a dab hand when it comes to diy (do-it-yourself).
+skilled at putting up shelves and piecing together furniture, she never pays someone else to do a job she can do herself.
+she credits these skills to her late grandfather and builder derek lloyd.
+from the age of six, terri, now 26, accompanied derek to work during her school holidays.
+a day's work was rewarded with £5 in pocket money.
+she says: "i'm sure i wasn't much of a help to start with.
+but when derek built our family house about eight years ago, i was heavily involved, painting the rooms and putting down the flooring throughout the house.
+it took weeks and it was backbreaking work, but i know he was proud of my skills."
+terri, who now rents a house with friends in wandsworth, south west london says diy also saves her from losing any deposit when a tenancy comes to an end.
+she adds: "i've moved house many times and i always like to personalise my room and put up pictures.
+so, it's been useful to know how to cover up holes and repaint a room to avoid any charges when i've moved out."
+with millions of people likely to take on diy projects over that coming weeks, new research shows that more than half of people are planning to make the most of the long, warm summer days to get jobs done.
+the average spend per project will be around £823.
+two thirds of people aim to improve their comfort while at home.
+a fifth wish to increase the value of their houses.
+though diy has traditionally been seen as a male hobby, the research shows it is women now leading the charge.
+online
+percent
+registered
+register for
+course
+courses
+be equal to
+ensure
+grade
+interview
+interviewed
+anywhere
+anytime
+mean
+mean doing sth
+deadlines
+meet a deadline
+sight
+lose sight of
+fall behind schedule
+graduate from
+self-motivated
+note
+noted
+take notes
+suffer from
+set
+lectures
+give a lecture
+discussion
+complaint
+make a complaint
+a lack of
+ease
+with ease
+problem
+undergraduate
+motivate
+stay
+stay on track
+organize
+concepts
+in the past few years, online learning has become a significant part of the university and college experience.
+a survey found that 29 percent of college students registered for online courses.
+but are all online courses created equal?
+how can you be sure that digital learning is right for you?
+if you take an online course, what can you do to ensure the best possible grade?
+we interviewed students and professors to get their advice about online courses.
+the most obvious advantage of online learning is that you can study anywhere and anytime.
+but that doesn't mean there aren't deadlines.
+"i think a point that many people lose sight of is how easy it can be to fall behind schedule," says graduate student amanda bindman.
+before choosing to study online, consider whether you're a self-motivated learner and if the material seems interesting enough to keep you going.
+the tip that comes up most often is simple: build online courses into your weekly schedule, just like what you would do with in-person courses.
+professor alex davidson teaches the same course in person and online.
+he noted that his online students usually end up with lower grades.
+it is so easy to let an online course slide, but your grades will suffer as a result.
+be sure to schedule set times to watch your lectures, read materials and contribute to online discussion boards.
+the chief complaint about online courses is that they lack human interaction.
+a social connection is often a big part of learning.
+there are things you can do to ease this problem.
+jessica pink, an undergraduate student, suggests taking online courses with a friend, so you can motivate each other to stay on track.
+you can also find students on the class discussion board to organize a study group, or schedule in-person meetings with your professor to discuss course concepts.
+difficult
+techniques
+non-stop
+follow
+waves
+grammar
+store
+a store of
+draw
+draw on
+live with
+imperfection
+save
+save sb sth
+headache
+headaches
+wastepaper
+wastepaper basket
+crumple
+crumpled
+path
+triple-spaced
+copy
+make a copy of
+revise
+cross out
+crossing
+chunk
+chunks
+anymore
+enter
+processor
+word processor
+fresh
+invite
+invites
+writing an essay is a difficult process for most people.
+however, the process can be made easier if you learn to practice three simple techniques.
+first of all, learn the technique of non-stop writing.
+when you are first trying to think of ideas for an essay, put your pen to your paper and write non-stop for ten or fifteen minutes without letting your pen leave the paper.
+stay loose and free.
+let your pen follow the waves of thought.
+don't worry about grammar or spelling.
+even though this technique won't work for everyone, it helps many people get a good store of ideas to draw on.
+the next technique is to write your draft rapidly without worrying about being perfect.
+too many writers try to get their drafts right the first time.
+yet, by learning to live with imperfection, you will save yourself headaches and a wastepaper basket full of crumpled paper.
+think of your first draft as a path cut out of the jungle—as part of an exploration, not as a complete highway.
+the third technique is to try printing out a triple-spaced copy to allow space for revision.
+many beginning writers don't leave enough space to revise.
+as a result, these writers never get in the habit of crossing out chunks of their draft and writing revisions in the blank space.
+after you have revised your draft until it is too messy to work from anymore, you can enter your changes into your word processor.
+then you can print out a fresh draft, again setting your text on triple-space.
+the resulting blank space invites you to revise.
+sugar
+pay taxes
+predicted
+generate
+policy
+announced
+containing
+introduce
+introduced
+introduce ... to ...
+consuming
+recommended
+recommend doing sth
+disease
+at a higher risk of
+treasury
+manufacturer
+manufacturers
+figures
+force
+forced
+force sb to do sth
+brands
+refuse
+refusing
+refuse to do sth
+upsetting
+for fear of doing sth
+raising
+raise money for
+pounds
+facilities
+sports facilities
+active
+take an active part in
+the government's sugar tax on soft drinks has brought in half as much money as ministers first predicted it would generate, the first official data on the policy has shown.
+first announced in april, 2016, the tax which applies to soft drinks containing more than 5g of sugar per 100ml, was introduced to help reduce childhood obesity.
+it is believed that today's children and teenagers are consuming three times the recommended level of sugar, putting them at a higher risk of the disease.
+initially the sugar tax was expected to make £520m a year for the treasury.
+however, data of the first six months showed it would make less than half this amount.
+at present it is expected to generate £240m for the year ending in april 2019, which will go to school sports.
+it comes after more than half of soft drinks sold in shops have had their sugar levels cut by manufacturers so they can avoid paying the tax.
+drinks now contain 45 million fewer kilos of sugar as a result of manufacturers' efforts to avoid the charge, according to treasury figures.
+since april drinks companies have been forced to pay between 18p and 24p for every litre of sugary drink they produce or import, depending on the sugar content.
+however, some high sugar brands, like classic coca cola, have accepted the sugar tax and are refusing to change for fear of upsetting consumers.
+fruit juices, milk-based drinks and most alcoholic drinks are free of the tax, as are small companies manufacturing fewer than 1m litres per year.
+today's figures, according to one government official, show the positive influence the sugar tax is having by raising millions of pounds for sports facilities and healthier eating in schools.
+helping the next generation to have a healthy and active childhood is of great importance, and the industry is playing its part.
+banned
+ban sb from doing sth
+text
+texting
+driver
+drivers
+campaigns
+wide
+a wide range of
+range from ... to ...
+persuade sb to do sth
+phone
+phones
+wheel
+behind the wheel
+yet
+take measures to do sth
+worse
+accident
+accidents
+by accident
+rise
+rising
+sharply
+traffic
+distracted
+distracted driving
+requires
+require sb to do sth
+speech
+make a speech
+referring
+refer to
+broadly
+distinctly
+behavior
+lawmaker
+lawmakers
+an approach to (doing) sth
+treat ... as/like ...
+drunk driving
+police
+officer
+officers
+device
+call
+called
+arrive
+arriving
+arrive at/in
+scene
+on the scene
+ask for
+check
+operating
+operating system
+recent
+be determined to do sth
+allow
+allowed
+allow sb to do sth
+hands-free
+pushed
+handheld
+bill
+afraid
+be afraid to do sth
+cell phone
+over the last seven years, most states have banned texting by drivers, and public service campaigns have tried a wide range of methods to persuade people to put down their phones when they are behind the wheel.
+yet the problem, by just about any measure, appears to be getting worse.
+americans are still texting while driving, as well as using social networks and taking photos.
+road accidents, which had fallen for years, are now rising sharply.
+that is partly because people are driving more, but mark rosekind, the chief of the national highway traffic safety administration, said distracted driving was "only increasing, unfortunately".
+"big change requires big ideas," he said in a speech last month, referring broadly to the need to improve road safety.
+so to try to change a distinctly modern behavior, lawmakers and public health experts are reaching back to an old approach: they want to treat distracted driving like drunk driving.
+an idea from lawmakers in new york is to give police officers a new device called the textalyzer.
+it would work like this: an officer arriving at the scene of a crash could ask for the phones of the drivers and use the textalyzer to check in the operating system for recent activity.
+the technology could determine whether a driver had just texted, emailed or done anything else that is not allowed under new york's hands-free driving laws.
+"we need something on the books that can change people's behavior," said félix w. ortiz, who pushed for the state's 2001 ban on handheld devices by drivers.
+if the textalyzer bill becomes law, he said, "people are going to be more afraid to put their hands on the cell phone."
+bridge
+bridging
+bridge the gap
+ancient
+modern
+temples
+palace
+palaces
+home
+be home to
+glorious
+layout
+keeping
+ring
+ring road
+road
+roads
+building
+buildings
+place
+take place
+welcome
+welcomes
+development
+architectural
+wonders
+standing
+side by side
+historical
+past
+in the past
+distinct
+be distinct from
+contrast
+in contrast
+work
+work out
+coexistence
+heritage
+cultural heritage
+record
+recording
+everything
+discovered
+consciously
+be designed to do sth
+protect
+protect ... from ...
+stepping
+something
+beijing is a city bridging the ancient and the modern.
+from buddhist temples to museums, narrow hutong to royal palaces, it is home to more than 3,000 years of glorious history even down to its layout, with the city keeping its carefully built system of ring roads.
+but for all its ancient buildings, beijing is also a place which welcomes the fast-paced development of modern life, with 21st-century architectural wonders standing side by side with historical buildings of the past.
+it is a distinct visual contrast that shouldn't work, but somehow these two very different worlds make a good combination.
+having visited several times over the last 10 years, i was amazed by the coexistence of old and new, and how a city was able to keep such a rich heritage while constantly growing.
+as a photographer, i have spent the last two years recording everything i discovered.
+the remarkable development of this city, which is consciously designed to protect the past while stepping into the modern world, means there is always something new to discover here, and i could be photographing beijing for the next 50 years.
+sometime
+significant
+thing
+harbor
+sort of
+beach
+beaches
+culturally
+population
+pilot
+pilots
+ferryboat
+ferryboats
+living
+make a living
+shuttling
+back and forth
+across
+run
+run out of
+shut down
+separate ... from ...
+take a break
+miss
+part
+parted
+replacing
+replace ... with ...
+catamaran
+catamarans
+fun
+watchword
+watchwords
+traditions
+historian
+rush
+in a rush
+modernity
+swept
+sweep aside
+traditional
+resolve
+resolving
+attractions
+considered
+consider doing sth
+businessman
+forget
+dynamism
+pretty
+wish
+wishing
+can't help doing sth
+ferries
+sometime in the early 1960s, a significant thing happened in sydney, australia.
+the city discovered its harbor.
+then, one after another, sydney discovered lots of things that were just sort of there—broad parks, superb beaches, and a culturally diverse population.
+but it is the harbor that makes the city.
+andrew reynolds, a cheerful fellow in his early 30s, pilots sydney ferryboats for a living.
+i spent the whole morning shuttling back and forth across the harbor.
+after our third run andrew shut down the engine, and we went our separate ways—he for a lunch break, i to explore the city.
+"i'll miss these old boats," he said as we parted.
+"how do you mean?" i asked.
+"oh, they're replacing them with catamarans.
+catamarans are faster, but they're not so elegant, and they're not fun to pilot.
+but that's progress, i guess."
+everywhere in sydney these days, change and progress are the watchwords, and traditions are increasingly rare.
+shirley fitzgerald, the city's official historian, told me that in its rush to modernity in the 1970s, sydney swept aside much of its past, including many of its finest buildings.
+"sydney is confused about itself," she said.
+"we can't seem to make up our minds whether we want a modern city or a traditional one.
+it's a conflict that we aren't getting any better at resolving."
+on the other hand, being young and old at the same time has its attractions.
+i considered this when i met a thoughtful young businessman named anthony.
+"many people say that we lack culture in this country," he told me.
+"what people forget is that the italians, when they came to australia, brought 2,000 years of their culture, the greeks some 3,000 years, and the chinese more still.
+we've got a foundation built on ancient cultures but with a drive and dynamism of a young country.
+it's a pretty hard combination to beat."
+he is right, but i can't help wishing they would keep those old ferries.
+instance
+for instance
+vocal
+vocals
+rely on
+scare away
+special
+creatures
+vocalization
+have a conversation with
+meow
+meows
+interpret
+interpret ... as ...
+stretch
+stretched
+feed
+fed
+feed on
+heighten
+heightened
+sense
+senses
+a sense of humor
+sense of smell
+impressive
+a sign of
+sniff
+sniff out
+distinguish between a and b
+be familiar with
+owner
+owners
+usually
+fetch
+fetching
+get in the habit of
+notch
+take ... up a notch
+at random
+predator
+predators
+gift
+gifts
+adorable
+hunters
+nature
+by nature
+beginning
+at the beginning of
+animals can express their needs using a lot of ways.
+for instance, almost all animals have distinct vocals that they rely on to either ask for help, scare away any dangerous animals or look for shelter.
+but cats are special creatures who possess amazing vocalization skills.
+they are able to have entire conversations with humans using meows and you're able to interpret it.
+if a pet cat is hungry, it will keep meowing to attract attention and find food.
+however, when a cat is looking for affection, they tend to produce stretched and soft meows.
+meowing starts as soon as a baby cat is brought to life and uses it to get the mother's attention and be fed.
+cats have many heightened senses, but their sense of smell is quite impressive.
+they use their noses to assess their environment and look out for any signs of danger.
+they will sniff out specific areas before they choose a place to relax.
+however, another way the cats are able to distinguish between situations is by looking for familiar smells.
+your cat will likely smell your face and store the smell in its memory and use it to recognize you in the future.
+that's why most pet cats are able to tell immediately if their owners were around any other cats, which they don't usually like.
+dogs are known for their impressive fetching habit, but cats take this behavior up a notch.
+many cats will find random objects outside and bring them to their owners.
+this is a very old habit that's been present in all kinds of predators.
+cats bring gifts for their owners to show they love you.
+these adorable little hunters are just doing something that has been in their nature since the beginning of time.
+so just go along with it!
+documented
+ever-growing
+middle-aged
+keep fit
+dementia
+sporty
+lead
+cardiovascular
+middle age
+without delay
+prevent ... from doing sth
+peak
+capacity
+workload
+watt
+watts
+total
+a total of
+criterion
+criteria
+meet the criteria
+while
+medium
+compare
+compared
+compared to/with
+lifetime
+admitted
+admit doing sth
+relatively
+studied
+applicable
+be applicable to
+the benefits of regular exercise are well documented but there's a new bonus to add to the ever-growing list.
+new research found that middle-aged women who were physically fit could be nearly 90 percent less likely to develop dementia in later life—and if they did, it came on a decade later than less sporty women.
+lead researcher dr helena hörder, of the university of gothenburg in sweden, said, "these findings are exciting because it's possible that improving people's cardiovascular fitness in middle age could delay or even prevent them from developing dementia."
+for the study, 191 women with an average age of 50 took a bicycle exercise test until they were tired out to measure their peak cardiovascular capacity.
+the average peak workload was measured at 103 watts.
+a total of 40 women met the criteria for a high fitness level with a capacity of 120 watts or higher, while 92 women were in the medium fitness category.
+a total of 59 were of low fitness level, with a peak workload of 80 watts or less, or having their tests stopped because of health problems.
+these women were then tested for dementia six times over the following four decades.
+during that time, 44 of the women developed dementia.
+five percent of the highly fit women developed dementia, compared to 25 percent of the women with medium fitness and 32 percent of the women with low fitness.
+"however, this study does not show cause and effect between cardiovascular fitness and dementia.
+it only shows an association," said hörder.
+"more research is needed to see if improved fitness could have a positive effect on the risk of dementia and also to look at when during a lifetime a high fitness level is most important."
+she also admitted that a relatively small number of women were studied, all of whom were from sweden, so the results might not be applicable to other groups.
+questioning
+on arrival
+keeper
+keepers
+comfortable
+feel comfortable doing sth
+be confident of/about
+instruction
+instructions
+follow the instructions
+actually
+international
+zookeeper
+zookeepers
+check on
+loan
+on loan
+ready
+be ready to do sth
+interviews
+give an interview
+journalists
+basically
+describe
+describe ... as ...
+honor
+in honor of
+settle into
+grow
+grew
+grow up
+live
+live out one's dream
+indirectly
+whenever i tell people that i teach english at the berlin zoo, i almost always get a questioning look.
+behind it, the person is trying to figure out who exactly i teach... the animals?
+since june 2017, right before the arrival of the two new pandas, meng meng and jiao qing, i have been helping the panda keepers at the zoo to feel more comfortable and confident speaking english.
+and who do they speak english with?
+not the pandas, even though the language used for the medical training instructions is actually english.
+they talk to the flood of international tourists and to visiting chinese zookeepers who often come to check on the pandas, which are on loan from china.
+they also need to be ready to give interviews in english with international journalists.
+this is why they need an english trainer.
+so, what are they learning?
+basically, how to describe a panda's life.
+it's been an honor to watch the panda programme develop and to see the pandas settle into their new home.
+as a little girl, i wished to be a zookeeper when i grew up.
+now, i'm living out that dream indirectly by helping the panda keepers do their job in english.
+specialize
+specializing
+specialize in
+geographical
+variation
+field
+fields
+highways
+distinctive
+shots
+shoot
+time frame
+countryside
+in the countryside
+adventures
+decisive
+photography
+seek to do sth
+destinations
+set up
+moment
+at the moment
+attempting
+attempt to do sth
+plenty
+plenty of
+sunset
+sunsets
+on the spot
+climb
+quartz
+a bunch of
+background
+in the background
+manage
+managed
+manage to do sth
+mark
+route
+entirely
+stressful
+prepared
+be prepared for
+wisely
+living in iowa and trying to become a photographer specializing in landscape can be quite a challenge, mainly because the corn state lacks geographical variation.
+although landscapes in the midwest tend to be quite similar, either farm fields or highways, sometimes i find distinctive character in the hills or lakes.
+to make some of my landscape shots, i have traveled up to four hours away to shoot within a 10-minute time frame.
+i tend to travel with a few of my friends to state parks or to the countryside to go on adventures and take photos along the way.
+being at the right place at the right time is decisive in any style of photography.
+i often leave early to seek the right destinations so i can set up early to avoid missing the moment i am attempting to photograph.
+i have missed plenty of beautiful sunsets/sunrises due to being on the spot only five minutes before the best moment.
+one time my friends and i drove three hours to devil's lake, wisconsin, to climb the purple quartz rock around the lake.
+after we found a crazy-looking road that hung over a bunch of rocks, we decided to photograph the scene at sunset.
+the position enabled us to look over the lake with the sunset in the background.
+we managed to leave this spot to climb higher because of the spare time until sunset.
+however, we did not mark the route so we ended up almost missing the sunset entirely.
+once we found the place, it was stressful getting lights and cameras set up in the limited time.
+still, looking back on the photos, they are some of my best shots though they could have been so much better if i would have been prepared and managed my time wisely.
+goal
+achieve one's goal
+make the case for
+minimalism
+detailed
+exploration
+philosophy
+right
+be right for
+divide ... into ...
+philosophical
+examination
+forces
+intolerable
+concludes
+conclude with
+method
+declutter
+carefully
+choose
+chosen
+believe
+provide
+provide sb with sth
+massive
+final
+carry out
+carrying
+carry out an experiment
+participants'
+strategy
+strategies
+traps
+encounter
+encountered
+close
+closer
+take a closer look at
+cultivate
+sustainable
+sustainable development
+examine
+importance
+attach importance to
+solitude
+necessity
+leisure
+leisure time
+mindless
+a collection of
+practice
+practices
+put ... into practice
+toolbox
+with the aid of
+the goal of this book is to make the case for digital minimalism, including a detailed exploration of what it asks and why it works, and then to teach you how to adopt this philosophy if you decide it's right for you.
+to do so, i divided the book into two parts.
+in part one, i describe the philosophical foundations of digital minimalism, starting with an examination of the forces that are making so many people's digital lives increasingly intolerable, before moving on to a detailed discussion of the digital minimalism philosophy.
+part one concludes by introducing my suggested method for adopting this philosophy: the digital declutter.
+this process requires you to step away from optional online activities for thirty days.
+at the end of the thirty days, you will then add back a small number of carefully chosen online activities that you believe will provide massive benefits to the things you value.
+in the final chapter of part one, i'll guide you through carrying out your own digital declutter.
+in doing so, i'll draw on an experiment i ran in 2018 in which over 1,600 people agreed to perform a digital declutter.
+you'll hear these participants' stories and learn what strategies worked well for them, and what traps they encountered that you should avoid.
+the second part of this book takes a closer look at some ideas that will help you cultivate a sustainable digital minimalism lifestyle.
+in these chapters, i examine issues such as the importance of solitude and the necessity of cultivating high-quality leisure to replace the time most now spend on mindless device use.
+each chapter concludes with a collection of practices, which are designed to help you act on the big ideas of the chapter.
+you can view these practices as a toolbox meant to aid your efforts to build a minimalist lifestyle that works for your particular circumstances.
+most
+mindful
+be mindful of
+arugula
+round out
+rounding
+end
+ended
+end up doing sth
+stuck
+freezer
+pass
+passed
+unthinkingly
+nearly
+hungry
+go hungry
+go against the grain
+cover
+cover story
+jaw-dropping
+perfectly
+eatable
+rejected
+grocer
+grocers
+uneaten
+dish
+dishes
+garbage can
+garbage cans
+producing
+resource
+resources
+natural resources
+country
+producer
+greenhouse
+greenhouse gases
+understand
+donated
+donate ... to ...
+near
+nearing
+kitchen
+recovers
+recover from
+donation
+donations
+make a donation
+collect
+collecting
+blemished
+rotted
+volunteer
+volunteers
+volunteer to do sth
+wash
+cut
+methods
+everyone
+play a part in
+purchasing
+necessary
+if necessary
+side dish
+like most of us, i try to be mindful of food that goes to waste.
+the arugula was to make a nice green salad, rounding out a roast chicken dinner.
+but i ended up working late.
+then friends called with a dinner invitation.
+i stuck the chicken in the freezer.
+but as days passed, the arugula went bad.
+even worse, i had unthinkingly bought way too much; i could have made six salads with what i threw out.
+in a world where nearly 800 million people a year go hungry, "food waste goes against the moral grain," as elizabeth royte writes in this month's cover story.
+it's jaw-dropping how much perfectly good food is thrown away—from "ugly" (but quite eatable) vegetables rejected by grocers to large amounts of uneaten dishes thrown into restaurant garbage cans.
+producing food that no one eats wastes the water, fuel, and other resources used to grow it.
+that makes food waste an environmental problem.
+in fact, royte writes, "if food waste were a country, it would be the third largest producer of greenhouse gases in the world."
+if that's hard to understand, let's keep it as simple as the arugula at the back of my refrigerator.
+mike curtin sees my arugula story all the time—but for him, it's more like 12 boxes of donated strawberries nearing their last days.
+curtin is ceo of dc central kitchen in washington, d.c., which recovers food and turns it into healthy meals.
+last year it recovered more than 807,500 pounds of food by taking donations and collecting blemished produce that otherwise would have rotted in fields.
+and the strawberries?
+volunteers will wash, cut, and freeze or dry them for use in meals down the road.
+such methods seem obvious, yet so often we just don't think.
+"everyone can play a part in reducing waste, whether by not purchasing more food than necessary in your weekly shopping or by asking restaurants to not include the side dish you won't eat," curtin says.
+elderly
+the elderly
+resident
+residents
+care home
+care homes
+lonely
+dream up
+dreamed up
+charity
+patients
+illness
+report
+reported
+among
+keep hens
+prepare
+prepare for
+before
+wheelchair
+again
+enjoy
+enjoying
+enjoy doing sth
+take part in activities
+useful
+financial
+financial support
+roll out
+countrywide
+manager
+street
+embark
+embark on
+idea
+sessions
+forward
+look forward to
+the elderly residents in care homes in london are being given hens to look after to stop them feeling lonely.
+the project was dreamed up by a local charity to reduce loneliness and improve elderly people's well-being.
+it is also being used to help patients suffering dementia, a serious illness of the mind.
+staff in care homes have reported a reduction in the use of medicine where hens are in use.
+among those taking part in the project is 80-year-old ruth xavier.
+she said: "i used to keep hens when i was younger and had to prepare their breakfast each morning before i went to school."
+"i like the project a lot.
+i am down there in my wheelchair in the morning letting the hens out and down there again at night to see they've gone to bed."
+"it's good to have a different focus.
+people have been bringing their children in to see the hens and residents come and sit outside to watch them.
+i'm enjoying the creative activities, and it feels great to have done something useful."
+there are now 700 elderly people looking after hens in 20 care homes in the north east, and the charity has been given financial support to roll it out countrywide.
+wendy wilson, extra care manager at 60 penfold street, one of the first to embark on the project, said: "residents really welcome the idea of the project and the creative sessions.
+we are looking forward to the benefits and fun the project can bring to people here."
+lynn lewis, director of notting hill pathways, said: "we are happy to be taking part in the project.
+it will really help connect our residents through a shared interest and creative activities."
+statistician
+paper
+illustrate
+illustrated
+the wisdom of crowds
+crowds
+have an effect on
+estimation
+conducted
+conduct an experiment
+in some cases
+independent
+be independent of
+estimate
+estimates
+quite
+capitalize
+capitalizes
+capitalize on
+fact
+in fact
+tend to do sth
+overestimate
+underestimate
+enough
+together
+cancel
+cancel out
+resulting in
+term
+terms
+in terms of
+correlated
+dependent
+be dependent on
+go down
+led
+finding
+further
+have a discussion
+obtained
+follow-up
+university
+member
+members
+be willing to do sth
+dominant
+response
+in response to
+share
+shared
+share ... with ...
+arguments
+reasoned
+reasoning
+reduction
+limitation
+limitations
+question
+questions
+remain to be done
+implications
+decision-making
+make a decision
+enormous
+on march 7, 1907, the english statistician francis galton published a paper which illustrated what has come to be known as the "wisdom of crowds" effect.
+the experiment of estimation he conducted showed that in some cases, the average of a large number of independent estimates could be quite accurate.
+this effect capitalizes on the fact that when people make errors, those errors aren't always the same.
+some people will tend to overestimate, and some to underestimate.
+when enough of these errors are averaged together, they cancel each other out, resulting in a more accurate estimate.
+if people are similar and tend to make the same errors, then their errors won't cancel each other out.
+in more technical terms, the wisdom of crowds requires that people's estimates be independent.
+if, for whatever reasons, people's errors become correlated or dependent, the accuracy of the estimate will go down.
+but a new study led by joaquin navajas offered an interesting twist on this classic phenomenon.
+the key finding of the study was that when crowds were further divided into smaller groups that were allowed to have a discussion, the averages from these groups were more accurate than those from an equal number of independent individuals.
+for instance, the average obtained from the estimates of four discussion groups of five was significantly more accurate than the average obtained from 20 independent individuals.
+in a follow-up study with 100 university students, the researchers tried to get a better sense of what the group members actually did in their discussion.
+did they tend to go with those most confident about their estimates?
+did they follow those least willing to change their minds?
+this happened some of the time, but it wasn't the dominant response.
+most frequently, the groups reported that they "shared arguments and reasoned together".
+somehow, these arguments and reasoning resulted in a global reduction in error.
+although the studies led by navajas have limitations and many questions remain, the potential implications for group discussion and decision-making are enormous.
+cultural
+element
+elements
+commemorate
+commemorating
+hometown
+contemporaries
+be contemporaries
+die
+died
+although
+common themes
+theme
+themes
+works
+in their works
+head
+head of research
+birthplace
+shakespeare's birthplace
+trust
+the shakespeare birthplace trust
+concerns
+shakespeare's concerns
+happen
+happen to know
+play
+a statue commemorating
+inspired by
+visibility
+international visibility
+the connection between
+recall
+recalling
+recall doing sth.
+a chinese opera version
+actor
+actors
+perform parts of
+exciting
+chinese cultural elements commemorating tang xianzu, who is known as "the shakespeare of asia", add an international character to stratford-upon-avon, william shakespeare's hometown.
+tang and shakespeare were contemporaries and both died in 1616.
+although they could never have met, there are common themes in their works, said paul edmondson, head of research for the shakespeare birthplace trust.
+"some of the things that tang was writing about were also shakespeare's concerns.
+a statue commemorating shakespeare and tang was put up at shakespeare's birthplace garden in 2017.
+two years later, a six-meter-tall pavilion, inspired by the peony pavilion, was built at the firs garden, just ten minutes' walk from shakespeare's birthplace.
+those cultural elements have increased stratford's international visibility, said edmondson, adding that visitors walking through the birthplace garden were often amazed to find the connection between the two great writers.
+recalling watching a chinese opera version of shakespeare's play richard iii in shanghai and meeting chinese actors who came to stratford a few years ago to perform parts of the peony pavilion, edmondson said, "it was very exciting to hear the chinese language and see how tang's play was being performed."
+astonishing
+have the potential to do sth
+transform ... into ...
+ai-powered
+absorbing
+roadmap
+addressing
+challenges
+forthcoming
+prove
+prove to be
+code
+thankfully
+decades'
+professional
+translate
+translating
+translate ... into ...
+heady
+understandable
+from a different angle
+highly
+speak highly of
+be accessible to
+informative
+smart
+capable
+be capable of doing sth
+current
+raise awareness of
+awareness
+be expected to do sth
+essential
+it is essential that ...
+keep control of
+risk doing sth
+sideline
+sidelined
+wake
+wake up
+responsible
+be responsible for
+leader
+leaders
+on the same page
+currently
+explain
+explains
+tipping point
+extinction-level
+extinction-level event
+humanity
+structured
+thinking
+global
+enable
+enable sb to do sth
+downfall
+given the astonishing potential of ai to transform our lives, we all need to take action to deal with our ai-powered future, and this is where ai by design: a plan for living with artificial intelligence comes in.
+this absorbing new book by catriona campbell is a practical roadmap addressing the challenges posed by the forthcoming ai revolution.
+in the wrong hands, such a book could prove as complicated to process as the computer code that powers ai but, thankfully, campbell has more than two decades' professional experience translating the heady into the understandable.
+she writes from the practical angle of a business person rather than as an academic, making for a guide which is highly accessible and informative and which, by the close, will make you feel almost as smart as ai.
+as we soon come to learn from ai by design, ai is already super-smart and will become more capable, moving from the current generation of "narrow-ai" to artificial general intelligence.
+from there, campbell says, will come artificial dominant intelligence.
+this is why campbell has set out to raise awareness of ai and its future now—several decades before these developments are expected to take place.
+she says it is essential that we keep control of artificial intelligence, or risk being sidelined and perhaps even worse.
+campbell's point is to wake up those responsible for ai—the technology companies and world leaders—so they are on the same page as all the experts currently developing it.
+she explains we are at a "tipping point" in history and must act now to prevent an extinction-level event for humanity.
+we need to consider how we want our future with ai to pan out.
+such structured thinking, followed by global regulation, will enable us to achieve greatness rather than our downfall.
+ai will affect us all, and if you only read one book on the subject, this is it.
+roommate
+roommates
+chance
+chances
+chances are that ...
+bandwagon
+jump on the bandwagon
+switching
+switch to
+zero waste
+continue
+husband
+encouraging
+change
+make a change
+not-always-supportive
+household
+radical
+show
+showing
+video
+cool
+groceries
+jars
+trash
+later
+commented
+comment on
+everywhere
+come off
+came off
+discouraging
+month
+months
+reducing
+own
+on one's own
+within one's reach
+since
+toiletry
+toiletries
+personalising
+offer
+offered
+offer to do sth
+every so often
+portion
+portioned
+cupboard
+have control over
+speak up for
+turn
+turn into
+leave sb doing sth
+feel
+advice
+a piece of advice
+lead by example
+action
+take action
+live with roommates?
+have friends and family around you?
+chances are that if you're looking to live a more sustainable lifestyle, not everyone around you will be ready to jump on that bandwagon.
+i experienced this when i started switching to a zero waste lifestyle five years ago, as i was living with my parents, and i continue to experience this with my husband, as he is not completely zero waste like me.
+i've learned a few things along the way though, which i hope you'll find encouraging if you're doing your best to figure out how you can make the change in a not-always-supportive household.
+zero waste was a radical lifestyle movement a few years back.
+i remember showing my parents a video of bea johnson, sharing how cool i thought it would be to buy groceries with jars, and have so little trash!
+a few days later, i came back with my first jars of zero waste groceries, and my dad commented on how silly it was for me to carry jars everywhere.
+it came off as a bit discouraging.
+yet as the months of reducing waste continued, i did what i could that was within my own reach.
+i had my own bedroom, so i worked on removing things i didn't need.
+since i had my own toiletries, i was able to start personalising my routine to be more sustainable.
+i also offered to cook every so often, so i portioned out a bit of the cupboard for my own zero waste groceries.
+perhaps your household won't entirely make the switch, but you may have some control over your own personal spaces to make the changes you desire.
+as you make your lifestyle changes, you may find yourself wanting to speak up for yourself if others comment on what you're doing, which can turn itself into a whole household debate.
+if you have individuals who are not on board, your words probably won't do much and can often leave you feeling more discouraged.
+so here is my advice: lead by action.
+kiosk
+light
+lit
+light up
+transit
+choose to do sth
+at length
+receipt-like
+poem
+poems
+launch
+launched
+launch a program
+classic
+original
+writer
+writers
+artist
+artists
+submit ... to ...
+contest
+receive
+received
+submission
+submissions
+winning
+agencies
+improve
+do you ever get to the train station and realize you forgot to bring something to read?
+yes, we all have our phones, but many of us still like to go old school and read something printed.
+well, there's a kiosk for that.
+in the san francisco bay area, at least.
+"you enter the fare gates and you'll see a kiosk that is lit up and it tells you can get a one-minute, a three-minute, or a five-minute story," says alicia trost, the chief communications officer for the san francisco bay area rapid transit—known as bart.
+"you choose which length you want and it gives you a receipt-like short story."
+it's that simple.
+riders have printed nearly 20,000 short stories and poems since the program was launched last march.
+some are classic short stories, and some are new original works.
+trost also wants to introduce local writers to local riders.
+"we wanted to do something where we do a call to artists in the bay area to submit stories for a contest," trost says.
+"and as of right now, we've received about 120 submissions.
+the winning stories would go into our kiosk and then you would be a published artist."
+ridership on transit systems across the country has been down the past half century, so could short stories save transit?
+trost thinks so.
+"at the end of the day all transit agencies right now are doing everything they can to improve the rider experience.
+so i absolutely think we will get more riders just because of short stories," she says.
+and you'll never be without something to read.
