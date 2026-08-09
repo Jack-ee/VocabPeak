@@ -2156,6 +2156,16 @@ window.Lessons = (function () {
         if (jsonText.length > 300000) errors.push('\u5185\u5BB9\u8FC7\u5927 (>300KB)\uFF0C\u8BF7\u6309\u8BFE\u62C6\u5206\u5BFC\u5165');
         if (words.length > 200)       warnings.push('\u8BCD\u6761\u8D85\u8FC7 200 \u4E2A\uFF0C\u786E\u8BA4\u662F\u5426\u4E00\u8BFE\u7684\u91CF');
 
+        // 句译覆盖检查: 缺句译不阻断导入 (兼容旧格式), 但必须说出来 ——
+        // 否则填空页「中文」会静默回退成词义, 使用者以为功能没生效。
+        // 典型成因是识别时用了更新前存下来的旧提示词。
+        const zhMissing = flatSents.filter(s => !s.zh).length;
+        if (zhMissing > 0 && flatSents.length > 0) {
+            warnings.push(`${zhMissing}/${flatSents.length} \u53E5\u7F3A\u5C11\u4E2D\u6587\u53E5\u8BD1 \u2014 \u586B\u7A7A\u9875\u300C\u4E2D\u6587\u300D\u5C06\u56DE\u9000\u663E\u793A\u8BCD\u4E49\u3002`
+                + `\u82E5\u7528\u7684\u662F\u65E7\u63D0\u793A\u8BCD\uFF0C\u8BF7\u91CD\u65B0\u70B9\u300C\u590D\u5236\u8BC6\u522B\u63D0\u793A\u8BCD\u300D\u8BA9 AI \u91CD\u51FA\uFF1B`
+                + `\u4E5F\u53EF\u5BFC\u5165\u540E\u5728\u8BFE\u6587\u9875\u7528\u300C\u{1F310} \u8865\u53E5\u8BD1\u300D\u4E00\u952E\u8865\u5168\u3002`);
+        }
+
         const stats = {
             paraN   : paras.length,
             sentN   : flatSents.length,

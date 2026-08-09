@@ -74,8 +74,9 @@ const mkpack = fs.readFileSync(path.join(DIR, 'make-course-pack.js'), 'utf8');
 ok(/lessons_user|lesson_phrase_sel/.test(mkpack) && !/pack_key/.test(mkpack), '课程包白名单不含密钥 (不随包外泄)');
 const sw = fs.readFileSync(path.join(DIR, 'sw.js'), 'utf8');
 const vs = [...idx.matchAll(/\?v=(\d+)/g)].map(x => x[1]);
-ok(new Set(vs).size === 1 && vs[0] === '124', 'index.html 全部 ?v=124');
-ok(/const CACHE_NAME = 'hsv-v27'/.test(sw), 'sw.js CACHE_NAME = hsv-v27');
+ok(new Set(vs).size === 1 && Number(vs[0]) >= 124, 'index.html ?v 全部一致且 >= 124');
+const swV7 = (sw.match(/const CACHE_NAME = 'hsv-v(\d+)'/) || [])[1];
+ok(swV7 && Number(swV7) >= 27, 'sw.js CACHE_NAME >= hsv-v27');
 ok(/hsv-v27 \(\?v=124\)/.test(sw), 'sw.js 有 v27 变更日志');
 ok(/'\.\/tts-pack\.js'/.test(sw), 'tts-pack.js 仍在预缓存');
 
