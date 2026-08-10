@@ -155,6 +155,19 @@ HTTP_TIMEOUT = 60                         # seconds per request
 MAX_RETRIES  = 5                          # for 429 / 5xx / network errors
 ABORT_AFTER_FAILS = 12                    # consecutive failures => stop early
 
+# Wall-clock budget in minutes, from the workflow env TIME_BUDGET_MINUTES.
+# When > 0, synthesis stops GRACEFULLY once the budget is spent: the loop
+# breaks through the same abort path as a quota wall, the partial pack is
+# written and published, and the next run resumes from it. This is the
+# defence against the GitHub job timeout, which kills the process cold so
+# nothing gets written and hours of synthesised clips are discarded (it
+# happened: a 2h run timed out and published nothing). In-band stopping
+# turns "timeout" into "checkpoint". 0 = no budget (local runs).
+try:
+    TIME_BUDGET_MIN = float(os.environ.get("TIME_BUDGET_MINUTES", "0") or 0)
+except ValueError:
+    TIME_BUDGET_MIN = 0.0
+
 
 # --- Word list -----------------------------------------------------------
 
@@ -649,6 +662,11 @@ def run_build(dry_run=False, limit=0, cli_range=None):
               % (len(missing), new_gen))
         done             = 0
         consecutive_fail = 0
+        deadline = (time.monotonic() + TIME_BUDGET_MIN * 60.0) \
+                   if TIME_BUDGET_MIN > 0 else None
+        if deadline:
+            print("[plan] time budget: %.0f minutes - will stop, save and "
+                  "publish when it runs out" % TIME_BUDGET_MIN)
         pool    = concurrent.futures.ThreadPoolExecutor(MAX_WORKERS)
         futures = {pool.submit(synthesize, w, v, api_key, model): (w, v)
                    for w, v in missing}
@@ -676,6 +694,10 @@ def run_build(dry_run=False, limit=0, cli_range=None):
                 if done % 25 == 0 or done == len(missing):
                     print("  progress %d/%d  (%d ok)"
                           % (done, len(missing), len(new_clips)))
+                if deadline and time.monotonic() >= deadline:
+                    _signal_abort("time budget of %.0f minutes reached - "
+                                  "stopping to save and publish; re-run to "
+                                  "continue from here" % TIME_BUDGET_MIN)
                 if _abort.is_set():
                     aborted = True
                     print("  ! stopping early - %s" % _abort_reason[0])
@@ -735,21 +757,31 @@ def run_build(dry_run=False, limit=0, cli_range=None):
         # work from this run is lost. Exit non-zero so the run is correctly
         # marked failed and the operator knows to re-run; the next run
         # downloads this saved pack and continues from where it stopped.
+        is_budget = "time budget" in _abort_reason[0]
+        if is_budget:
+            hint = ("  This is the planned time-budget checkpoint, not an "
+                    "error condition.\n"
+                    "  Just re-run the workflow: it downloads the pack "
+                    "published by THIS run\n"
+                    "  and continues from the %d saved clip(s)."
+                    % manifest["clipCount"])
+        else:
+            hint = ("  Most likely cause: the OpenAI account hit its usage "
+                    "/ billing limit.\n"
+                    "  Check platform.openai.com -> Settings -> Limits and "
+                    "add credit or raise\n"
+                    "  the limit, then re-run. The next run continues from "
+                    "the %d saved clip(s)\n"
+                    "  and only synthesises what is still missing."
+                    % manifest["clipCount"])
         raise SystemExit(
             "\n[INCOMPLETE] synthesis stopped early:\n"
             "  %s\n\n"
             "  Good news: the partial pack (generation %d, %d clip(s)) was "
             "still written\n"
-            "  and will be published, so nothing already generated is lost.\n\n"
-            "  Most likely cause: the OpenAI account hit its usage / billing "
-            "limit.\n"
-            "  Check platform.openai.com -> Settings -> Limits and add credit "
-            "or raise\n"
-            "  the limit, then re-run. The next run continues from the %d "
-            "saved clip(s)\n"
-            "  and only synthesises what is still missing."
-            % (_abort_reason[0], new_gen,
-               manifest["clipCount"], manifest["clipCount"]))
+            "  and will be published, so nothing already generated is lost."
+            "\n\n%s"
+            % (_abort_reason[0], new_gen, manifest["clipCount"], hint))
 
 
 # --- Self-test -----------------------------------------------------------
