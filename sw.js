@@ -1,5 +1,26 @@
 // sw.js — VocabPeak Service Worker
 
+// hsv-v34 (?v=131) — 课程分发第二阶段 (A 通道: 仓库目录直出):
+//   • 发布侧: tools/make-course-release.js 从备份提取出厂态课程,
+//     生成 courses/courses-manifest.json (id/_v/sha256/文件名) + 每课
+//     一个 <id>.json, 提交仓库由 GitHub Pages 直接服务; 目录里不在
+//     清单内的旧课程文件自动清理。_v 原样保留 —— 它是增量分发的
+//     版本锚, 发布时刷新会让订阅端全量重下。
+//   • 订阅侧 (新模块 course-feed.js): 默认订阅同源 courses/ 目录
+//     (零配置, 分享本站地址即分享全部课程); 启动后延时自动检查 +
+//     设置 → 数据 → 课程订阅手动检查。只下载 manifest 里 _v 比本机
+//     新或本机没有的课, 逐文件 sha256 校验, 合并走 mergeUserLessons
+//     (只增不删、本机更新过的课不被旧版覆盖), 合并后派发
+//     hsv:datachanged 刷新课文列表并 triggerSave 让新课随快照上 Gist。
+//   • manifest 与课程文件一律 no-store + 时间戳 (既定原则); 课程
+//     缓存未就绪时拒绝合并 (与 v130 的 sync 守卫同一原则)。
+//   • B 通道 (私有化) 预留零改动切换: 订阅源填 Worker URL 时自动改
+//     用 ?asset=<名>&key=<密钥> 请求形态 (密钥 pref course_feed_key);
+//     产物格式两通道一致, 将来只需把 courses/ 三类文件发到私有仓库
+//     Release + Worker 配 GH_TOKEN + 换源 URL。
+//   • Prefs (随快照同步): course_feed_url (空=同源 courses/),
+//     course_feed_auto (默认开), course_feed_key。
+
 // hsv-v33 (?v=130) — bug 巡检修复批 (同步可靠性 + 课程链路补漏):
 //   • 戳记回滚 (高): v129 的 updated_at 短路把戳记写在内容取回之前 ——
 //     raw_url 拉取失败 / JSON 解析失败 / 课程合并失败后, 后台轮询一直
@@ -416,7 +437,7 @@
 
 // 缓存名与 EMPro 隔离：Cache Storage 也是按 origin 共享的，两个应用
 // 的 CACHE_NAME 必须不同，否则会互相删除对方的缓存。
-const CACHE_NAME = 'hsv-v33';
+const CACHE_NAME = 'hsv-v34';
 const ASSETS = [
     './',
     './index.html',
@@ -443,6 +464,7 @@ const ASSETS = [
     './sentence-drill.js',
     './sync.js',
     './tts-pack.js',
+    './course-feed.js',
     './app.js',
     './debug-panel.js',
     './icon-192.png',

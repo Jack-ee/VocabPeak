@@ -249,14 +249,16 @@ eval(extract('readGist'));
        'Worker 对 .json 资产发 no-store (需单独 Cloudflare 部署)');
 
     // ─── 6. 版本 ────────────────────────────────────────────
+    // 注: v130 (bug 修复批) 与 v131 (课程分发) 合并为同一次发版,
+    // 版本断言按实际上线版本 hsv-v34 / ?v=131 校验。
     sec('6. 版本');
     const idx = fs.readFileSync(path.join(DIR, 'index.html'), 'utf8');
     const sw  = fs.readFileSync(path.join(DIR, 'sw.js'), 'utf8');
     const vs  = [...idx.matchAll(/\?v=(\d+)/g)].map(x => x[1]);
-    ok(new Set(vs).size === 1 && vs[0] === '130',
-       'index.html 全部 ?v=130 (' + vs.length + ' 处)');
-    ok(vs.length === 24, '?v= 引用总数不变 (24 处)');
-    ok(/const CACHE_NAME = 'hsv-v33'/.test(sw), 'sw.js CACHE_NAME = hsv-v33');
+    ok(new Set(vs).size === 1 && vs[0] === '131',
+       'index.html 全部 ?v=131 (' + vs.length + ' 处)');
+    ok(vs.length === 25, '?v= 引用总数 25 处 (24 + course-feed.js)');
+    ok(/const CACHE_NAME = 'hsv-v34'/.test(sw), 'sw.js CACHE_NAME = hsv-v34');
     ok(/hsv-v33 \(\?v=130\)/.test(sw), 'sw.js 有 v33 变更日志');
 
     console.log('\n' + '═'.repeat(46));

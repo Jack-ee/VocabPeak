@@ -1279,6 +1279,24 @@
         });
 
         document.getElementById('btn-merge-forms')?.addEventListener('click', openMergeForms);
+
+        // ─── 课程订阅 (v131) ────────────────────────────────
+        const feedUrlEl = document.getElementById('feed-url-input');
+        if (feedUrlEl) feedUrlEl.value = window.DB?.getPref?.('course_feed_url', '') || '';
+        document.getElementById('btn-save-feed-url')?.addEventListener('click', () => {
+            window.DB?.setPref?.('course_feed_url', (feedUrlEl?.value || '').trim());
+            showToast('已保存课程订阅源');
+        });
+        const feedAutoEl = document.getElementById('pref-feed-auto');
+        if (feedAutoEl) {
+            feedAutoEl.checked = window.DB?.getPref?.('course_feed_auto', '1') !== '0';
+            feedAutoEl.addEventListener('change', () => {
+                window.DB?.setPref?.('course_feed_auto', feedAutoEl.checked ? '1' : '0');
+            });
+        }
+        document.getElementById('btn-feed-check')?.addEventListener('click', () => {
+            window.CourseFeed?.check?.(true);
+        });
     }
 
     // ─── Notebook modal ─────────────────────────────────────
@@ -1808,6 +1826,9 @@
                     window.SentenceDrill.initMine(elMine);
                 }
             });
+            // 课程订阅 (v131): boot 已 await initCourses, 缓存就绪;
+            // init 内部再延时错峰, 让首次同步拉取先落地。
+            safeCall('CourseFeed', () => window.CourseFeed?.init?.());
 
             // Header stats
             refreshStats();

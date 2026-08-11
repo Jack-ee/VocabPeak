@@ -22,9 +22,9 @@
          sw.js to match (e.g. 'hsv-vN+1').
          Current version: v=107
          ========================================================= -->
-    <link rel="stylesheet" href="style.css?v=130">
-    <link rel="stylesheet" href="expressions-coach.css?v=130">
-    <link rel="stylesheet" href="lessons.css?v=130">
+    <link rel="stylesheet" href="style.css?v=131">
+    <link rel="stylesheet" href="expressions-coach.css?v=131">
+    <link rel="stylesheet" href="lessons.css?v=131">
 </head>
 <body>
 
@@ -383,6 +383,23 @@ eloquent manifest scrutinize caveat
                     </div>
                     <p style="font-size:10px;color:var(--text-tertiary);margin-top:4px">找出生词本里同一个词的不同形态（cap / capping / caps）并合并为一个。每组都会先让你确认再改动。</p>
                 </section>
+                <section class="settings-section">
+                    <h3>课程订阅</h3>
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                        <span style="font-size:11px;color:var(--text-tertiary)">订阅源</span>
+                        <input type="text" id="feed-url-input" placeholder="留空 = 本站 courses/ 目录" class="settings-input" style="flex:1;min-width:120px">
+                        <button class="wl-btn-primary" id="btn-save-feed-url" style="padding:6px 10px">保存</button>
+                    </div>
+                    <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;align-items:center">
+                        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px">
+                            <input type="checkbox" id="pref-feed-auto" style="width:16px;height:16px;cursor:pointer">
+                            <span>启动时自动检查</span>
+                        </label>
+                        <button class="wl-btn-secondary" id="btn-feed-check" style="padding:6px 10px">&#x1F4E5; 立即检查</button>
+                        <span id="feed-status" style="font-size:11px;color:var(--text-tertiary)"></span>
+                    </div>
+                    <p style="font-size:10px;color:var(--text-tertiary);margin-top:4px">从发布源自动接收课程的新增与更新：只增不删，本机改动过的课不会被旧版覆盖。分享本站地址给别人，对方打开即自动收到全部课程。</p>
+                </section>
                 <section class="settings-section" id="developer-section">
                     <h3>开发者</h3>
                     <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
@@ -409,30 +426,31 @@ eloquent manifest scrutinize caveat
 
 <div id="toast-container"></div>
 
-<script src="config.js?v=130"></script>
-<script src="dictionary.js?v=130"></script>
-<script src="vocab-hs-data.js?v=130"></script>
-<script src="lessons-data.js?v=130"></script>
-<script src="db.js?v=130"></script>
-<script src="ai-engine.js?v=130"></script>
-<script src="my-words.js?v=130"></script>
-<script src="cloze.js?v=130"></script>
-<script src="writing-lab.js?v=130"></script>
-<script src="vocab-drill.js?v=130"></script>
-<script src="reader.js?v=130"></script>
-<script src="lessons.js?v=130"></script>
-<script src="speaking-coach.js?v=130"></script>
-<script src="expressions-data.js?v=130"></script>
-<script src="expressions-coach.js?v=130"></script>
-<script src="sentence.js?v=130"></script>
-<script src="sentence-drill.js?v=130"></script>
-<script src="sync.js?v=130"></script>
-<script src="tts-pack.js?v=130"></script>
-<script src="app.js?v=130"></script>
+<script src="config.js?v=131"></script>
+<script src="dictionary.js?v=131"></script>
+<script src="vocab-hs-data.js?v=131"></script>
+<script src="lessons-data.js?v=131"></script>
+<script src="db.js?v=131"></script>
+<script src="ai-engine.js?v=131"></script>
+<script src="my-words.js?v=131"></script>
+<script src="cloze.js?v=131"></script>
+<script src="writing-lab.js?v=131"></script>
+<script src="vocab-drill.js?v=131"></script>
+<script src="reader.js?v=131"></script>
+<script src="lessons.js?v=131"></script>
+<script src="speaking-coach.js?v=131"></script>
+<script src="expressions-data.js?v=131"></script>
+<script src="expressions-coach.js?v=131"></script>
+<script src="sentence.js?v=131"></script>
+<script src="sentence-drill.js?v=131"></script>
+<script src="sync.js?v=131"></script>
+<script src="tts-pack.js?v=131"></script>
+<script src="course-feed.js?v=131"></script>
+<script src="app.js?v=131"></script>
 <!-- Debug panel — hidden by default, toggled via Settings → Developer.
      Script always loads so console-log capture is active even when UI
      is hidden, enabling post-mortem inspection of recent errors. -->
-<script src="debug-panel.js?v=130"></script>
+<script src="debug-panel.js?v=131"></script>
 <script>
 // --- PWA install: capture the browser's install prompt ---
 // Chrome fires beforeinstallprompt when install criteria are met.
