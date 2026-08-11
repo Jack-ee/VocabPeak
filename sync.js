@@ -207,6 +207,10 @@ window.SyncManager = (function() {
                 text = await raw.text();
             } catch (e) {
                 console.error('[Sync] raw_url fetch failed:', e);
+                // v130: 戳记已在上面落盘, 但这次内容根本没拿到 —— 不回滚
+                // 的话, 下一轮轮询会按 UNCHANGED 短路, 这次远端更新被永久
+                // 跳过 (直到远端再次变化)。VPN 抖动下这是常态而非罕见。
+                try { localStorage.removeItem(K_GIST_STAMP); } catch (e2) {}
                 throw new Error('Gist read failed: payload exceeds 1MB and ' +
                                 'raw fetch failed (' + (e.message || e) + ')');
             }
@@ -215,6 +219,8 @@ window.SyncManager = (function() {
         try { return JSON.parse(text); }
         catch (e) {
             console.error('[Sync] payload parse failed:', e);
+            // v130: 同上 —— 解析失败即处理失败, 回滚戳记让下一轮重试
+            try { localStorage.removeItem(K_GIST_STAMP); } catch (e2) {}
             return null;
         }
     }
@@ -227,6 +233,16 @@ window.SyncManager = (function() {
     async function pullCourses() {
         const f = _lastCoursesFile;
         if (!f || !window.DB?.mergeUserLessons) return false;
+        // v130: 课程缓存未灌满 (boot 的 initCourses 还没跑完) 时绝不合并。
+        // SyncManager.init 在 DOMContentLoaded + 500ms 启动, 与 boot 的
+        // await initCourses() 存在竞态 —— 空缓存上合并等于把「远端集合」
+        // 当全量整表写回 IndexedDB, 本机未推送的课就没了 (与「课程被冲」
+        // 事故同根)。清掉戳记, 让下一轮轮询 (30s 后, 缓存已就绪) 重试。
+        if (!window.DB.coursesReady || !window.DB.coursesReady()) {
+            console.warn('[Sync] courses cache not ready — deferring course pull');
+            try { localStorage.removeItem(K_GIST_STAMP); } catch (e2) {}
+            return false;
+        }
         try {
             let text = f.content;
             if (f.truncated && f.raw_url) {
@@ -237,16 +253,36 @@ window.SyncManager = (function() {
             if (!text) return false;
             const obj = JSON.parse(text);
             if (!obj || !Array.isArray(obj.lessons)) return false;
-            // 远端哈希与本机一致 = 内容相同, 不必合并
-            if (obj._hash && obj._hash === window.DB.coursesHash()) return false;
+            // 远端哈希与本机一致 = 内容相同, 不必合并。顺手记账「云端已有
+            // 此内容」(v130): 否则拉完课程的设备下一次任何推送都会把几百
+            // KB 一模一样的课程文件再传一遍。
+            if (obj._hash && obj._hash === window.DB.coursesHash()) {
+                try { localStorage.setItem(K_COURSES_HASH, obj._hash); } catch (e2) {}
+                return false;
+            }
             const changed = window.DB.mergeUserLessons(obj.lessons);
             if (changed) {
                 console.log('[Sync] merged courses from remote: now ' +
                             (window.DB.loadUserLessons() || []).length + ' lessons');
             }
+            // v130: 合并后对账 —— 与远端一致则记账省流量; 本机是并集
+            // (比远端多, 例如本机有未推送的导入课) 则安排一次防抖推送,
+            // 把本机独有的课送上云。此前这个缺口意味着本机独有课程要等
+            // 下一次无关的用户数据推送才会顺路上云。
+            try {
+                const h = window.DB.coursesHash();
+                if (obj._hash && h === obj._hash) {
+                    localStorage.setItem(K_COURSES_HASH, h);
+                } else {
+                    triggerSave();
+                }
+            } catch (e2) {}
             return changed;
         } catch (e) {
             console.error('[Sync] pullCourses failed:', e);
+            // v130: 课程拉取失败也要回滚戳记 —— 否则戳记短路会让这次
+            // 课程更新被永久跳过, 直到远端再次变化
+            try { localStorage.removeItem(K_GIST_STAMP); } catch (e2) {}
             return false;
         }
     }
@@ -257,8 +293,16 @@ window.SyncManager = (function() {
         const json   = JSON.stringify(data);
         // 体积预警: 越过 1 MB 后 API 读取会返回截断内容 (拉取侧已改走
         // raw_url 兜底, 但这是个该知道的架构信号 —— 课程语料在长大)。
-        if (json.length > 950000) {
-            console.warn('[Sync] payload is ' + Math.round(json.length / 1024) +
+        // v130: 按真实 UTF-8 字节数算 —— 中文是 3 字节/字, json.length
+        // 是 UTF-16 码元数, 会低估一半以上; GitHub 的截断线按字节算。
+        let bytes = json.length;   // 下界: 每码元至少 1 字节
+        try {
+            if (typeof TextEncoder !== 'undefined') {
+                bytes = new TextEncoder().encode(json).length;
+            }
+        } catch (e) {}
+        if (bytes > 950000 || json.length > 950000) {
+            console.warn('[Sync] payload is ' + Math.round(bytes / 1024) +
                          ' KB, over the 1 MB API inline limit — pulls now go ' +
                          'through raw_url; consider trimming or sharding.');
         }
@@ -578,7 +622,20 @@ window.SyncManager = (function() {
             const requiresReload = (k) => k === K_API_KEY;
 
             // Write remote keys, tracking real changes
+            const legacyCoursesKey = prefix + 'lessons_user';
             Object.keys(remote).forEach(k => {
+                // v130: 旧版设备的快照仍带课程整键 (v128 已迁 IndexedDB)。
+                // 原样写回 localStorage 会重新占掉 ~700 KB 配额并绕过分层
+                // 架构; 改喂 mergeUserLessons —— 本机没有的课收下, 已有的
+                // 课不覆盖 (旧快照条目无 _v, 永远不会比本机新)。
+                if (k === legacyCoursesKey) {
+                    try {
+                        const arr = JSON.parse(remote[k]);
+                        if (Array.isArray(arr)) window.DB?.mergeUserLessons?.(arr);
+                    } catch (e) {}
+                    localKeys.delete(k);
+                    return;
+                }
                 // v72: only accept inbound emp_api_key when the user has
                 // opted in. An opted-out device must never silently inherit
                 // an API key from another device's sync payload.
@@ -776,7 +833,18 @@ window.SyncManager = (function() {
                 setTimeout(doReload, showToast ? 600 : 300);
                 return true;
             } else {
-                if (showToast) window.App?.showToast?.('Already up to date.');
+                // v130: 用户数据没到套用条件, 但课程可能已经合并了 (手动
+                // 同步重复点击等场景) —— 课程有变化就派发刷新事件, 否则
+                // 课文页要等下一次重载才看得到新课。
+                if (coursesChanged) {
+                    try {
+                        window.dispatchEvent(new CustomEvent('hsv:datachanged',
+                            { detail: { courses: true } }));
+                    } catch (e) {}
+                    if (showToast) window.App?.showToast?.('\u8BFE\u7A0B\u5DF2\u66F4\u65B0');
+                } else if (showToast) {
+                    window.App?.showToast?.('Already up to date.');
+                }
                 // IMPORTANT: do NOT advance lastPull here. The whole point of
                 // lastPull is "the newest remote timestamp we've applied" — if
                 // we update it on no-op pulls, future legitimate pulls (where
@@ -787,6 +855,9 @@ window.SyncManager = (function() {
             }
         } catch (e) {
             console.log('[Sync] Pull error:', e.message || e);
+            // v130: 拉取中途失败 (合并抛错等) 也回滚戳记 —— 否则下一轮
+            // 轮询按 UNCHANGED 短路, 这次远端更新被永久跳过
+            try { localStorage.removeItem(K_GIST_STAMP); } catch (e2) {}
             if (showToast) window.App?.showToast?.('Pull failed — check token/network.');
             return false;
         } finally {
@@ -953,7 +1024,12 @@ window.SyncManager = (function() {
         const methods = [
             'saveNotebook', 'saveStats', 'saveWritingEntry',
             'deleteWritingEntry', 'upsertNotebookWord', 'removeNotebookWord',
-            'toggleFocus'
+            'toggleFocus',
+            // v130: 课程导入/删除/编辑走 saveUserLessons, 此前没有任何
+            // 同步触发 —— 导入完不做别的学习动作, 课程就永远到不了云端。
+            // 拉取路径走 mergeUserLessons (未钩), 不会形成推拉循环。
+            // importAll 同理: 恢复备份改了一大批键, 也该推一次。
+            'saveUserLessons', 'importAll'
         ];
         methods.forEach(m => {
             const orig = window.DB[m];

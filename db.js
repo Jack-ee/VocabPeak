@@ -446,6 +446,39 @@
                         _courses = arr;
                     }
                 }
+            } else if (_courses.length && legacyRaw) {
+                // v130 残留清理: IndexedDB 已有课程但 localStorage 旧键还在
+                // (旧版设备的快照曾把它回灌, 或迁移中断后又被同步写回)。
+                // 把旧键里本机没有的课并进来 (旧键条目无 _v, 不会覆盖本机
+                // 已有课), 写盘成功后删除旧键, 收回 ~700 KB 配额。写盘失败
+                // 则保留旧键, 不丢任何课。
+                let ok = true;
+                try {
+                    const legacy = safeJSON(legacyRaw, []);
+                    const byId   = {};
+                    _courses.forEach(l => { byId[l.id] = l; });
+                    const now = Date.now();
+                    let   add = 0;
+                    (Array.isArray(legacy) ? legacy : []).forEach(l => {
+                        if (l && l.id && !byId[l.id]) {
+                            byId[l.id] = Object.assign({}, l, { _v: l._v || now });
+                            add++;
+                        }
+                    });
+                    if (add) {
+                        const merged = Object.keys(byId).map(k => byId[k]);
+                        await cdbReplaceAll(merged);
+                        _courses = merged;
+                        console.log('[DB] 残留旧键并入 ' + add + ' 门本机没有的课');
+                    }
+                } catch (e) {
+                    ok = false;
+                    console.error('[DB] 残留键合并失败, 保留旧键:', e);
+                }
+                if (ok) {
+                    localStorage.removeItem(key('lessons_user'));
+                    console.log('[DB] 已清理 localStorage 课程残留键, 收回配额');
+                }
             }
             _courses.sort((a, b) => String(a.id).localeCompare(String(b.id)));
             _coursesReady = true;
@@ -457,6 +490,14 @@
         // 同一原则)。返回是否发生了变化。
         mergeUserLessons: function(incoming) {
             if (!Array.isArray(incoming) || !incoming.length) return false;
+            // v130 守卫: initCourses 灌满缓存前拒绝合并 —— 此时 _courses
+            // 是空的, 合并结果会把「远端集合」当全量整表写回 IndexedDB,
+            // 本机未推送的课就被抹掉了。sync.js 侧有同样的守卫, 这里是
+            // 纵深防御 (任何未来调用点都不该能踩到这个坑)。
+            if (!_coursesReady) {
+                console.warn('[DB] mergeUserLessons before initCourses — refused');
+                return false;
+            }
             const byId = {};
             _courses.forEach(l => { byId[l.id] = l; });
             let changed = false;
@@ -965,6 +1006,9 @@
                 }
             }
             toRemove.forEach(k => localStorage.removeItem(k));
+            // v130: 拉取前快照 (键名下划线开头, 不匹配档案前缀) 也是学习
+            // 数据 —— 转交设备时属于隐私残留, 重置一并清掉。
+            localStorage.removeItem('_' + PREFIX + pid + '_prepull');
             // 课程 (v128) 在 IndexedDB, 不在上面按前缀清除的范围内 ——
             // 全部重置必须一并清掉, 否则重置后课程还在 (给别人用的
             // 设备会残留上一个人的课程内容)。
@@ -978,7 +1022,11 @@
                     `${PREFIX}sync_gist_id`,
                     `${PREFIX}sync_last_pull`,
                     `${PREFIX}sync_last_push`,
-                    `${PREFIX}sync_v2_fix_applied`
+                    `${PREFIX}sync_v2_fix_applied`,
+                    // v130: 漏网之鱼 —— Gist 戳记与「同步 API key」开关也是
+                    // 同步侧状态, 真全清时不该留下
+                    `${PREFIX}sync_gist_stamp`,
+                    `${PREFIX}sync_api_key`
                 ].forEach(k => localStorage.removeItem(k));
             }
         },

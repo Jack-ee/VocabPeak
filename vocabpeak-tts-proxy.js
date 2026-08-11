@@ -150,7 +150,13 @@ async function handlePackRequest(request, origin, env) {
     const cl = upstream.headers.get('Content-Length');
     if (ct) headers['Content-Type']   = ct;
     if (cl) headers['Content-Length'] = cl;
-    headers['Cache-Control'] = 'public, max-age=300';
+    // v130: manifest 等 .json 资产必须不可缓存 —— max-age 会让客户端的
+    // 「检查更新」在新包发布后的缓存窗口内拿到旧 manifest, 误报已最新
+    // (既定原则: manifest/JSON 端点一律 no-store)。二进制包体保留短缓存,
+    // 内容按代次变化, 短缓存无害且对重试友好。
+    headers['Cache-Control'] = /\.json$/i.test(asset)
+        ? 'no-store'
+        : 'public, max-age=300';
     return new Response(upstream.body, { status: 200, headers });
 }
 

@@ -1,5 +1,35 @@
 // sw.js — VocabPeak Service Worker
 
+// hsv-v33 (?v=130) — bug 巡检修复批 (同步可靠性 + 课程链路补漏):
+//   • 戳记回滚 (高): v129 的 updated_at 短路把戳记写在内容取回之前 ——
+//     raw_url 拉取失败 / JSON 解析失败 / 课程合并失败后, 后台轮询一直
+//     判 UNCHANGED, 这次远端更新被永久跳过 (直到远端再次变化)。VPN
+//     抖动下是常态场景。现在所有失败路径都回滚戳记, 下一轮如实重读。
+//   • 课程拉取就绪守卫 (高): SyncManager.init (DOMContentLoaded+500ms)
+//     与 boot 的 await initCourses() 存在竞态 —— 缓存未灌满时合并等于
+//     把「远端集合」当全量整表写回 IndexedDB, 本机未推送的课会被抹掉
+//     (与「课程被冲」事故同根)。pullCourses 与 DB.mergeUserLessons 双层
+//     守卫, 未就绪即跳过并清戳记, 30 秒后重试。
+//   • 课程导入后不推送 (中): saveUserLessons 此前无任何同步触发, 导入
+//     完课直接关页面, 课程永远到不了云端。hookSaves 补钩 saveUserLessons
+//     与 importAll。
+//   • 课文页不刷新 (中): v128 派发的 hsv:datachanged{courses:true} 在
+//     lessons.js 没有监听者 —— 另一台设备导入的课同步下来后列表不更新。
+//     补监听: 仅在课程列表页且无进行中状态 (课内/填空/匹配/综合/导入
+//     弹层) 时静默重渲染; shouldApply=false 分支课程有变化也补派发。
+//   • 旧键回灌 (中): 旧版设备的快照仍带 lessons_user 整键 (~700 KB),
+//     入站时不再写回 localStorage, 改喂 mergeUserLessons (无 _v 不覆盖
+//     本机); initCourses 顺带清理已回灌的残留键, 收回配额。
+//   • 语音包 manifest 缓存 (中): Worker 对 .json 资产改发 no-store
+//     (需单独 Cloudflare 部署!), 客户端 manifest 拉取加 no-store + 时间
+//     戳 —— 否则新包发布后的缓存窗口内「检查更新」误报已最新。
+//   • 拉后记账 (低): 拉完课程与远端一致时记 K_COURSES_HASH, 否则下次
+//     任何推送都会把几百 KB 相同的课程文件再传一遍; 本机是并集时主动
+//     安排回推, 本机独有课程不再等无关推送才顺路上云。
+//   • 体积预警按 UTF-8 真实字节算 (中文下 length 低估一半以上);
+//     factoryReset 补清拉取前快照 (隐私残留)、Gist 戳记、API key 同步
+//     开关。
+
 // hsv-v32 (?v=129) — 拉取流量: Gist 未变则一个字节都不下载:
 //   • 现象: v128 后主载荷降到 602 KB, 但 API 仍标记 truncated, 于是
 //     每次后台轮询 (30 秒一轮) 都走 raw_url 全量下载 602 KB ——
@@ -386,7 +416,7 @@
 
 // 缓存名与 EMPro 隔离：Cache Storage 也是按 origin 共享的，两个应用
 // 的 CACHE_NAME 必须不同，否则会互相删除对方的缓存。
-const CACHE_NAME = 'hsv-v32';
+const CACHE_NAME = 'hsv-v33';
 const ASSETS = [
     './',
     './index.html',

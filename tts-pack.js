@@ -217,7 +217,13 @@ window.TTSPack = (function () {
         // 1. Manifest check - skip the large download if already current.
         try {
             say('Checking for updates\u2026');
-            const mResp = await fetch(assetUrl(base, MANIFEST_ASSET));
+            // v130: manifest 必须绕开 HTTP 缓存 —— Worker/CDN 层的 max-age
+            // 会让「检查更新」拿到旧 manifest, 新包刚发布时误报「已最新」
+            // (EMPro 踩过的同一个坑: manifest/JSON 端点必须不可缓存)。
+            // no-store 跳过浏览器缓存, 时间戳参数再兜一层中间缓存。
+            const mResp = await fetch(
+                assetUrl(base, MANIFEST_ASSET) + '&t=' + Date.now(),
+                { cache: 'no-store' });
             if (mResp.ok) {
                 const remote = await mResp.json();
                 const meta   = await idbGet(META_KEY);

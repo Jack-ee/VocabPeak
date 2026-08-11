@@ -2520,6 +2520,17 @@ window.Lessons = (function () {
         if (!root) return;
         root.addEventListener('click', onClick);
         document.addEventListener('keydown', onKeyDown);
+        // v130: 云端数据到达时刷新课程列表。v128 起 sync 派发
+        // hsv:datachanged (课程有更新时 detail.courses=true), 但本模块
+        // 此前没有监听者 —— 另一台设备导入的课同步下来后, 列表不更新,
+        // 要手动刷新才看得到。只在课程列表页且无任何进行中状态时静默
+        // 重渲染: 课内 / 填空中 / 匹配中 / 综合练习 / 导入弹层打开,
+        // 一律不动, 绝不把孩子从正在做的事里踢出来。
+        window.addEventListener('hsv:datachanged', () => {
+            if (curLesson || clozeState || matchState || mixedKind) return;
+            if (root.querySelector('#ls-import-overlay.open')) return;
+            try { renderHome(); } catch (e) {}
+        });
         // 记住上次打开的课 —— 同步重载/刷新后回到原处
         const last = window.DB?.getPref?.('lesson_last', '');
         if (last && lessonById(last)) openLesson(last);
