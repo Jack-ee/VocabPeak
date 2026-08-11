@@ -1754,8 +1754,17 @@
     }
 
     // ─── Boot ───────────────────────────────────────────────
-    function boot() {
+    async function boot() {
         try {
+            // 课程存 IndexedDB (v128): 必须先灌满内存缓存再初始化各模块 ——
+            // loadUserLessons() 是同步接口, 读的就是这份缓存。首次运行会
+            // 顺带把 localStorage 里的旧课程迁移过来。
+            try {
+                const n = await window.DB?.initCourses?.();
+                console.log('[app] courses ready:', n);
+            } catch (e) {
+                console.error('[app] initCourses failed:', e);
+            }
             // Verify required globals are actually present before initializing
             // modules — a missing global is a clearer error than a cascade of
             // undefined-method failures deep inside a feature.

@@ -46,6 +46,9 @@ function extract(name) {
 const GIST_API = 'https://api.github.com/gists';
 const getToken = () => 't', getGistId = () => 'g', gistFile = () => 'hsv-sync-kid.json';
 const setGistId = () => {};
+// v128 起 readGist 还会记录课程文件元信息 (课程走独立 Gist 文件)
+const coursesFile = () => 'hsv-courses-kid.json';
+let _lastCoursesFile = null;
 const console_ = console;
 eval(extract('readGist'));
 (async () => {
@@ -63,8 +66,9 @@ eval(extract('readGist'));
     const idx = fs.readFileSync(path.join(DIR, 'index.html'), 'utf8');
     const sw  = fs.readFileSync(path.join(DIR, 'sw.js'), 'utf8');
     const vs  = [...idx.matchAll(/\?v=(\d+)/g)].map(x => x[1]);
-    ok(new Set(vs).size === 1 && vs[0] === '127', 'index.html 全部 ?v=127');
-    ok(/const CACHE_NAME = 'hsv-v30'/.test(sw), 'sw.js CACHE_NAME = hsv-v30');
+    ok(new Set(vs).size === 1 && Number(vs[0]) >= 127, 'index.html ?v 全部一致且 >= 127');
+    const swV10 = (sw.match(/const CACHE_NAME = 'hsv-v(\d+)'/) || [])[1];
+    ok(swV10 && Number(swV10) >= 30, 'sw.js CACHE_NAME >= hsv-v30');
     ok(/hsv-v30 \(\?v=127\)/.test(sw), 'sw.js 有 v30 变更日志');
 
     console.log('\n' + '═'.repeat(46));

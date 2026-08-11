@@ -49,6 +49,11 @@ window.SyncManager = (function() {
     // ─── Profile-scoped helpers ──────────────────────────────
     function profileId()  { return (window.APP_CONFIG && window.APP_CONFIG.PROFILE_ID) || 'default'; }
     function gistFile()   { return `${APP_TAG}-sync-${profileId()}.json`; }
+    // 课程内容单独一个 Gist 文件 (v128): 内容与用户状态分层 —— 主载荷
+    // 只放真正的用户数据 (回到 ~400 KB 且网页上可读), 课程走这个文件,
+    // 按内容哈希判断变化, 没变就一个字节都不传。
+    function coursesFile() { return `${APP_TAG}-courses-${profileId()}.json`; }
+    const K_COURSES_HASH = APP_PREFIX + 'courses_pushed_hash';   // 本机记账, 不同步
     function keyPrefix()  { return `${APP_PREFIX}${profileId()}_`; }
 
     // ─── Settings accessors (raw localStorage) ───────────────
@@ -167,6 +172,9 @@ window.SyncManager = (function() {
             throw new Error(`Gist read failed: ${resp.status}`);
         }
         const gist = await resp.json();
+        // 课程文件 (v128): 只在哈希与本机不同时才真正取内容 —— 否则
+        // 每次轮询都白下载几百 KB。这里先把元信息留给 pull 判断。
+        _lastCoursesFile = gist.files?.[coursesFile()] || null;
         const file = gist.files?.[gistFile()];
         if (!file) return null;
 
@@ -198,6 +206,38 @@ window.SyncManager = (function() {
         }
     }
 
+    // readGist 每次刷新它, pull 随后据此决定要不要拉课程内容
+    let _lastCoursesFile = null;
+
+    // 取远端课程并按 id/版本合并进本机 (不删除, 见 db.mergeUserLessons)。
+    // 大于 1 MB 时同样走 raw_url, 且不带鉴权头 (CORS 预检, 见 v127)。
+    async function pullCourses() {
+        const f = _lastCoursesFile;
+        if (!f || !window.DB?.mergeUserLessons) return false;
+        try {
+            let text = f.content;
+            if (f.truncated && f.raw_url) {
+                const raw = await fetch(f.raw_url);
+                if (!raw.ok) throw new Error('HTTP ' + raw.status);
+                text = await raw.text();
+            }
+            if (!text) return false;
+            const obj = JSON.parse(text);
+            if (!obj || !Array.isArray(obj.lessons)) return false;
+            // 远端哈希与本机一致 = 内容相同, 不必合并
+            if (obj._hash && obj._hash === window.DB.coursesHash()) return false;
+            const changed = window.DB.mergeUserLessons(obj.lessons);
+            if (changed) {
+                console.log('[Sync] merged courses from remote: now ' +
+                            (window.DB.loadUserLessons() || []).length + ' lessons');
+            }
+            return changed;
+        } catch (e) {
+            console.error('[Sync] pullCourses failed:', e);
+            return false;
+        }
+    }
+
     async function writeGist(data) {
         const token = getToken();
         if (!token) return false;
@@ -211,6 +251,27 @@ window.SyncManager = (function() {
         }
         let gistId   = getGistId();
         const body   = { files: { [gistFile()]: { content: json } } };
+
+        // 课程文件只在内容哈希变化时才一起写 —— 否则每次防抖推送都要
+        // 上传几百 KB 不变的课程。PATCH 不提某个文件时该文件原样保留。
+        try {
+            const h = window.DB?.coursesHash?.();
+            if (h && window.DB?.coursesReady?.()) {
+                if (h !== localStorage.getItem(K_COURSES_HASH)) {
+                    const list = window.DB.loadUserLessons() || [];
+                    body.files[coursesFile()] = {
+                        content: JSON.stringify({
+                            _profile : profileId(),
+                            _hash    : h,
+                            _time    : Date.now(),
+                            lessons  : list
+                        })
+                    };
+                    console.log('[Sync] courses changed (' + list.length +
+                                ' lessons, hash ' + h + ') — including in push');
+                }
+            }
+        } catch (e) { console.warn('[Sync] courses push prep failed:', e); }
 
         try {
             let resp;
@@ -241,6 +302,13 @@ window.SyncManager = (function() {
                 setGistId(gist.id);
                 console.log('[Sync] Created new Gist:', gist.id);
             }
+            // 推送成功后记下已上传的课程哈希 (本机记账, 不进同步)
+            try {
+                const pushed = body.files[coursesFile()];
+                if (pushed) {
+                    localStorage.setItem(K_COURSES_HASH, window.DB.coursesHash());
+                }
+            } catch (e) {}
             setLastPush(Date.now());
             updateSyncUI();
             return true;
@@ -268,6 +336,9 @@ window.SyncManager = (function() {
         for (let i = 0; i < localStorage.length; i++) {
             const k = localStorage.key(i);
             if (!k) continue;
+            // 课程已迁出 localStorage (见 db.js initCourses), 这里再挡一道:
+            // 老设备迁移前的残留键不该重新污染主载荷。
+            if (k === prefix + 'lessons_user') continue;
             if (k.startsWith(prefix) && !isSecretPref(k)) data[k] = localStorage.getItem(k);
         }
         // v72: API key is now OPT-IN. Even on a private Gist, an API key
@@ -291,8 +362,11 @@ window.SyncManager = (function() {
     // 键名以下划线开头 → 不匹配档案前缀 → 不进推送快照、不被拉取
     // 删除, 永远只属于本机。格式: { v:2, gens:[{ts,data}, ...] },
     // 最新在前; 兼容 v123 的单代格式 { ts, data }。
+    // v128: 课程移出 —— 它已在 IndexedDB 且靠 id/版本合并保护, 不再是
+    // 覆盖风险源; 每代快照少 700 KB, 三代保护才真正装得下 (此前配额
+    // 只够一代, 保险被悄悄削弱)。
     const PREPULL_KEYS = ['lesson_progress', 'lesson_mixed', 'lesson_sess',
-                          'lesson_phrase_sel', 'notebook', 'lessons_user'];
+                          'lesson_phrase_sel', 'notebook'];
     const PREPULL_GENS = 3;
 
     function prePullKey(prefix) { return '_' + prefix + 'prepull'; }
@@ -583,6 +657,10 @@ window.SyncManager = (function() {
                 ? (remoteTime >= lastPull)
                 : (remoteTime > lastPull);
 
+            // 课程走独立文件, 与 _syncTime 判定解耦: 用户数据没变但课程
+            // 变了 (另一台设备导入了新课) 也要拉下来。
+            const coursesChanged = await pullCourses();
+
             if (shouldApply && remoteTime > 0) {
                 const result = mergeSyncData(payload) || {};
 
@@ -603,8 +681,16 @@ window.SyncManager = (function() {
                 // reload entirely. This is the main fix for the "PC reloads
                 // every ~30s while I'm typing" complaint.
                 if (!result.changed) {
-                    if (showToast) window.App?.showToast?.('Already up to date.');
-                    else           console.log('[Sync] Pulled — no content change, skipping reload');
+                    if (coursesChanged) {
+                        // 课程有更新: 用户数据无变化也要让课文模块重渲染
+                        window.dispatchEvent(new CustomEvent('hsv:datachanged',
+                            { detail: { courses: true } }));
+                        if (showToast) window.App?.showToast?.('\u8BFE\u7A0B\u5DF2\u66F4\u65B0');
+                    } else if (showToast) {
+                        window.App?.showToast?.('Already up to date.');
+                    } else {
+                        console.log('[Sync] Pulled — no content change, skipping reload');
+                    }
                     updateSyncUI();
                     return true;
                 }

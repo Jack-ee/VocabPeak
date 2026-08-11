@@ -17,6 +17,85 @@
         catch { return fallback; }
     }
 
+    // ─── 课程内容存储 (IndexedDB, v128) ──────────────────────
+    // 课程是「内容」不是「用户状态」: 36 门课在每台设备、每个分享
+    // 对象那里完全一样。原来它躺在 localStorage 的 lessons_user 键
+    // 里, 并随用户快照整份同步, 后果有三:
+    //   ① localStorage 按 origin 只有几 MB (还与同源的 EMPro 共享),
+    //      课程 697 KB + 拉取前快照里的课程副本, 配额已经吃紧 ——
+    //      三代快照实际只装下一代, 兜底保险被悄悄削弱;
+    //   ② 同步载荷越过 1 MB, API 读取被截断 (v127 才修掉静默失效);
+    //   ③ 课程进入整档 LWW 覆盖区 —— 前几天课程被冲就是这个通道。
+    // 现在课程存 IndexedDB (配额几百 MB), 按 id 一课一条, 每条带
+    // 版本时间戳 _v; 同步改用独立 Gist 文件 + 内容哈希增量 (见
+    // sync.js), 主载荷只剩真正的用户数据。
+    //
+    // 对外仍是同步 API (loadUserLessons / saveUserLessons) —— 内存
+    // 缓存在启动时由 initCourses() 灌满, 调用点一处都不用改。
+    const CDB_NAME  = PREFIX + 'content';
+    const CDB_STORE = 'courses';
+    let _courses      = [];        // 内存缓存 (权威副本, 同步读写它)
+    let _coursesReady = false;
+    let _cdb          = null;
+
+    function cdbOpen() {
+        if (_cdb) return Promise.resolve(_cdb);
+        return new Promise((resolve, reject) => {
+            let req;
+            try { req = indexedDB.open(CDB_NAME, 1); }
+            catch (e) { reject(e); return; }
+            req.onupgradeneeded = () => {
+                const db = req.result;
+                if (!db.objectStoreNames.contains(CDB_STORE)) {
+                    db.createObjectStore(CDB_STORE, { keyPath: 'id' });
+                }
+            };
+            req.onsuccess = () => { _cdb = req.result; resolve(_cdb); };
+            req.onerror   = () => reject(req.error);
+        });
+    }
+
+    function cdbAll() {
+        return cdbOpen().then(db => new Promise((resolve, reject) => {
+            const tx  = db.transaction(CDB_STORE, 'readonly');
+            const req = tx.objectStore(CDB_STORE).getAll();
+            req.onsuccess = () => resolve(req.result || []);
+            req.onerror   = () => reject(req.error);
+        }));
+    }
+
+    // 整表覆写 (课程集合变动都走它: 清空 → 写入 → 单事务原子提交)
+    function cdbReplaceAll(arr) {
+        return cdbOpen().then(db => new Promise((resolve, reject) => {
+            const tx    = db.transaction(CDB_STORE, 'readwrite');
+            const store = tx.objectStore(CDB_STORE);
+            store.clear();
+            (arr || []).forEach(l => { if (l && l.id) store.put(l); });
+            tx.oncomplete = () => resolve(true);
+            tx.onerror    = () => reject(tx.error);
+            tx.onabort    = () => reject(tx.error || new Error('tx aborted'));
+        }));
+    }
+
+    // 内容哈希: 用于同步侧判断"课程有没有变", 避免每次推送都上传
+    // 几百 KB。简单 FNV-1a, 冲突概率对这个用途足够低。
+    // 比对内容时忽略版本字段本身
+    function stripV(l) {
+        const o = Object.assign({}, l);
+        delete o._v;
+        return o;
+    }
+
+    function coursesHash(arr) {
+        const src = JSON.stringify((arr || []).map(l => [l.id, l._v || 0]).sort());
+        let h = 0x811c9dc5;
+        for (let i = 0; i < src.length; i++) {
+            h ^= src.charCodeAt(i);
+            h = (h * 0x01000193) >>> 0;
+        }
+        return h.toString(16);
+    }
+
     // ─── Lemma matcher ───────────────────────────────────────
     // Tests whether `inflected` is a plausible English inflection of
     // `base`. Designed for precision over recall — false negatives just
@@ -306,15 +385,96 @@
             localStorage.setItem(key('notebook'), JSON.stringify(arr || []));
         },
 
-        // ─── 课文精读: 用户导入的课 ────────────────────────
-        // 键 hsv_{pid}_lessons_user, 与生词本同前缀, 自动进入
-        // 整档同步快照 (sync.js 按前缀收集), 平板端拉取后即可见。
+        // ─── 课文精读: 用户导入的课 (IndexedDB, v128) ───────
+        // 读写都走内存缓存, 保持同步签名; 落盘异步进 IndexedDB。
+        // 启动时必须先 await initCourses() 灌满缓存。
         loadUserLessons: function() {
-            return safeJSON(localStorage.getItem(key('lessons_user')), []);
+            return _courses.slice();
         },
         saveUserLessons: function(arr) {
-            localStorage.setItem(key('lessons_user'), JSON.stringify(arr || []));
+            const now  = Date.now();
+            const prev = {};
+            _courses.forEach(l => { prev[l.id] = l; });
+            // 只给内容真的变了的课打新版本号 —— 版本号参与内容哈希,
+            // 无意义的 bump 会让同步误判"课程变了"而重传几百 KB。
+            _courses = (arr || []).filter(l => l && l.id).map(l => {
+                const old = prev[l.id];
+                if (old && JSON.stringify(stripV(old)) === JSON.stringify(stripV(l))) {
+                    return Object.assign({}, l, { _v: old._v || now });
+                }
+                return Object.assign({}, l, { _v: now });
+            });
+            cdbReplaceAll(_courses).catch(e =>
+                console.error('[DB] 课程写入 IndexedDB 失败:', e));
+            return _courses.length;
         },
+
+        // 启动初始化: 从 IndexedDB 灌缓存; 首次运行把 localStorage
+        // 里的旧课程迁移过来 (写入并核对成功后才删除旧键 —— 迁移
+        // 途中断电/报错都不会丢课)。
+        initCourses: async function() {
+            if (_coursesReady) return _courses.length;
+            const legacyRaw = localStorage.getItem(key('lessons_user'));
+            try {
+                _courses = await cdbAll();
+            } catch (e) {
+                console.error('[DB] 打开课程库失败, 回退 localStorage:', e);
+                _courses      = safeJSON(legacyRaw, []);
+                _coursesReady = true;
+                return _courses.length;
+            }
+            if (!_courses.length && legacyRaw) {
+                const legacy = safeJSON(legacyRaw, []);
+                if (legacy.length) {
+                    const now = Date.now();
+                    const arr = legacy.filter(l => l && l.id)
+                                      .map(l => Object.assign({}, l, { _v: l._v || now }));
+                    try {
+                        await cdbReplaceAll(arr);
+                        const check = await cdbAll();
+                        if (check.length === arr.length) {
+                            localStorage.removeItem(key('lessons_user'));
+                            console.log('[DB] 已把 ' + arr.length +
+                                        ' 门课迁移到 IndexedDB, 并释放 localStorage');
+                            _courses = check;
+                        } else {
+                            console.error('[DB] 迁移核对不符, 保留 localStorage 旧键');
+                            _courses = arr;
+                        }
+                    } catch (e) {
+                        console.error('[DB] 迁移失败, 保留 localStorage 旧键:', e);
+                        _courses = arr;
+                    }
+                }
+            }
+            _courses.sort((a, b) => String(a.id).localeCompare(String(b.id)));
+            _coursesReady = true;
+            return _courses.length;
+        },
+
+        // 同步用: 按 id 并集合并, 同 id 取 _v 新的一侧, 不做删除 ——
+        // 课程是内容, 「对面没有」只说明对面旧, 绝非删除意图 (v126
+        // 同一原则)。返回是否发生了变化。
+        mergeUserLessons: function(incoming) {
+            if (!Array.isArray(incoming) || !incoming.length) return false;
+            const byId = {};
+            _courses.forEach(l => { byId[l.id] = l; });
+            let changed = false;
+            incoming.forEach(l => {
+                if (!l || !l.id) return;
+                const cur = byId[l.id];
+                if (!cur || (l._v || 0) > (cur._v || 0)) { byId[l.id] = l; changed = true; }
+            });
+            if (!changed) return false;
+            _courses = Object.keys(byId).map(k => byId[k])
+                             .sort((a, b) => String(a.id).localeCompare(String(b.id)));
+            cdbReplaceAll(_courses).catch(e =>
+                console.error('[DB] 课程合并写入失败:', e));
+            return true;
+        },
+
+        coursesHash:  function() { return coursesHash(_courses); },
+        coursesReady: function() { return _coursesReady; },
         upsertNotebookWord: function(entry, opts) {
             const nb       = this.loadNotebook();
             const wLow     = String(entry.word || '').trim().toLowerCase();
@@ -720,6 +880,13 @@
                 const apiKey = localStorage.getItem(`${PREFIX}api_key`) || '';
                 if (apiKey) data[`${PREFIX}api_key`] = apiKey;
             }
+            // 课程 (v128) 已搬到 IndexedDB, 但备份文件格式保持不变 ——
+            // 仍以 lessons_user 键导出。否则备份会静默丢掉全部课程,
+            // 且 make-course-pack.js / merge-restore-backup.js 等工具
+            // 全部失效。导入侧对应地把它写回 IndexedDB。
+            if (_courses.length) {
+                data[`${PREFIX}${pid}_lessons_user`] = JSON.stringify(_courses);
+            }
             return JSON.stringify(data, null, 2);
         },
 
@@ -747,11 +914,34 @@
                 drop.forEach(k => localStorage.removeItem(k));
             }
 
+            const pidNow    = (window.APP_CONFIG && window.APP_CONFIG.PROFILE_ID) || 'default';
+            const lessonsKey = `${PREFIX}${pidNow}_lessons_user`;
+            let incoming     = null;
             Object.keys(data).forEach(k => {
-                if (k.startsWith(PREFIX)) {
-                    localStorage.setItem(k, data[k]);
-                }
+                if (!k.startsWith(PREFIX)) return;
+                // 课程走 IndexedDB (v128): 不能落回 localStorage, 否则
+                // 又回到配额与整档同步的老路。replace 时整表覆写,
+                // 非 replace 时按 id/版本合并 (课程包并入自己的数据)。
+                if (k.endsWith('_lessons_user')) { incoming = safeJSON(data[k], null); return; }
+                localStorage.setItem(k, data[k]);
             });
+            if (Array.isArray(incoming)) {
+                const now = Date.now();
+                const arr = incoming.filter(l => l && l.id)
+                                    .map(l => Object.assign({}, l, { _v: l._v || now }));
+                if (replace) {
+                    _courses = arr.sort((a, b) => String(a.id).localeCompare(String(b.id)));
+                    cdbReplaceAll(_courses).catch(e =>
+                        console.error('[DB] 导入课程写入失败:', e));
+                } else {
+                    this.mergeUserLessons(arr);
+                }
+                console.log('[DB] 导入课程 ' + arr.length + ' 门 (' +
+                            (replace ? '覆盖' : '合并') + ')');
+            } else if (replace) {
+                _courses = [];
+                cdbReplaceAll([]).catch(() => {});
+            }
             return true;
         },
 
@@ -775,6 +965,12 @@
                 }
             }
             toRemove.forEach(k => localStorage.removeItem(k));
+            // 课程 (v128) 在 IndexedDB, 不在上面按前缀清除的范围内 ——
+            // 全部重置必须一并清掉, 否则重置后课程还在 (给别人用的
+            // 设备会残留上一个人的课程内容)。
+            _courses = [];
+            localStorage.removeItem(`${PREFIX}courses_pushed_hash`);
+            cdbReplaceAll([]).catch(e => console.error('[DB] 清空课程库失败:', e));
             if (clearCreds) {
                 [
                     `${PREFIX}api_key`,

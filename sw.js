@@ -1,5 +1,26 @@
 // sw.js — VocabPeak Service Worker
 
+// hsv-v31 (?v=128) — 架构分层: 课程是内容, 不再是用户状态:
+//   • 动机: 课程 (36 门, 697 KB) 原本躺在 localStorage 并随用户快照
+//     整份同步, 一口气引发三类问题 —— localStorage 配额吃紧 (与同源
+//     EMPro 共享, 实测 3.81 MB, 三代拉取前快照只装下一代)、同步载荷
+//     越过 1 MB 被 API 截断、课程落入整档 LWW 覆盖区 (被冲事故)。
+//   • 存储: 课程搬到 IndexedDB (库 hsv_content / 表 courses, 一课一
+//     条带版本 _v), 配额几百 MB。对外仍是同步 API (loadUserLessons /
+//     saveUserLessons 读写内存缓存), 调用点零改动; 启动时 boot() 先
+//     await DB.initCourses() 灌缓存, 并把 localStorage 旧课程迁移过来
+//     (写入核对成功才删旧键, 迁移途中出错一律保留)。
+//   • 同步: 课程改走独立 Gist 文件 hsv-courses-{pid}.json, 按内容
+//     哈希增量 —— 没变一个字节都不传 (PATCH 不提该文件即原样保留);
+//     拉取侧先比哈希再决定是否下载, 合并按 id 取版本新的一侧且永不
+//     删除 (同 v126 原则)。主载荷回到 ~400 KB, Gist 网页上恢复可读。
+//     课程更新与用户数据判定解耦: 只有课程变了也会拉取并刷新界面。
+//   • 拉取前快照去掉课程键: 每代省 700 KB, 三代保护第一次真正生效。
+//   • 备份文件格式不变 (仍以 lessons_user 键导出/导入), 现有工具
+//     make-course-pack.js / merge-restore-backup.js 全部照旧可用;
+//     导入侧把课程写进 IndexedDB (replace 覆盖 / 否则按版本合并),
+//     全部重置一并清空课程库。
+
 // hsv-v30 (?v=127) — 同步: 越过 1 MB 后拉取静默失效的修复:
 //   • 症状: 课程攒到 23 门左右, 同步载荷超过 1 MB, GitHub API 只返回
 //     截断内容并标记 truncated; readGist 直接 JSON.parse 必然抛错, 被
@@ -354,7 +375,7 @@
 
 // 缓存名与 EMPro 隔离：Cache Storage 也是按 origin 共享的，两个应用
 // 的 CACHE_NAME 必须不同，否则会互相删除对方的缓存。
-const CACHE_NAME = 'hsv-v30';
+const CACHE_NAME = 'hsv-v31';
 const ASSETS = [
     './',
     './index.html',
