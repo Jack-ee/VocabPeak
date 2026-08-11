@@ -54,6 +54,7 @@ window.SyncManager = (function() {
     // 按内容哈希判断变化, 没变就一个字节都不传。
     function coursesFile() { return `${APP_TAG}-courses-${profileId()}.json`; }
     const K_COURSES_HASH = APP_PREFIX + 'courses_pushed_hash';   // 本机记账, 不同步
+    const K_GIST_STAMP   = APP_PREFIX + 'sync_gist_stamp';       // 上次见到的 Gist updated_at
     function keyPrefix()  { return `${APP_PREFIX}${profileId()}_`; }
 
     // ─── Settings accessors (raw localStorage) ───────────────
@@ -161,7 +162,14 @@ window.SyncManager = (function() {
     }
 
     // ─── Gist I/O ────────────────────────────────────────────
-    async function readGist() {
+    // readGist(force)
+    //   force=true (手动同步): 无条件读取内容。
+    //   force=false (后台轮询): 先看 Gist 元信息的 updated_at —— 任何
+    //     文件变动都会推进它, 没变就直接返回 UNCHANGED, 一个字节的
+    //     内容都不下载。这一层很要紧: 载荷超出 API 内联上限后每次拉取
+    //     都要走 raw_url 全量下载, 30 秒一轮 = 每小时白下几十 MB。
+    const UNCHANGED = Symbol('unchanged');
+    async function readGist(force) {
         const token = getToken(), gistId = getGistId();
         if (!token || !gistId) return null;
         const resp = await fetch(`${GIST_API}/${gistId}`, {
@@ -172,6 +180,11 @@ window.SyncManager = (function() {
             throw new Error(`Gist read failed: ${resp.status}`);
         }
         const gist = await resp.json();
+        const stamp = gist.updated_at || '';
+        if (!force && stamp && stamp === localStorage.getItem(K_GIST_STAMP)) {
+            return UNCHANGED;
+        }
+        if (stamp) localStorage.setItem(K_GIST_STAMP, stamp);
         // 课程文件 (v128): 只在哈希与本机不同时才真正取内容 —— 否则
         // 每次轮询都白下载几百 KB。这里先把元信息留给 pull 判断。
         _lastCoursesFile = gist.files?.[coursesFile()] || null;
@@ -186,7 +199,7 @@ window.SyncManager = (function() {
         // raw 链接自带不可猜测的 sha, 本身不需要鉴权。
         let text = file.content;
         if (file.truncated && file.raw_url) {
-            console.warn('[Sync] payload > 1MB (' + (file.size || '?') +
+            console.warn('[Sync] payload truncated by API (' + (file.size || '?') +
                          ' bytes) — fetching full content from raw_url');
             try {
                 const raw = await fetch(file.raw_url);
@@ -309,6 +322,9 @@ window.SyncManager = (function() {
                     localStorage.setItem(K_COURSES_HASH, window.DB.coursesHash());
                 }
             } catch (e) {}
+            // 推送会推进远端 updated_at: 清掉本机戳记, 让下一次轮询
+            // 老老实实读一次 (期间别的设备可能也推过)
+            try { localStorage.removeItem(K_GIST_STAMP); } catch (e) {}
             setLastPush(Date.now());
             updateSyncUI();
             return true;
@@ -641,7 +657,13 @@ window.SyncManager = (function() {
         updateSyncUI();
         if (showToast) window.App?.showToast?.('Pulling...');
         try {
-            const payload = await readGist();
+            // 手动同步强制读取; 后台轮询靠 updated_at 短路省流量
+            const payload = await readGist(!!showToast);
+            if (payload === UNCHANGED) {
+                if (showToast) window.App?.showToast?.('Already up to date.');
+                updateSyncUI();
+                return true;
+            }
             if (!payload) {
                 if (showToast) window.App?.showToast?.('No remote data yet.');
                 return false;
@@ -814,7 +836,7 @@ window.SyncManager = (function() {
             // If we already have a gist ID (legacy setup), just pull
             if (getGistId()) {
                 window.App?.showToast?.('Syncing from cloud...');
-                const payload = await readGist().catch(() => null);
+                const payload = await readGist(true).catch(() => null);
                 if (payload && payload._syncTime) {
                     mergeSyncData(payload);
                     window.App?.showToast?.('Synced from cloud. Reloading...');
@@ -852,7 +874,7 @@ window.SyncManager = (function() {
                 setGistId(match.id);
                 console.log('[Sync] Found existing Gist:', match.id);
                 window.App?.showToast?.('Found existing sync. Pulling...');
-                const payload = await readGist();
+                const payload = await readGist(true);
                 if (payload && payload._syncTime) {
                     mergeSyncData(payload);
                     window.App?.showToast?.('Synced from cloud. Reloading...');

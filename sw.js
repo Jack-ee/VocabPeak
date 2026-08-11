@@ -1,5 +1,16 @@
 // sw.js — VocabPeak Service Worker
 
+// hsv-v32 (?v=129) — 拉取流量: Gist 未变则一个字节都不下载:
+//   • 现象: v128 后主载荷降到 602 KB, 但 API 仍标记 truncated, 于是
+//     每次后台轮询 (30 秒一轮) 都走 raw_url 全量下载 602 KB ——
+//     每小时白下几十 MB, 手机流量下尤其不可接受。
+//   • 修复: readGist(force) 先看 Gist 元信息的 updated_at, 任何文件
+//     变动都会推进它 —— 后台轮询发现与本机戳记相同即返回 UNCHANGED,
+//     不读任何内容; 手动同步 (点云图标) 强制读取。推送后清掉本机
+//     戳记, 让下一轮如实读一次 (期间别的设备可能也推过)。
+//   • 顺带修正截断警告文案: 原来写死 "> 1MB" 与实际字节数自相矛盾,
+//     改为 "payload truncated by API (N bytes)"。
+
 // hsv-v31 (?v=128) — 架构分层: 课程是内容, 不再是用户状态:
 //   • 动机: 课程 (36 门, 697 KB) 原本躺在 localStorage 并随用户快照
 //     整份同步, 一口气引发三类问题 —— localStorage 配额吃紧 (与同源
@@ -375,7 +386,7 @@
 
 // 缓存名与 EMPro 隔离：Cache Storage 也是按 origin 共享的，两个应用
 // 的 CACHE_NAME 必须不同，否则会互相删除对方的缓存。
-const CACHE_NAME = 'hsv-v31';
+const CACHE_NAME = 'hsv-v32';
 const ASSETS = [
     './',
     './index.html',
