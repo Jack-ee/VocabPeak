@@ -936,3 +936,16 @@
     cursor        : pointer;
 }
 .ls-setup-smartopt input { margin-top: 3px; }
+
+/* ---- 学习时长激励卡 (v133) ---- */
+.ls-time-card {
+    background    : var(--bg-card);
+    border        : 1px solid var(--bg-accent);
+    border-left   : 3px solid var(--accent, #f0b429);
+    border-radius : 10px;
+    padding       : 8px 14px;
+    margin-bottom : 10px;
+    font-size     : 13px;
+    color         : var(--text-secondary);
+}
+.ls-time-card b { color: var(--text-primary); }

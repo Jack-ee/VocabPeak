@@ -104,9 +104,12 @@ ok(mergedUnion === 2, '并集超出远端 → 计数触发回推 (' + mergedUnio
 
 // ─── 5. 结构接线与显示修正 ──────────────────────────────
 section('5. 接线完整性');
-ok(/mergeFns\[prefix \+ 'lesson_progress'\] = mergeLessonProgress/.test(sync), '写入循环接入进度合并');
-ok(/mergeFns\[prefix \+ 'lesson_mixed'\]\s+= mergeLessonMixed/.test(sync), '写入循环接入档案合并');
-ok(/mergeFns\[prefix \+ 'lesson_sess'\]\s+= mergeLessonSess/.test(sync), '写入循环接入会话合并');
+// v132 修正: 这些记录经 DB.setPref 存储, 真实键带 pref_ 段。v120 原断言
+// 锁定的键名少了 pref_ (即 v132 修掉的路由错位 bug), 意图是"合并已接线",
+// 按修正后的正确键名校验。
+ok(/mergeFns\[prefix \+ 'pref_lesson_progress'\] = mergeLessonProgress/.test(sync), '写入循环接入进度合并');
+ok(/mergeFns\[prefix \+ 'pref_lesson_mixed'\]\s+= mergeLessonMixed/.test(sync), '写入循环接入档案合并');
+ok(/mergeFns\[prefix \+ 'pref_lesson_sess'\]\s+= mergeLessonSess/.test(sync), '写入循环接入会话合并');
 ok(/if \(mergeFns\[k\]\) \{ mergedUnion\+\+; return; \}/.test(sync), '删除阶段豁免课文记录键');
 ok(/preservedDayKeys, mergedUnion \}/.test(sync), '返回值带 mergedUnion'); 
 ok(/result\.preservedDayKeys > 0 \|\| result\.mergedUnion > 0/.test(sync), '并集超出远端触发回推');

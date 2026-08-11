@@ -217,6 +217,21 @@
     </div>
 
     <div class="section">
+      <h3>课文学习 <span class="note">时长与专注信号 · 近 14 天</span></h3>
+      <div class="card" style="padding:6px 14px;margin-bottom:12px">
+        <table id="d-time"><tbody></tbody></table>
+      </div>
+      <div class="card" style="padding:6px 14px">
+        <table id="d-time-lessons"><tbody></tbody></table>
+      </div>
+      <div class="heat-detail" style="margin-top:8px">
+        精读 = 课文页阅读/听读的专注分钟数（挂机不计）；练习 = 填空/短语/综合练习。
+        <b>⚠ 跳过精读</b>：当天该课练习不少而精读几乎为零；<b>⚠ 作答过快</b>：平均每题不足 3 秒，可能在乱点。
+        信号只是提示，具体情况请结合孩子当天安排判断。
+      </div>
+    </div>
+
+    <div class="section">
       <h3>近 30 天明细</h3>
       <div class="card" style="padding:6px 14px">
         <table id="d-table"><tbody></tbody></table>
@@ -298,14 +313,33 @@ async function loadPayload(token, profile){
   if(!file) throw new Error("NOGIST");
 
   let content = file.content;
-  if(file.truncated && file.raw_url){        // 超大文件（词汇文本极少触发）
-    const r = await fetch(file.raw_url, { headers:{ "Authorization":`Bearer ${token}` } });
+  if(file.truncated && file.raw_url){        // 超过 API 内联上限时兜底
+    // v132: raw_url 请求不能带 Authorization 头 —— 带了会触发 CORS
+    // 预检被拦（应用端 v127 踩过的同一个坑）。raw_url 自含密钥串，
+    // 无鉴权也能读。
+    const r = await fetch(file.raw_url);
     content = await r.text();
   }
   let payload;
   try { payload = JSON.parse(content); }
   catch(e){ throw new Error("BADDATA"); }
   if(!payload || !payload.data) throw new Error("BADDATA");
+
+  // v132: 顺带读同一 Gist 里的课程文件（v128 起课程独立成
+  // hsv-courses-{profile}.json），做 课ID → 课名 映射；失败静默，
+  // 后台仍可用（课名降级显示 ID）。
+  payload._courseTitles = {};
+  try {
+    const cf = gist.files[`${PREFIX.replace(/_+$/,"")}-courses-${profile}.json`];
+    if(cf){
+      let ct = cf.content;
+      if(cf.truncated && cf.raw_url){ const r2 = await fetch(cf.raw_url); ct = await r2.text(); }
+      const cobj = JSON.parse(ct);
+      (cobj && Array.isArray(cobj.lessons) ? cobj.lessons : []).forEach(l=>{
+        if(l && l.id) payload._courseTitles[l.id] = l.title || l.id;
+      });
+    }
+  } catch(e){ /* 课名映射尽力而为 */ }
   return payload;
 }
 
@@ -314,7 +348,7 @@ function parseData(payload, profile){
   const data = payload.data || {};
   const base = `${PREFIX}${profile}_`;
   const days = [];
-  let notebook = [], stats = {};
+  let notebook = [], stats = {}, lessonTime = {};
   for(const k in data){
     let val;
     if(k.startsWith(base+"day_")){
@@ -323,11 +357,15 @@ function parseData(payload, profile){
       try { notebook = JSON.parse(data[k]) || []; } catch(e){}
     } else if(k === base+"stats"){
       try { stats = JSON.parse(data[k]) || {}; } catch(e){}
+    } else if(k === base+"pref_lesson_time"){
+      // v132: 学习时长 { 天: { 课ID|mixed: {r,e,q,qs} } } —— 秒/次
+      try { lessonTime = JSON.parse(data[k]) || {}; } catch(e){}
     }
   }
   days.sort((a,b)=> a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
   return {
-    days, notebook, stats,
+    days, notebook, stats, lessonTime,
+    courseTitles: payload._courseTitles || {},
     meta:{ syncTime:payload._syncTime, device:payload._device, profile:payload._profile || profile }
   };
 }
@@ -428,8 +466,86 @@ function render(model){
     </div>`;
 
   renderHeatmap(model);
+  renderLessonTime(model);
   renderTable(model);
   renderWeak(model);
+}
+
+/* ---- 课文学习：时长与专注信号（v132）---- */
+function fmtMin(sec){
+  if(!sec) return '<span class="dim">—</span>';
+  if(sec < 60) return "&lt;1 分";
+  return Math.round(sec/60) + " 分";
+}
+/* 红旗规则：练习 ≥3 分钟而精读 <2 分钟 → 跳过精读；
+   答题 ≥10 且平均每题 <3 秒 → 作答过快。宁少勿滥，避免误伤。 */
+function timeFlags(agg){
+  const flags = [];
+  if((agg.e||0) >= 180 && (agg.r||0) < 120) flags.push('<span class="acc-low">⚠ 跳过精读</span>');
+  if((agg.q||0) >= 10 && (agg.qs||0)/(agg.q||1) < 3) flags.push('<span class="acc-low">⚠ 作答过快</span>');
+  return flags.join(" ");
+}
+function renderLessonTime(model){
+  const lt = model.lessonTime || {};
+  const titles = model.courseTitles || {};
+  const dayBody = $("d-time").querySelector("tbody");
+  const lsBody  = $("d-time-lessons").querySelector("tbody");
+  const dayKeys = Object.keys(lt).sort();
+  if(!dayKeys.length){
+    dayBody.innerHTML = `<tr><td class="empty-state">还没有时长记录。孩子在新版应用里学习后，这里会出现每天的专注分钟数。</td></tr>`;
+    lsBody.innerHTML = "";
+    return;
+  }
+
+  // 近 14 天：按天聚合全部活动
+  const recent = dayKeys.slice(-14).reverse();
+  const dayRows = recent.map(day=>{
+    const acts = lt[day] || {};
+    const agg = { r:0, e:0, q:0, qs:0 };
+    Object.keys(acts).forEach(a=>{
+      const x = acts[a]||{};
+      agg.r+=x.r||0; agg.e+=x.e||0; agg.q+=x.q||0; agg.qs+=x.qs||0;
+    });
+    const avg = agg.q>0 ? (agg.qs/agg.q).toFixed(1)+" 秒" : '<span class="dim">—</span>';
+    return `<tr>
+      <td class="date">${day}</td>
+      <td>${fmtMin(agg.r)}</td>
+      <td>${fmtMin(agg.e)}</td>
+      <td>${agg.q||'<span class="dim">—</span>'}</td>
+      <td>${avg}</td>
+      <td>${timeFlags(agg)}</td>
+    </tr>`;
+  }).join("");
+  dayBody.innerHTML =
+    `<tr><th>日期</th><th>精读</th><th>练习</th><th>答题</th><th>秒/题</th><th>信号</th></tr>` + dayRows;
+
+  // 按课累计（最近学过的 10 门，按最近学习日期倒序）
+  const perLesson = {};   // id → {r,e,q,qs,last}
+  dayKeys.forEach(day=>{
+    const acts = lt[day] || {};
+    Object.keys(acts).forEach(id=>{
+      const x = acts[id]||{};
+      const p = perLesson[id] || (perLesson[id] = { r:0,e:0,q:0,qs:0,last:"" });
+      p.r+=x.r||0; p.e+=x.e||0; p.q+=x.q||0; p.qs+=x.qs||0;
+      if(day > p.last) p.last = day;
+    });
+  });
+  const rows = Object.keys(perLesson)
+    .map(id=> Object.assign({ id }, perLesson[id]))
+    .sort((a,b)=> a.last<b.last?1:a.last>b.last?-1:0)
+    .slice(0,10)
+    .map(p=>{
+      const name = p.id==="mixed" ? "综合练习" : (titles[p.id] || p.id);
+      return `<tr>
+        <td>${escapeHtml(name)}</td>
+        <td>${fmtMin(p.r)}</td>
+        <td>${fmtMin(p.e)}</td>
+        <td class="date">${p.last}</td>
+        <td>${p.id==="mixed" ? "" : timeFlags(p)}</td>
+      </tr>`;
+    }).join("");
+  lsBody.innerHTML =
+    `<tr><th>课程</th><th>累计精读</th><th>累计练习</th><th>最近学习</th><th>信号</th></tr>` + rows;
 }
 
 /* ---- 热力图：最近 18 周 ---- */

@@ -522,6 +522,31 @@ window.SyncManager = (function() {
         });
         return JSON.stringify(out);
     }
+    // v132: 学习时长 { 天: { 课ID|mixed: {r:精读秒, e:练习秒, q:答题数,
+    // qs:答题秒} } } —— 各字段都是单调递增计数, 按字段取 MAX。孩子基本
+    // 单设备学习, MAX 幂等且防旧快照回退; 多设备同一天同一课并发时取
+    // 大值不叠加, 只会少记不会虚报, 对"监督是否认真学"来说是安全方向。
+    function mergeLessonTime(localStr, remoteStr) {
+        const L = _safeParse(localStr, {});
+        const R = _safeParse(remoteStr, {});
+        const out = {};
+        new Set(Object.keys(L).concat(Object.keys(R))).forEach(day => {
+            const ld = L[day] || {};
+            const rd = R[day] || {};
+            out[day] = {};
+            new Set(Object.keys(ld).concat(Object.keys(rd))).forEach(act => {
+                const a = ld[act] || {};
+                const b = rd[act] || {};
+                out[day][act] = {
+                    r : Math.max(a.r  || 0, b.r  || 0),
+                    e : Math.max(a.e  || 0, b.e  || 0),
+                    q : Math.max(a.q  || 0, b.q  || 0),
+                    qs: Math.max(a.qs || 0, b.qs || 0)
+                };
+            });
+        });
+        return JSON.stringify(out);
+    }
 
     // Merge remote payload into local storage.
     //   • If remote _syncTime > local last-pull, apply remote wholesale.
@@ -599,20 +624,28 @@ window.SyncManager = (function() {
                 }
             } catch (e) { /* 配额不足等: 保险失败不阻塞正常同步 */ }
 
-            // 走字段级合并的课文记录键 (见上方 mergeLesson* 注释)
+            // 走字段级合并的课文记录键 (见上方 mergeLesson* 注释)。
+            // v132 修复 (高危): 这些记录全部经 DB.setPref 存储, 真实
+            // localStorage 键带 pref_ 段 (如 hsv_kid_pref_lesson_progress)。
+            // v123/v126 注册时漏了 pref_, 字段级合并与下面的"缺键不删除"
+            // 保护从未路由到这几个键 —— 实际一直在整键覆盖, 且远端快照
+            // 缺键时本地会被直接删除 (与历史"练习记录被冲"事故同形,
+            // 之后未复发只是因为各设备的键集恰好齐了)。
             const mergeFns = {};
-            mergeFns[prefix + 'lesson_progress'] = mergeLessonProgress;
-            mergeFns[prefix + 'lesson_mixed']    = mergeLessonMixed;
-            mergeFns[prefix + 'lesson_sess']     = mergeLessonSess;
+            mergeFns[prefix + 'pref_lesson_progress'] = mergeLessonProgress;
+            mergeFns[prefix + 'pref_lesson_mixed']    = mergeLessonMixed;
+            mergeFns[prefix + 'pref_lesson_sess']     = mergeLessonSess;
+            mergeFns[prefix + 'pref_lesson_time']     = mergeLessonTime;   // v132
 
             // 内容型键 (v126): 这些键承载"攒起来的东西" —— 导入的课程、
             // 生词本、短语精选。远端快照里没有它们时只能说明对面是旧
             // 快照, 不能当成删除意图, 否则一台带旧数据的设备绑进来就
             // 会把另一端的导入课冲掉 (已实际发生)。真删课/删词会写出
             // 更短的数组, 那时键存在, 正常覆盖照旧生效。
+            // (短语精选同样是 pref 存储, v132 一并补上 pref_ 段。)
             const contentKeys = new Set([
                 prefix + 'lessons_user',
-                prefix + 'lesson_phrase_sel',
+                prefix + 'pref_lesson_phrase_sel',
                 prefix + 'notebook'
             ]);
 

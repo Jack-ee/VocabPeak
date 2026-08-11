@@ -1,5 +1,38 @@
 // sw.js — VocabPeak Service Worker
 
+// hsv-v36 (?v=133) — 孩子端学习时长激励卡:
+//   • 课文列表页头部新增激励卡: "今天已学 X 分钟 · 本周共 Y 分钟"。
+//     数据取 v132 的 lesson_time (已落盘 + 未落盘累积都算, 实时不
+//     滞后); 分钟向上取整, 起步 30 秒也显示 1 分钟, 开始学就有正
+//     反馈; 完全没学过不显示空卡片。
+//   • 设计边界: 孩子端只有正向数字, 监督性的信号 (跳过精读/作答
+//     过快) 只在家长后台 —— 明着看时长塑造习惯, 判断留给家长。
+//   • 卡片随 renderHome 重渲染自动更新 (进列表页/云端数据到达)。
+
+// hsv-v35 (?v=132) — 同步键名错位修复 (高危) + 学习时长与家长监督:
+//   • 键名错位 (高危): lesson_progress / lesson_mixed / lesson_sess /
+//     lesson_phrase_sel 全部经 DB.setPref 存储, 真实键带 pref_ 段
+//     (hsv_kid_pref_lesson_progress), 而 v123/v126 在 mergeFns 与
+//     contentKeys 注册时漏了 pref_ —— 字段级合并与"缺键不删除"保护
+//     从未路由到这几个键: 实际一直整键覆盖, 且远端快照缺键时本地会
+//     被直接删除 (与历史"练习记录被冲"事故同形; 之后未复发只是因为
+//     各设备键集恰好齐了)。v123 测试只测了合并函数本身没测键路由,
+//     所以一直全绿。本版补上 pref_ 段, 保护真正接线。
+//   • 学习时长采集 (lessons.js): 5 秒心跳, 页面可见且 120 秒内有活动
+//     (点击/键盘/触摸/句子播放推进) 才计数, 挂机不算; 精读页计 r,
+//     练习计 e, 综合练习入 mixed 桶; 填空逐题计作答秒数 (上限 120s)。
+//     数据存 pref 'lesson_time' { 天: { 课ID|mixed: {r,e,q,qs} } },
+//     只留 60 天; flush 走新的 DB.setPrefQuiet 直落本地 (不触发推送
+//     钩子, 无推送风暴), 上云搭答题 bumpDaily 的便车, 纯听读在切后台
+//     /关页面时补推。同步侧新增 mergeLessonTime 按字段 MAX 合并。
+//   • 家长后台 (dashboard.html) 新增"课文学习"区: 近 14 天 精读/练习
+//     分钟 + 答题数 + 平均秒/题, 按课累计 (课名读自 Gist 里的课程
+//     文件); 专注信号 —— 练习≥3 分钟而精读<2 分钟 → "⚠ 跳过精读",
+//     答题≥10 且均速<3 秒 → "⚠ 作答过快"。回答的正是"表面完成任务、
+//     实际没认真学"的监督问题。
+//   • 顺手修 dashboard 的 raw_url 兜底带 Authorization 头的问题
+//     (v127 同款 CORS 预检坑, 大载荷时会拦)。
+
 // hsv-v34 (?v=131) — 课程分发第二阶段 (A 通道: 仓库目录直出):
 //   • 发布侧: tools/make-course-release.js 从备份提取出厂态课程,
 //     生成 courses/courses-manifest.json (id/_v/sha256/文件名) + 每课
@@ -437,7 +470,7 @@
 
 // 缓存名与 EMPro 隔离：Cache Storage 也是按 origin 共享的，两个应用
 // 的 CACHE_NAME 必须不同，否则会互相删除对方的缓存。
-const CACHE_NAME = 'hsv-v34';
+const CACHE_NAME = 'hsv-v36';
 const ASSETS = [
     './',
     './index.html',

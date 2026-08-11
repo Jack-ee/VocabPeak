@@ -26,6 +26,103 @@ window.Lessons = (function () {
     let matchState  = null;   // 进行中的短语匹配 (kind: lesson | mixed)
     let mixedKind   = null;   // 综合练习页当前类型: cloze | match
 
+    // ─── 学习时长采集 (v132) ────────────────────────────────
+    // 记到 DB pref 'lesson_time':
+    //   { "YYYY-MM-DD": { "<课ID>|mixed": { r:精读秒, e:练习秒,
+    //                                        q:答题数, qs:答题秒 } } }
+    // 家长后台 (dashboard.html) 由此回答两个问题: 每天/每课学了多久?
+    // 是不是跳过精读直接刷题、或者乱点糊弄 (答题过快)?
+    // 采集原则:
+    //   • 5 秒心跳: 只在页面可见、且 120 秒内有活动 (点击/键盘/触摸/
+    //     句子播放推进) 时计数 —— 挂机不算学习, 纯听读靠播放推进保活
+    //   • 精读页计 r, 课内练习页计 e, 综合练习计到 'mixed' 桶
+    //   • flush 走 setPrefQuiet 直落本地 (不触发推送钩子, 避免风暴);
+    //     答题场景 bumpDaily 每题都在 triggerSave, 时长搭便车上云;
+    //     纯听读在切后台/关页面时补一次 triggerSave
+    //   • 只保留最近 60 天, 控制同步载荷; 同步侧按字段 MAX 合并
+    const TIME_IDLE_MS   = 120000;
+    const TIME_KEEP_DAYS = 60;
+    let _tPend    = {};            // 未落盘累积 { 天: { 活动: {r,e,q,qs} } }
+    let _tLastAct = Date.now();    // 最近一次用户活动时刻
+    let _tQShown  = 0;             // 当前填空题出题时刻 (答题计速)
+
+    function _tYmdOf(d) {
+        return d.getFullYear() + '-' +
+               String(d.getMonth() + 1).padStart(2, '0') + '-' +
+               String(d.getDate()).padStart(2, '0');
+    }
+    function _tYmd() { return _tYmdOf(new Date()); }
+    // v133: 孩子端激励卡数据 —— 今日/近 7 天课文学习总秒数。
+    // 已落盘 (pref) 与未落盘 (_tPend) 都算, 数字实时不滞后。
+    function _tWeekStats() {
+        const daySec = {};
+        const addFrom = (src) => {
+            Object.keys(src || {}).forEach(day => {
+                Object.keys(src[day] || {}).forEach(act => {
+                    const x = src[day][act] || {};
+                    daySec[day] = (daySec[day] || 0) + (x.r || 0) + (x.e || 0);
+                });
+            });
+        };
+        try { addFrom(JSON.parse(window.DB?.getPref?.('lesson_time', '{}') || '{}') || {}); }
+        catch (e) {}
+        addFrom(_tPend);
+        let weekSec = 0;
+        for (let i = 0; i < 7; i++) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            weekSec += daySec[_tYmdOf(d)] || 0;
+        }
+        return { todaySec: daySec[_tYmd()] || 0, weekSec: weekSec };
+    }
+    function _tCtx() {
+        if (curLesson) return { act: curLesson.id,
+                                kind: curTab === 'read' ? 'r' : 'e' };
+        if (clozeState || matchState || mixedKind) return { act: 'mixed', kind: 'e' };
+        return null;               // 课程列表页不计时
+    }
+    function _tBucket(day, act) {
+        const d = _tPend[day] || (_tPend[day] = {});
+        return d[act] || (d[act] = { r: 0, e: 0, q: 0, qs: 0 });
+    }
+    function tMarkActivity() { _tLastAct = Date.now(); }
+    function _tTick() {
+        if (document.hidden) return;
+        if (Date.now() - _tLastAct > TIME_IDLE_MS) return;
+        const c = _tCtx();
+        if (!c) return;
+        _tBucket(_tYmd(), c.act)[c.kind] += 5;
+    }
+    function _tNoteAnswer(sec) {
+        const c = _tCtx() || { act: 'mixed' };
+        const b = _tBucket(_tYmd(), c.act);
+        b.q  += 1;
+        b.qs += Math.max(1, Math.min(120, Math.round(sec)));
+    }
+    function tFlush(push) {
+        try {
+            if (Object.keys(_tPend).length && window.DB?.setPrefQuiet) {
+                let store;
+                try { store = JSON.parse(window.DB.getPref('lesson_time', '{}') || '{}') || {}; }
+                catch (e) { store = {}; }
+                Object.keys(_tPend).forEach(day => {
+                    const sd = store[day] || (store[day] = {});
+                    Object.keys(_tPend[day]).forEach(act => {
+                        const p = _tPend[day][act];
+                        const s = sd[act] || (sd[act] = { r: 0, e: 0, q: 0, qs: 0 });
+                        s.r += p.r; s.e += p.e; s.q += p.q; s.qs += p.qs;
+                    });
+                });
+                // 只保留最近 N 天 (键是 YYYY-MM-DD, 字典序即时间序)
+                const days = Object.keys(store).sort();
+                while (days.length > TIME_KEEP_DAYS) delete store[days.shift()];
+                window.DB.setPrefQuiet('lesson_time', JSON.stringify(store));
+                _tPend = {};
+            }
+        } catch (e) {}
+        if (push) { try { window.SyncManager?.triggerSave?.(); } catch (e) {} }
+    }
+
     // ─── Helpers ────────────────────────────────────────────
     function esc(s) {
         if (window.App && window.App.escHtml) return window.App.escHtml(s);
@@ -436,6 +533,7 @@ window.Lessons = (function () {
         let finishedAll = true;
         for (const sid of sids) {
             if (token !== playToken) { finishedAll = false; break; }
+            tMarkActivity();   // v132: 句子播放推进算活动, 纯听读不判挂机
             const s  = sentenceById(curLesson, sid);
             const el = root.querySelector(`.ls-sent[data-sid="${sid}"]`);
             root.querySelectorAll('.ls-sent.playing').forEach(x => x.classList.remove('playing'));
@@ -506,6 +604,15 @@ window.Lessons = (function () {
         }).join('');
         // 综合练习入口: 跨全部课程抽题, 优先重现做错的与没练过的。
         const ms    = mixedStats();
+        // 激励卡 (v133): 给孩子自己看的学习时长 —— 只说"已学多少",
+        // 永远正向; 分钟向上取整, 起步就有正反馈; 完全没学过则不显示。
+        // 监督性的信号 (跳过精读/作答过快) 只在家长后台, 这里不出现。
+        const ts = _tWeekStats();
+        const timeCard = (ts.todaySec > 0 || ts.weekSec > 0)
+            ? `<div class="ls-time-card">\u23F1 ${ts.todaySec > 0
+                  ? '\u4ECA\u5929\u5DF2\u5B66 <b>' + Math.ceil(ts.todaySec / 60) + ' \u5206\u949F</b> \u00b7 \u672C\u5468\u5171 <b>' + Math.ceil(ts.weekSec / 60) + ' \u5206\u949F</b>'
+                  : '\u672C\u5468\u5DF2\u5B66 <b>' + Math.ceil(ts.weekSec / 60) + ' \u5206\u949F</b>'}</div>`
+            : '';
         const mixed = (ms.w.total || ms.p.total) ? `
             <div class="ls-mixed-card">
                 <div class="ls-mixed-title">\u{1F4CA} \u7EFC\u5408\u7EC3\u4E60<span class="ls-mixed-tag">\u5168\u90E8\u8BFE\u7A0B</span></div>
@@ -525,6 +632,7 @@ window.Lessons = (function () {
                     </div>
                     <button class="wl-btn-secondary ls-import-btn" id="ls-import-open">\uFF0B \u5BFC\u5165\u8BFE\u6587</button>
                 </div>
+                ${timeCard}
                 ${mixed}
                 <div class="ls-card-list">${cards || '<div class="ls-empty">\u6682\u65E0\u8BFE\u6587\u3002</div>'}</div>
             </div>
@@ -1080,6 +1188,7 @@ window.Lessons = (function () {
         const st    = clozeState;
         const panel = root.querySelector('#ls-panel');
         if (!st || !panel) return;
+        _tQShown = Date.now();   // v132: 答题计速起点 (答后重渲染会重置, 无害)
         const queue    = clozeQueue(st);
         const w        = queue[st.idx];
         const lesson   = w._lesson || curLesson;
@@ -1257,6 +1366,9 @@ window.Lessons = (function () {
         const st = clozeState;
         if (st.answers[w.id]) return;               // 已答过, 不重复计分
         st.answers[w.id] = Object.assign({ ok: isCorrect }, detail || {});
+        // v132: 答题计速 —— 从出题渲染到作答的秒数, 家长后台据此识别
+        // "乱点糊弄" (平均每题过快)。上限 120 秒防走神污染均值。
+        if (_tQShown) _tNoteAnswer((Date.now() - _tQShown) / 1000);
         try { window.DB?.bumpDaily?.({ quizTotal: 1, quizCorrect: isCorrect ? 1 : 0 }); }
         catch (e) {}
         bumpPracRec('w', w.id, isCorrect);          // 练习档案: 综合练习按它选题
@@ -2531,6 +2643,15 @@ window.Lessons = (function () {
             if (root.querySelector('#ls-import-overlay.open')) return;
             try { renderHome(); } catch (e) {}
         });
+        // 学习时长采集 (v132): 心跳 + 定时静默落盘 + 切后台/关页面兜底
+        setInterval(_tTick, 5000);
+        setInterval(() => tFlush(false), 30000);
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) tFlush(true);   // 切后台: 落盘并顺路推送
+        });
+        window.addEventListener('pagehide', () => tFlush(true));
+        ['pointerdown', 'keydown', 'touchstart'].forEach(ev =>
+            document.addEventListener(ev, tMarkActivity, { passive: true }));
         // 记住上次打开的课 —— 同步重载/刷新后回到原处
         const last = window.DB?.getPref?.('lesson_last', '');
         if (last && lessonById(last)) openLesson(last);

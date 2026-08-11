@@ -376,6 +376,14 @@
         setPref: function(name, val) {
             localStorage.setItem(key('pref_' + name), val);
         },
+        // v132: 静默写 pref —— 与 setPref 同一个键, 但不会被 sync.js 的
+        // 推送钩子包装 (钩子按方法名包装 setPref 本身)。专给高频落盘的
+        // 计时数据用: 学习时长每 30 秒 flush 一次, 走 setPref 会制造
+        // 推送风暴; 走这里只落本地, 上云搭别的推送便车 (答题的 bumpDaily
+        // 每题都在 triggerSave) 或由调用方在退出/切后台时补一次推送。
+        setPrefQuiet: function(name, val) {
+            localStorage.setItem(key('pref_' + name), val);
+        },
 
         // --- Vocabulary Notebook ---
         loadNotebook: function() {
