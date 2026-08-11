@@ -168,15 +168,47 @@ window.SyncManager = (function() {
         }
         const gist = await resp.json();
         const file = gist.files?.[gistFile()];
-        if (!file?.content) return null;
-        try { return JSON.parse(file.content); }
-        catch { return null; }
+        if (!file) return null;
+
+        // 超过 1 MB 时 GitHub API 只返回截断内容并标记 truncated ——
+        // 直接 JSON.parse 必然抛错, 以前被 catch 吞掉变成 "无远端数据",
+        // 拉取静默失效 (课程攒到 23 门就越过这条线, 已实际发生)。
+        // 这时改从 raw_url 取全文。注意: 不能带 Authorization 头 ——
+        // 那会触发 CORS 预检, 而 gist.githubusercontent.com 不接受预检;
+        // raw 链接自带不可猜测的 sha, 本身不需要鉴权。
+        let text = file.content;
+        if (file.truncated && file.raw_url) {
+            console.warn('[Sync] payload > 1MB (' + (file.size || '?') +
+                         ' bytes) — fetching full content from raw_url');
+            try {
+                const raw = await fetch(file.raw_url);
+                if (!raw.ok) throw new Error('HTTP ' + raw.status);
+                text = await raw.text();
+            } catch (e) {
+                console.error('[Sync] raw_url fetch failed:', e);
+                throw new Error('Gist read failed: payload exceeds 1MB and ' +
+                                'raw fetch failed (' + (e.message || e) + ')');
+            }
+        }
+        if (!text) return null;
+        try { return JSON.parse(text); }
+        catch (e) {
+            console.error('[Sync] payload parse failed:', e);
+            return null;
+        }
     }
 
     async function writeGist(data) {
         const token = getToken();
         if (!token) return false;
         const json   = JSON.stringify(data);
+        // 体积预警: 越过 1 MB 后 API 读取会返回截断内容 (拉取侧已改走
+        // raw_url 兜底, 但这是个该知道的架构信号 —— 课程语料在长大)。
+        if (json.length > 950000) {
+            console.warn('[Sync] payload is ' + Math.round(json.length / 1024) +
+                         ' KB, over the 1 MB API inline limit — pulls now go ' +
+                         'through raw_url; consider trimming or sharding.');
+        }
         let gistId   = getGistId();
         const body   = { files: { [gistFile()]: { content: json } } };
 

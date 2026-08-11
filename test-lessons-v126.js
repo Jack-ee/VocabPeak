@@ -103,8 +103,9 @@ section('4. 版本纪律');
 const idx = fs.readFileSync(path.join(DIR, 'index.html'), 'utf8');
 const sw  = fs.readFileSync(path.join(DIR, 'sw.js'), 'utf8');
 const vs  = [...idx.matchAll(/\?v=(\d+)/g)].map(x => x[1]);
-ok(new Set(vs).size === 1 && vs[0] === '126', 'index.html 全部 ?v=126');
-ok(/const CACHE_NAME = 'hsv-v29'/.test(sw), 'sw.js CACHE_NAME = hsv-v29');
+ok(new Set(vs).size === 1 && Number(vs[0]) >= 126, 'index.html ?v 全部一致且 >= 126');
+const swV9 = (sw.match(/const CACHE_NAME = 'hsv-v(\d+)'/) || [])[1];
+ok(swV9 && Number(swV9) >= 29, 'sw.js CACHE_NAME >= hsv-v29');
 ok(/hsv-v29 \(\?v=126\)/.test(sw), 'sw.js 有 v29 变更日志');
 ok(/prefix is not defined|ReferenceError/.test(sw), '变更日志记录了报错修复');
 

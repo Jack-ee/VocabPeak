@@ -1,5 +1,17 @@
 // sw.js — VocabPeak Service Worker
 
+// hsv-v30 (?v=127) — 同步: 越过 1 MB 后拉取静默失效的修复:
+//   • 症状: 课程攒到 23 门左右, 同步载荷超过 1 MB, GitHub API 只返回
+//     截断内容并标记 truncated; readGist 直接 JSON.parse 必然抛错, 被
+//     catch 吞掉返回 null, 界面只说 "No remote data yet." —— 推送正常
+//     (数据不丢), 但跨设备拉取从此形同失效, 且提示语误导。
+//   • 修复: truncated 时改从 file.raw_url 取全文。关键细节: 该请求
+//     不能带 Authorization 头 —— 会触发 CORS 预检, 而
+//     gist.githubusercontent.com 不接受预检; raw 链接自带不可猜测的
+//     sha, 本身无需鉴权。解析失败改为打印错误而非静默吞掉。
+//   • 推送侧加体积预警 (>950 KB 打印 KB 数): 课程语料在长大, 这是该
+//     看见的架构信号 —— 后续可考虑按文件分片或压缩课程数据。
+
 // hsv-v29 (?v=126) — 同步: 导入课被冲的根因修复 + 快照可用性:
 //   • 根因: 拉取时「远端快照没有某个键」被一律当成删除执行。内容型
 //     键 (lessons_user / lesson_phrase_sel / notebook) 承载攒起来的
@@ -342,7 +354,7 @@
 
 // 缓存名与 EMPro 隔离：Cache Storage 也是按 origin 共享的，两个应用
 // 的 CACHE_NAME 必须不同，否则会互相删除对方的缓存。
-const CACHE_NAME = 'hsv-v29';
+const CACHE_NAME = 'hsv-v30';
 const ASSETS = [
     './',
     './index.html',
