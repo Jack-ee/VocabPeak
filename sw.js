@@ -1,5 +1,21 @@
 // sw.js — VocabPeak Service Worker
 
+// hsv-v29 (?v=126) — 同步: 导入课被冲的根因修复 + 快照可用性:
+//   • 根因: 拉取时「远端快照没有某个键」被一律当成删除执行。内容型
+//     键 (lessons_user / lesson_phrase_sel / notebook) 承载攒起来的
+//     东西, 远端缺键只说明对面是旧快照 —— 一台带旧数据的设备绑进来
+//     就把另一端的导入课整键抹掉 (已实际发生)。现在这三个键与 day_
+//     日志同等豁免: 缺键即保留并计入回推。真删课会写出更短的数组,
+//     那时键存在, 正常覆盖照旧生效。
+//   • restorePrePull 修 ReferenceError: 函数体漏了 prefix = keyPrefix(),
+//     v125 上一调用就抛 "prefix is not defined", 兜底保险形同虚设。
+//   • 快照改留最近 3 代 (PREPULL_GENS): 单代会被下一次拉取覆盖, 等
+//     发现数据不对时好快照往往已经没了; 同数据不重复入栈, 无变化的
+//     轮询不会把好快照挤出去; 配额不足时逐代降级保住最新一代。
+//   • 用法: SyncManager.restorePrePull() 只列各代 (时间/课程/生词本数),
+//     restorePrePull(true) 回滚最新代, restorePrePull(true, 1) 指定代。
+//     回滚后刷新页面并立即手动同步一次, 把正确状态推回云端。
+
 // hsv-v28 (?v=125) — 导入校验: 句译缺失显式警告 (不再静默回退):
 //   • 导入预览对缺句译的课给 ⚠ 警告 (n/N 句缺译), 并直接给两条
 //     补救路: 重新复制识别提示词让 AI 重出 / 导入后「补句译」补全。
@@ -326,7 +342,7 @@
 
 // 缓存名与 EMPro 隔离：Cache Storage 也是按 origin 共享的，两个应用
 // 的 CACHE_NAME 必须不同，否则会互相删除对方的缓存。
-const CACHE_NAME = 'hsv-v28';
+const CACHE_NAME = 'hsv-v29';
 const ASSETS = [
     './',
     './index.html',

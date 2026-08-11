@@ -16,8 +16,9 @@ ok(at > 0 && src.indexOf('warnings.push', at) > 0 && src.indexOf('errors.push', 
 const idx = fs.readFileSync(path.join(DIR, 'index.html'), 'utf8');
 const sw  = fs.readFileSync(path.join(DIR, 'sw.js'), 'utf8');
 const vs  = [...idx.matchAll(/\?v=(\d+)/g)].map(x => x[1]);
-ok(new Set(vs).size === 1 && vs[0] === '125', 'index.html 全部 ?v=125');
-ok(/const CACHE_NAME = 'hsv-v28'/.test(sw), 'sw.js CACHE_NAME = hsv-v28');
+ok(new Set(vs).size === 1 && Number(vs[0]) >= 125, 'index.html ?v 全部一致且 >= 125');
+const swV8 = (sw.match(/const CACHE_NAME = 'hsv-v(\d+)'/) || [])[1];
+ok(swV8 && Number(swV8) >= 28, 'sw.js CACHE_NAME >= hsv-v28');
 ok(/hsv-v28 \(\?v=125\)/.test(sw), 'sw.js 有 v28 变更日志');
 
 console.log(`\n  通过 ${pass} 项, 失败 ${fail} 项`);

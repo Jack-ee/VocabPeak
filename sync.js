@@ -255,6 +255,39 @@ window.SyncManager = (function() {
         };
     }
 
+    // ─── 拉取前快照 (v123, 多代 v126) ────────────────────────
+    // 键名以下划线开头 → 不匹配档案前缀 → 不进推送快照、不被拉取
+    // 删除, 永远只属于本机。格式: { v:2, gens:[{ts,data}, ...] },
+    // 最新在前; 兼容 v123 的单代格式 { ts, data }。
+    const PREPULL_KEYS = ['lesson_progress', 'lesson_mixed', 'lesson_sess',
+                          'lesson_phrase_sel', 'notebook', 'lessons_user'];
+    const PREPULL_GENS = 3;
+
+    function prePullKey(prefix) { return '_' + prefix + 'prepull'; }
+
+    function readPrePullGens(prefix) {
+        try {
+            const raw = localStorage.getItem(prePullKey(prefix));
+            if (!raw) return [];
+            const obj = JSON.parse(raw);
+            if (obj && Array.isArray(obj.gens)) return obj.gens.filter(g => g && g.data);
+            if (obj && obj.data) return [{ ts: obj.ts || 0, data: obj.data }];   // v123 单代
+            return [];
+        } catch (e) { return []; }
+    }
+
+    // 写入时按配额逐代降级: 满了就少存一代, 保住最新的那一代。
+    function writePrePullGens(prefix, gens) {
+        for (let keep = Math.min(PREPULL_GENS, gens.length); keep >= 1; keep--) {
+            try {
+                localStorage.setItem(prePullKey(prefix),
+                    JSON.stringify({ v: 2, gens: gens.slice(0, keep) }));
+                return true;
+            } catch (e) { /* 配额不足, 少留一代再试 */ }
+        }
+        return false;
+    }
+
     // ─── 课文学习记录的字段级合并 (v120) ─────────────────────
     // 整档快照是「后写覆盖」: 平板离线练习后, 若拉取时远端快照更新
     // (哪怕内容更旧), 课内进度/练习档案会被整键覆盖, 主页显示回
@@ -381,16 +414,22 @@ window.SyncManager = (function() {
             // 删除, 永远只属于本机。仅保留最近一代, 每次套用前覆盖。
             // 误冲后可用 SyncManager.restorePrePull() 一键回滚 ——
             // 这是对「首次联网仍在跑旧版代码」这类竞态的兜底保险。
+            // v126: 保留最近 PREPULL_GENS 代 —— 单代会被"下一次拉取"
+            // 覆盖掉, 等发现数据不对时好快照往往已经没了。同数据不
+            // 重复入栈, 避免无变化的轮询把好快照挤出去。
             try {
-                const guardNames = ['lesson_progress', 'lesson_mixed', 'lesson_sess',
-                                    'lesson_phrase_sel', 'notebook', 'lessons_user'];
-                const stash = { ts: Date.now(), data: {} };
-                guardNames.forEach(n => {
+                const cur = {};
+                PREPULL_KEYS.forEach(n => {
                     const v = localStorage.getItem(prefix + n);
-                    if (v != null) stash.data[prefix + n] = v;
+                    if (v != null) cur[prefix + n] = v;
                 });
-                if (Object.keys(stash.data).length) {
-                    localStorage.setItem('_' + prefix + 'prepull', JSON.stringify(stash));
+                if (Object.keys(cur).length) {
+                    const gens = readPrePullGens(prefix);
+                    const same = gens[0] && JSON.stringify(gens[0].data) === JSON.stringify(cur);
+                    if (!same) {
+                        gens.unshift({ ts: Date.now(), data: cur });
+                        writePrePullGens(prefix, gens);
+                    }
                 }
             } catch (e) { /* 配额不足等: 保险失败不阻塞正常同步 */ }
 
@@ -399,6 +438,17 @@ window.SyncManager = (function() {
             mergeFns[prefix + 'lesson_progress'] = mergeLessonProgress;
             mergeFns[prefix + 'lesson_mixed']    = mergeLessonMixed;
             mergeFns[prefix + 'lesson_sess']     = mergeLessonSess;
+
+            // 内容型键 (v126): 这些键承载"攒起来的东西" —— 导入的课程、
+            // 生词本、短语精选。远端快照里没有它们时只能说明对面是旧
+            // 快照, 不能当成删除意图, 否则一台带旧数据的设备绑进来就
+            // 会把另一端的导入课冲掉 (已实际发生)。真删课/删词会写出
+            // 更短的数组, 那时键存在, 正常覆盖照旧生效。
+            const contentKeys = new Set([
+                prefix + 'lessons_user',
+                prefix + 'lesson_phrase_sel',
+                prefix + 'notebook'
+            ]);
 
             // Keys that REQUIRE a page reload to take effect. Anything not
             // in this set takes effect on the next render of the relevant
@@ -446,6 +496,11 @@ window.SyncManager = (function() {
                     // 课文记录键本地独有 (远端是旧快照, 还没有这些键) 时
                     // 同样保留并计入回推 —— 否则拉一次旧快照就把离线练习抹掉
                     if (mergeFns[k]) { mergedUnion++; return; }
+                    // v126 根因修复: 内容型键「远端没有这个键」只说明对面
+                    // 是旧快照, 绝不该解释成删除意图 —— 真的删课/删词会写
+                    // 出更短的数组, 那时键是存在的, 覆盖照常生效。这一条
+                    // 之前缺失, 一台带旧数据的设备绑进来就把导入课冲掉了。
+                    if (contentKeys.has(k)) { mergedUnion++; return; }
                     changed = true;
                     if (requiresReload(k)) configChanged = true;
                     else                   dataChangeCount++;
@@ -815,22 +870,51 @@ window.SyncManager = (function() {
         }
     }
 
-    // 回滚到最近一次拉取前的本机学习数据快照。控制台调用:
-    //   SyncManager.restorePrePull()          // 查看并恢复
-    // 返回 { restoredKeys, savedAt } 或 null (无快照)。恢复后建议
-    // 手动点一次同步把正确数据推回云端。
-    function restorePrePull() {
+    // 查看 / 回滚拉取前快照。控制台用法:
+    //   SyncManager.restorePrePull()        只查看 (列出各代时间与课程)
+    //   SyncManager.restorePrePull(true)    回滚到最新一代
+    //   SyncManager.restorePrePull(true, 1) 回滚到第 1 代 (0 为最新)
+    // 默认只查看是刻意的: 万一好快照已被后续拉取挤掉, 先看清楚再决
+    // 定, 免得用更旧/同样残缺的数据盖掉现状。回滚后刷新页面, 并立刻
+    // 手动同步一次把正确数据推回云端。
+    function restorePrePull(doRestore, genIndex) {
         try {
-            const raw = localStorage.getItem('_' + prefix + 'prepull');
-            if (!raw) { console.log('[Sync] \u6CA1\u6709\u62C9\u53D6\u524D\u5FEB\u7167'); return null; }
-            const stash = JSON.parse(raw);
-            if (!stash || !stash.data) return null;
-            const keys = Object.keys(stash.data);
-            keys.forEach(k => localStorage.setItem(k, stash.data[k]));
-            console.log('[Sync] \u5DF2\u56DE\u6EDA ' + keys.length + ' \u4E2A\u952E\u5230 '
-                + new Date(stash.ts).toLocaleString());
+            const prefix = keyPrefix();          // v126 修复: 原来漏了这行
+            const gens   = readPrePullGens(prefix);
+            if (!gens.length) {
+                console.log('[Sync] \u6CA1\u6709\u62C9\u53D6\u524D\u5FEB\u7167');
+                return null;
+            }
+            // 概览: 每代的时间 + 课程名 + 生词本条数, 一眼看出哪代是好的
+            const summary = gens.map((g, i) => {
+                const info = { gen: i, savedAt: new Date(g.ts || 0).toLocaleString() };
+                try {
+                    const ls = JSON.parse(g.data[prefix + 'lessons_user'] || '[]');
+                    info.lessons = Array.isArray(ls) ? ls.map(l => l && l.title) : [];
+                } catch (e) { info.lessons = '(\u89E3\u6790\u5931\u8D25)'; }
+                try {
+                    const nb = JSON.parse(g.data[prefix + 'notebook'] || '[]');
+                    info.notebookCount = Array.isArray(nb) ? nb.length : 0;
+                } catch (e) { info.notebookCount = -1; }
+                return info;
+            });
+            if (!doRestore) {
+                console.log('[Sync] \u62C9\u53D6\u524D\u5FEB\u7167 ' + gens.length + ' \u4EE3:');
+                console.table ? console.table(summary) : console.log(summary);
+                console.log('[Sync] \u786E\u8BA4\u8981\u56DE\u6EDA\u5C31\u6267\u884C: '
+                    + 'SyncManager.restorePrePull(true)   \u6216\u6307\u5B9A\u4EE3: '
+                    + 'SyncManager.restorePrePull(true, 1)');
+                return { generations: summary, restored: false };
+            }
+            const gi = Math.max(0, Math.min(Number(genIndex) || 0, gens.length - 1));
+            const g  = gens[gi];
+            const keys = Object.keys(g.data);
+            keys.forEach(k => localStorage.setItem(k, g.data[k]));
+            console.log('[Sync] \u5DF2\u56DE\u6EDA ' + keys.length + ' \u4E2A\u952E\u5230 \u7B2C'
+                + gi + ' \u4EE3 (' + new Date(g.ts || 0).toLocaleString()
+                + ') \u2014 \u8BF7\u5237\u65B0\u9875\u9762, \u5E76\u7ACB\u5373\u624B\u52A8\u540C\u6B65\u4E00\u6B21');
             window.App?.showToast?.('\u5DF2\u56DE\u6EDA\u62C9\u53D6\u524D\u7684\u5B66\u4E60\u8BB0\u5F55');
-            return { restoredKeys: keys, savedAt: stash.ts };
+            return { restoredKeys: keys, savedAt: g.ts, gen: gi, restored: true };
         } catch (e) {
             console.warn('[Sync] restorePrePull failed', e);
             return null;

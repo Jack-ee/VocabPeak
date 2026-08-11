@@ -20,15 +20,15 @@ ok(!('_hsv_kid_prepull'.indexOf('hsv_kid_') === 0), '键名不匹配档案前缀
 const guards = ['lesson_progress', 'lesson_mixed', 'lesson_sess',
                 'lesson_phrase_sel', 'notebook', 'lessons_user'];
 guards.forEach(g => ok(sync.includes(`'${g}'`), '守护键含 ' + g));
-ok(/const stash = \{ ts: Date\.now\(\), data: \{\} \};/.test(sync), '快照带时间戳');
+ok(/ts: Date\.now\(\)/.test(sync), '快照带时间戳');
 ok(/catch \(e\) \{ \/\* 配额不足/.test(sync), '快照失败不阻塞同步');
 // 快照写入必须在套用远端之前 (位置断言)
 const stashAt = sync.indexOf("'_' + prefix + 'prepull'");
 const applyAt = sync.indexOf('Object.keys(remote).forEach');
 ok(stashAt > 0 && applyAt > 0 && stashAt < applyAt, '快照先于远端套用');
-ok(/function restorePrePull\(\)/.test(sync), '回滚函数存在');
+ok(/function restorePrePull\(/.test(sync), '回滚函数存在');
 ok(/restorePrePull,/.test(sync), '回滚已挂公开 API');
-ok(/restoredKeys: keys, savedAt: stash\.ts/.test(sync), '回滚返回明细');
+ok(/restoredKeys: keys, savedAt: /.test(sync), '回滚返回明细');
 
 // ─── 2. 恢复工具: 全链路子进程实测 ──────────────────────
 section('2. merge-restore-backup.js 端到端');
