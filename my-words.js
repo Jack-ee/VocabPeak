@@ -321,6 +321,11 @@ window.MyWords = (function() {
         document.querySelectorAll('.mw-filter-pill').forEach(btn => {
             btn.addEventListener('click', () => {
                 stopAutoplay();
+                // 特训药丸 (v135): 不是普通筛选 —— 要抽词单并直接进
+                // 测验, 走 startTrainer (内部设 studyFilter 并 render,
+                // active 高亮由 render 的同步逻辑自动处理)。词单为空
+                // 时 startTrainer 只 toast 不切换, 停留在原筛选。
+                if (btn.dataset.filter === 'trainer') { saveProgress(); startTrainer(); return; }
                 // Save current filter's position before switching
                 saveProgress();
                 // Switch filter
@@ -1475,10 +1480,20 @@ IMPORTANT:
         set('mw-fc-pronunciation', pronCount);
         set('mw-fc-spelling',      spellCount);
         set('mw-fc-weak',          weakCount);
+        // 特训待训数: 特训进行中显示本轮剩余 (v136: 答对划掉一个,
+        // 数字立减 —— 进度看得见); 非特训时显示长期待训池 (三路聚合
+        // 口径, 与课文页入口卡一致, 只有毕业/到期变化才减)。
+        let trainerCount = 0;
+        try {
+            trainerCount = studyFilter === 'trainer'
+                ? trainerList.length
+                : (window.DB.getTrainerWords?.(9999) || []).length;
+        } catch {}
+        set('mw-fc-trainer', trainerCount);
 
         // Show/hide filter row. Always show if any words are marked OR
         // any due words exist OR we're not on the All filter.
-        const hasAnyMarked = coreCount + pronCount + spellCount + weakCount > 0;
+        const hasAnyMarked = coreCount + pronCount + spellCount + weakCount + trainerCount > 0;
         const filterRow    = document.getElementById('mw-filter-row');
         if (filterRow) filterRow.style.display =
             (hasAnyMarked || dueCount > 0 || studyFilter !== 'all') ? 'flex' : 'none';
@@ -1666,7 +1681,49 @@ IMPORTANT:
         if (counter) counter.textContent = `${currentIdx + 1}/${words.length} (${quizScore}/${quizTotal})`;
 
         saveProgress();
-        setTimeout(() => navigate(1), isCorrect ? 1200 : 2500);
+        // 特训 (v136): 闯关推进 —— 答对划掉, 答错挪队尾稍后重考,
+        // 全部消灭本轮完成。普通筛选保持原有的组内循环。
+        if (studyFilter === 'trainer') {
+            setTimeout(() => trainerAdvance(w, isCorrect), isCorrect ? 1200 : 2500);
+        } else {
+            setTimeout(() => navigate(1), isCorrect ? 1200 : 2500);
+        }
+    }
+
+    // ─── 特训推进 (v136) ────────────────────────────────────
+    // 「毕业」与「划掉」是两层语义: 毕业是长期身份 (连对>=4 且跨>=3
+    // 个学习日, 见 db.js), 划掉是本轮进度 —— 答对即从本轮词单消失
+    // (徽标立减, 孩子看得见进度), 答错的词挪到队尾稍后重现, 直到
+    // 全部消灭。本轮划掉不影响长期毕业进度的累积。
+    // 注: 特训词单固定 12 词 (< 组容量 50), 组内索引即列表索引。
+    function trainerAdvance(w, isCorrect) {
+        if (studyFilter !== 'trainer') return;   // 反馈期间切走了就不动
+        const i = trainerList.findIndex(x =>
+            (x.word || '').toLowerCase() === (w.word || '').toLowerCase());
+        if (i >= 0) {
+            const item = trainerList.splice(i, 1)[0];
+            if (!isCorrect) {
+                trainerList.push(item);          // 答错: 队尾重考
+                // 原本就在最后一位: 挪尾后仍指向同一词, 从头再来避免连考
+                if (i === trainerList.length - 1 && trainerList.length > 1) currentIdx = 0;
+            }
+        }
+        if (!trainerList.length) {
+            window.App?.showToast?.('\u{1F389} \u7279\u8BAD\u5B8C\u6210\uFF01\u7B54\u5BF9 '
+                + quizScore + '/' + quizTotal);
+            studyFilter  = 'all';
+            currentGroup = 0;
+            currentIdx   = 0;
+            saveProgress();
+            render();
+            return;
+        }
+        if (currentIdx >= trainerList.length) currentIdx = 0;
+        quizAnswered = false;
+        showChinese  = window.DB.getPref('show_cn_default', 'false') === 'true';
+        saveProgress();
+        render();
+        speakCurrent();
     }
 
     /** Track quiz result — v134: 记账/weak 打标/毕业全部移交
