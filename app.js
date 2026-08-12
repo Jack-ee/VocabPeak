@@ -102,39 +102,78 @@
     //   the available voices list; on Android where getVoices()==[], we
     //   still set utterance.lang so the system default TTS picks the
     //   right engine.
+    // v137: 话语序号 —— 旧话语的 onend/onerror 回调不得推进新链条。
+    // 配合 cancel/speak 隔拍, 根治自动播放"第一个有声、后面无声且
+    // 快速跳过"的 Chrome 竞态 (详见 speakNative 内注释)。
+    let _nativeSeq = 0;
+
     function speakNative(text, rate, onEnd, opts) {
         if (!text || !('speechSynthesis' in window)) {
             if (typeof onEnd === 'function') onEnd();
             return;
         }
         const wantLang = (opts && opts.lang) || '';
-        try {
-            window.speechSynthesis.cancel();
-            const u = new SpeechSynthesisUtterance(String(text));
+        const seq  = ++_nativeSeq;
+        const fire = () => {
+            if (seq === _nativeSeq && typeof onEnd === 'function') onEnd();
+        };
+        const doSpeak = () => {
+            if (seq !== _nativeSeq) return;      // 已有更新的话语接管
+            try {
+                const u = new SpeechSynthesisUtterance(String(text));
 
-            // Voice / lang selection
-            if (wantLang) {
-                // Caller specified a language — find a voice matching it
-                const voices = refreshVoices();
-                const match  = voices.find(v => (v.lang || '').toLowerCase().startsWith(wantLang.toLowerCase().split('-')[0]));
-                if (match) u.voice = match;
-                u.lang = wantLang;
-            } else {
-                const v = resolveVoice();
-                if (v) u.voice = v;
-                u.lang = (v && v.lang) || 'en-US';
+                // Voice / lang selection
+                if (wantLang) {
+                    // Caller specified a language — find a voice matching it
+                    const voices = refreshVoices();
+                    const match  = voices.find(v => (v.lang || '').toLowerCase().startsWith(wantLang.toLowerCase().split('-')[0]));
+                    if (match) u.voice = match;
+                    u.lang = wantLang;
+                } else {
+                    const v = resolveVoice();
+                    if (v) u.voice = v;
+                    u.lang = (v && v.lang) || 'en-US';
+                }
+
+                u.rate    = Number(rate) || parseFloat(window.DB?.getPref?.('speech_speed', '0.9')) || 0.9;
+                u.pitch   = 1.05;   // slight lift helps voices like Google US English sound less flat
+                u.volume  = 1;
+                // onend 与 onerror 都收敛到 fire: 序号守卫保证被 cancel
+                // 打断的旧话语 (onerror: interrupted/canceled) 不会推进
+                // 新链条, 同时真正的播放失败照常推进防卡死。
+                u.onend   = fire;
+                u.onerror = fire;
+                _nativeKeepAlive(seq);
+                window.speechSynthesis.speak(u);
+            } catch (e) {
+                console.warn('[speak] failed:', e);
+                fire();
             }
-
-            u.rate    = Number(rate) || parseFloat(window.DB?.getPref?.('speech_speed', '0.9')) || 0.9;
-            u.pitch   = 1.05;   // slight lift helps voices like Google US English sound less flat
-            u.volume  = 1;
-            u.onend   = () => { if (typeof onEnd === 'function') onEnd(); };
-            u.onerror = () => { if (typeof onEnd === 'function') onEnd(); };
-            window.speechSynthesis.speak(u);
-        } catch (e) {
-            console.warn('[speak] failed:', e);
-            if (typeof onEnd === 'function') onEnd();
+        };
+        // v137 修复: cancel() 之后同步 speak() 是 Chrome 的经典竞态 ——
+        // 引擎会把新话语一并打断并触发其 onerror, 表现为"第一条有声
+        // (队列为空时 cancel 是 no-op), 后续每条立即跳过"。自动播放
+        // 的队列里中文释义必走本引擎, 一进来就雪崩。修法: 仅在引擎
+        // 确有话语时 cancel, 且隔 80ms 再 speak, 给引擎清队列的时间。
+        if (window.speechSynthesis.speaking || window.speechSynthesis.pending) {
+            try { window.speechSynthesis.cancel(); } catch (e) {}
+            setTimeout(doSpeak, 80);
+        } else {
+            doSpeak();
         }
+    }
+
+    // v137: Chrome 桌面版长语音假死坑 —— 单条话语超过 ~15 秒会被
+    // 引擎静默暂停 (不触发任何事件), 自动播放读长例句时表现为卡死。
+    // 播放期间每 10 秒 resume 一次, 话语结束或被新话语接管后自然停。
+    function _nativeKeepAlive(seq) {
+        const tick = () => {
+            if (seq !== _nativeSeq) return;
+            if (!window.speechSynthesis.speaking) return;
+            try { window.speechSynthesis.resume(); } catch (e) {}
+            setTimeout(tick, 10000);
+        };
+        setTimeout(tick, 10000);
     }
 
     // ─── OpenAI neural TTS (optional, online) ────────────────
@@ -808,6 +847,7 @@
     }
 
     function stopSpeak() {
+        _nativeSeq++;   // v137: 使未决的 onend/onerror 失效, 主动停止后不推进链条
         try { window.speechSynthesis?.cancel?.(); } catch {}
         try { if (_neuralAbort) { _neuralAbort.abort(); _neuralAbort = null; } } catch {}
         try {

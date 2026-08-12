@@ -79,13 +79,14 @@ ok(/studyFilter === 'trainer'\s*\n?\s*\? trainerList\.length/.test(mwSrc),
    '徽标: 特训中显示本轮剩余 (答对立减)');
 
 // ─── 3. 版本 ────────────────────────────────────────────────
+// 注: v136 与 v137 (自动播放修复) 同批发版, 断言按 hsv-v40/?v=137 校验。
 sec('3. 版本');
 const idx = fs.readFileSync(path.join(DIR, 'index.html'), 'utf8');
 const sw  = fs.readFileSync(path.join(DIR, 'sw.js'), 'utf8');
 const vs  = [...idx.matchAll(/\?v=(\d+)/g)].map(x => x[1]);
-ok(new Set(vs).size === 1 && vs[0] === '136', 'index.html 全部 ?v=136 (' + vs.length + ' 处)');
+ok(new Set(vs).size === 1 && vs[0] === '137', 'index.html 全部 ?v=137 (' + vs.length + ' 处)');
 ok(vs.length === 25, '?v= 引用总数 25 处');
-ok(/const CACHE_NAME = 'hsv-v39'/.test(sw), 'sw.js CACHE_NAME = hsv-v39');
+ok(/const CACHE_NAME = 'hsv-v40'/.test(sw), 'sw.js CACHE_NAME = hsv-v39');
 ok(/hsv-v39 \(\?v=136\)/.test(sw), 'sw.js 有 v39 变更日志');
 
 console.log('\n' + '═'.repeat(46));

@@ -1117,13 +1117,33 @@ window.Lessons = (function () {
         const hint = (hintOpt != null)
             ? !!hintOpt
             : !!root.querySelector('#ls-cloze-hint')?.checked;
+        // 单课填空精选上限 (v138, v139 收紧): 词多的课 (80-100 词)
+        // 全量出题一轮太长。上限 = 组容量 × 1 (默认 30 题, 一轮一组
+        // 约 8-15 分钟, v132 实测 15-30 秒/题) —— 按「一天一课」节奏
+        // 定: 当天还有精读与短语匹配, 全天约 25-40 分钟。学有余力时
+        // 结果页「再练一轮」会重新精选 (错题+未练优先自动换血), 加练
+        // 天然支持。超限时按练习档案智能精选 —— 错过的置顶、没练过
+        // 的其次、练过的按最久未练排 (与综合练习同一套
+        // pickSmartGroup); 未入选的词后续轮次自然轮换, 不会永久漏词。
+        // 组容量设 0 (不分组) 表示用户要全量, 不裁。
+        const all = (curLesson.words || []).slice();
+        const gsz = getLessonGroupSize();
+        const cap = gsz;
+        let items;
+        if (cap && all.length > cap) {
+            items = pickSmartGroup(all, loadPracRec().w, cap, it => it.id);
+            toast('\u{1F3AF} \u672C\u8F6E\u7CBE\u9009 ' + items.length + ' \u9898\uFF08\u5171 '
+                  + all.length + ' \u8BCD\uFF0C\u9519\u9898\u4E0E\u672A\u7EC3\u4F18\u5148\uFF09');
+        } else {
+            items = shuffle(all);
+        }
         clozeState = {
             kind    : 'lesson',
             mode    : mode,                                // choice | spell
             hint    : hint,
             showZh  : (window.DB?.getPref?.('lesson_cloze_zh', '1') !== '0'),
-            pool    : (curLesson.words || []).slice(),     // 干扰项抽样池
-            groups  : chunkGroups(shuffle((curLesson.words || []).slice()), getLessonGroupSize()),
+            pool    : (curLesson.words || []).slice(),     // 干扰项抽样池 (仍用全课词条, 干扰更丰富)
+            groups  : chunkGroups(items, gsz),
             gi      : 0,
             idx     : 0,
             opts    : {},                                  // wid -> 选项 ID 序 (稳定, 回看不重排)

@@ -1,5 +1,39 @@
 // sw.js — VocabPeak Service Worker
 
+// hsv-v42 (?v=139) — 填空上限收紧至一组 (一天一课节奏):
+//   • 上限由 组容量×2 收紧为 组容量×1 (默认 30 题一轮一组): 按
+//     「一天一课」定 —— 当天还有精读与短语匹配, 全天约 25-40 分钟
+//     (精读 10-15 + 填空一组 8-15 + 短语 5-8)。
+//   • 加练路径: 结果页「再练一轮」= 重新 startCloze = 重新精选,
+//     错题+未练优先自动换血, 学有余力天然支持, 无需新功能。
+//   • 精选算法、toast 告知、组容量 0 不裁、干扰项全池均不变 (v138)。
+
+// hsv-v41 (?v=138) — 单课填空精选上限:
+//   • 词多的课 (80-100 词) 单课填空原本全量出题, 一轮太长。上限 =
+//     组容量 × 2 (默认 30×2=60 题): 每轮最多两组, 每组约一次专注
+//     时段 (v132 实测 15-30 秒/题)。
+//   • 超限时按练习档案智能精选 (与综合练习同一套 pickSmartGroup):
+//     错过的置顶、没练过的其次、练过的按最久未练排; 每轮重新精选,
+//     未入选的词后续按「未练过优先」自然轮换, 不会永久漏词。
+//   • 精选发生时 toast 告知 "本轮精选 N 题 (共 M 词)", 孩子和家长
+//     都知道不是漏题。组容量设 0 (不分组) 表示要全量, 不裁。
+//   • 干扰项抽样池仍用全课词条 (干扰更丰富, 不随精选缩水)。
+
+// hsv-v40 (?v=137) — 自动播放修复 + 同源隔离补漏:
+//   • 自动播放竞态 (实机: "第一个有声音, 后面没有, 也快速跳过"):
+//     speakNative 原来 cancel() 后同步 speak() —— Chrome 会把新话语
+//     一并打断并触发 onerror, 而 onerror 不分类型直接 onEnd, 链条
+//     每条立即跳过。第一条有声只因首次队列为空 cancel 是 no-op;
+//     自动播放的中文释义必走本引擎, 一进来就雪崩。修法三件套:
+//     话语序号守卫 (旧话语回调不推进新链) + 仅在引擎确有话语时
+//     cancel 且隔 80ms 再 speak + stopSpeak 使未决回调失效。
+//   • 顺手修 Chrome 桌面版长语音假死坑: 单条话语超 ~15 秒被引擎
+//     静默暂停, 读长例句卡死。播放期间每 10 秒 resume 心跳。
+//   • 同源隔离补漏 (重要): activate 清理原来删"所有不等于
+//     CACHE_NAME 的缓存", 会把同源 EMPro 的 SW 缓存整个删光, 两个
+//     应用每次发版互相清对方。改为只清自家 hsv- 前缀的旧版缓存。
+//     ⚠ EMPro 的 sw.js 有同样问题, 记得单独去那个仓库做同样修复。
+
 // hsv-v39 (?v=136) — 特训闯关推进 (实机反馈修正):
 //   • 修正: 特训答题后走通用的组内循环 navigate(1), 答过的词永远
 //     转圈不消失 (实机观察: "回填后单词数没有消失")。
@@ -512,7 +546,7 @@
 
 // 缓存名与 EMPro 隔离：Cache Storage 也是按 origin 共享的，两个应用
 // 的 CACHE_NAME 必须不同，否则会互相删除对方的缓存。
-const CACHE_NAME = 'hsv-v39';
+const CACHE_NAME = 'hsv-v42';
 const ASSETS = [
     './',
     './index.html',
@@ -574,7 +608,13 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
     e.waitUntil((async () => {
         const names = await caches.keys();
-        await Promise.all(names.filter(n => n !== CACHE_NAME).map(n => caches.delete(n)));
+        // v137 修复 (同源隔离): 只清理自家 hsv- 前缀的旧版缓存。
+        // 原来删"所有不等于 CACHE_NAME 的缓存", 会把同源 EMPro 的
+        // SW 缓存 (emp-vNN) 整个删光 —— 两个应用每次发版互相清对方,
+        // EMPro 侧的 sw.js 也要做同样的前缀过滤 (单独去改那个仓库)。
+        await Promise.all(names
+            .filter(n => n.startsWith('hsv-') && n !== CACHE_NAME)
+            .map(n => caches.delete(n)));
         await self.clients.claim();
     })());
 });
