@@ -17,7 +17,8 @@ window.MyWords = (function() {
     let currentGroup = 0;
     let shuffleOn    = false;  // view-only shuffle toggle — never mutates stored order
     let shuffleSeed  = 0;      // stable seed so the shuffled order is consistent across renders/reloads
-    let studyFilter  = 'all'; // 'all' | 'core' | 'pronunciation' | 'spelling'
+    let studyFilter  = 'all'; // 'all' | 'core' | 'pronunciation' | 'spelling' | 'weak' | 'due' | 'trainer'
+    let trainerList  = [];    // 今日特训词单 (v134): startTrainer 时抽取, 会话内固定
 
     // --- Autoplay state ---
     // Per-component on/off lives in localStorage prefs (autoplay_endef,
@@ -70,6 +71,13 @@ window.MyWords = (function() {
             try { return window.DB.getDueWords(); }
             catch { return studyList; }
         }
+        // 今日特训 (v134): 会话内固定词单 —— 进入时抽一次, 练习期间
+        // 不因答题改变 (weak 毕业/到期变化都不缩列表, 避免答着答着
+        // 词没了)。列表为空 (重载恢复等) 时兜底回 weak 筛选。
+        if (studyFilter === 'trainer') {
+            return trainerList.length ? trainerList
+                : studyList.filter(w => (w.focus || []).includes('weak'));
+        }
         return studyList.filter(w => {
             const focus = Array.isArray(w.focus) ? w.focus : [];
             return focus.includes(studyFilter);
@@ -111,6 +119,9 @@ window.MyWords = (function() {
         if (prog.mode)  studyMode    = prog.mode;
         if (prog.view)  viewMode     = prog.view;
         if (prog.filter) studyFilter  = prog.filter;
+        // trainer 词单不持久化, 重载后恢复成 trainer 只会看到兜底的
+        // weak 列表 —— 不如直接回到全部, 特训由入口卡重新发起。
+        if (studyFilter === 'trainer') studyFilter = 'all';
         // 'due' (复习 / SRS) is now a valid persisted filter — keep it so the
         // review mode survives reloads instead of snapping back to All.
         if (prog.group != null) currentGroup = Math.max(0, Math.min(prog.group, getGroupCount() - 1));
@@ -1658,37 +1669,12 @@ IMPORTANT:
         setTimeout(() => navigate(1), isCorrect ? 1200 : 2500);
     }
 
-    /** Track quiz result: update wrongCount/correctStreak, manage weak tag. */
+    /** Track quiz result — v134: 记账/weak 打标/毕业全部移交
+     *  DB.recordWordResult 统一口径 (毕业需连对>=4 且跨>=3 个学习日,
+     *  不随时间衰减 —— 规则见 db.js 注释)。本函数只剩薄壳。 */
     function trackQuizResult(w, isCorrect) {
         if (!w || !w.word) return;
-        const nb  = window.DB.loadNotebook();
-        const idx = nb.findIndex(x => (x.word || '').toLowerCase() === w.word.toLowerCase());
-        if (idx < 0) return;
-
-        const entry = nb[idx];
-        if (!entry.wrongCount)    entry.wrongCount    = 0;
-        if (!entry.correctStreak) entry.correctStreak = 0;
-        const focus = Array.isArray(entry.focus) ? [...entry.focus] : [];
-
-        if (isCorrect) {
-            entry.correctStreak++;
-            // Graduate: 3 correct in a row removes weak tag
-            if (entry.correctStreak >= 3 && focus.includes('weak')) {
-                focus.splice(focus.indexOf('weak'), 1);
-                entry.focus = focus;
-            }
-        } else {
-            entry.wrongCount++;
-            entry.correctStreak = 0;
-            // Auto-tag as weak
-            if (!focus.includes('weak')) {
-                focus.push('weak');
-                entry.focus = focus;
-            }
-        }
-
-        nb[idx] = entry;
-        window.DB.saveNotebook(nb);
+        window.DB?.recordWordResult?.(w.word, isCorrect, 'quiz');
         // Refresh in-memory list
         refreshStudyList();
     }
@@ -1894,6 +1880,28 @@ Return ONLY valid JSON.`;
             .replace(/\n/g, ' ');
     }
 
+    // ─── 今日特训 (v134) ────────────────────────────────
+    // 课文页入口卡调用: 抽一批薄弱/到期/课文错词, 直接进测验。
+    // 零决策 —— 家长说"去复习", 孩子点一下就在答题了。
+    function startTrainer() {
+        try { trainerList = window.DB?.getTrainerWords?.(12) || []; }
+        catch (e) { trainerList = []; }
+        if (!trainerList.length) {
+            window.App?.showToast?.('\u6CA1\u6709\u5F85\u5F3A\u5316\u7684\u8BCD\uFF0C\u68D2\uFF01');
+            return false;
+        }
+        studyFilter  = 'trainer';
+        studyMode    = 'quiz';
+        currentGroup = 0;
+        currentIdx   = 0;
+        quizScore    = 0;
+        quizTotal    = 0;
+        render();
+        window.App?.showToast?.('\u{1F3AF} \u4ECA\u65E5\u7279\u8BAD\uFF1A' + trainerList.length + ' \u8BCD');
+        return true;
+    }
+
     return { init, render, refreshStudyList, startAutoplay, stopAutoplay, toggleAutoplay,
+             startTrainer,
              isAutoplayActive: () => autoplayOn };
 })();

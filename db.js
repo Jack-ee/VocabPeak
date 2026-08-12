@@ -757,6 +757,136 @@
             return e;
         },
 
+        // ─── 薄弱词统一记账 (v134) ──────────────────────────
+        // 全应用唯一的对错记账入口: 单词测验与课文填空都走这里,
+        // weak 打标 / 毕业 / 计数口径全局一致 (v134 之前课文答错只拉
+        // SRS 不打 weak, 课文答对不推动毕业 —— 两线各记各的)。
+        //
+        // 毕业规则 (家长定的, 别放宽):
+        //   薄弱词只因「真实掌握」退出, 绝不因时间流逝退出 ——
+        //   学期中几个月没空练, 回来它必须还在。
+        //   掌握的判定: 连对 >= 4 次, 且这些连对分布在 >= 3 个不同
+        //   学习日 (streakDays)。一天之内刷出的连对不算数, 隔天还
+        //   记得才叫掌握。答错则连对与日期全部清零, 重新攒。
+        //   所有进度只增不衰减: 长期不练, 攒到一半的进度原样保留。
+        //
+        // source: 'quiz' (单词测验) 计 wrongCount; 'lesson' (课文
+        // 练习) 计 mistakeCount 并把 SRS 拉回立即到期 (原
+        // flagQuizMistake 的职责并入, 避免调用两次双计)。
+        // _today 仅测试注入用, 生产不传。
+        GRADUATE_STREAK: 4,
+        GRADUATE_DAYS  : 3,
+        recordWordResult: function(word, isCorrect, source, _today) {
+            const nb   = this.loadNotebook();
+            const wLow = String(word || '').toLowerCase();
+            const idx  = nb.findIndex(w => String(w.word || '').toLowerCase() === wLow);
+            if (idx < 0) return null;              // 不在生词本: 不记账 (课文答对的常见情形)
+            const e     = nb[idx];
+            const today = _today || (() => {
+                const d = new Date();
+                return d.getFullYear() + '-' +
+                       String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                       String(d.getDate()).padStart(2, '0');
+            })();
+            const focus = Array.isArray(e.focus) ? [...e.focus] : [];
+            e.lastResultAt = Date.now();           // 后台"多久没练"用
+            if (isCorrect) {
+                e.correctStreak = (e.correctStreak || 0) + 1;
+                const sd = Array.isArray(e.streakDays) ? e.streakDays : [];
+                if (sd.indexOf(today) < 0) sd.push(today);
+                e.streakDays = sd;
+                if (focus.includes('weak')
+                    && e.correctStreak >= this.GRADUATE_STREAK
+                    && sd.length >= this.GRADUATE_DAYS) {
+                    focus.splice(focus.indexOf('weak'), 1);
+                    e.focus      = focus;
+                    e.streakDays = [];             // 毕业后清空, 下个周期干净起步
+                    console.log('[DB] 薄弱词毕业: ' + e.word);
+                }
+            } else {
+                if (source === 'lesson') {
+                    e.mistakeCount = (e.mistakeCount || 0) + 1;
+                    e.srsLevel     = 0;            // 课文答错: SRS 拉回立即到期
+                    e.nextReview   = null;
+                } else {
+                    e.wrongCount = (e.wrongCount || 0) + 1;
+                }
+                e.correctStreak = 0;
+                e.streakDays    = [];
+                if (!focus.includes('weak')) {
+                    focus.push('weak');
+                    e.focus = focus;
+                }
+            }
+            nb[idx] = e;
+            this.saveNotebook(nb);
+            return e;
+        },
+
+        // ─── 今日特训选词 (v134) ────────────────────────────
+        // 三路聚合, 一键零决策: 家长说"去复习", 孩子点一下就开练。
+        //   1) weak 标签词 (主力, +4 分)
+        //   2) 课文练习里最近一次答错的词 (lemma 映射到生词本, +3 分)
+        //   3) 复习过且已到期的词 (nextReview 存在且 <= now, +2 分;
+        //      注意与 getDueWords 口径不同 —— 那边把"从没复习过"也算
+        //      到期, 在这里会让 1654 词全命中, 特训就失去焦点了)
+        // 错次多的排前面 (微调分)。返回按分数倒序的前 n 个。
+        getTrainerWords: function(n) {
+            n = n || 12;
+            const now = Date.now();
+            const wrongLemmas = new Set();
+            try {
+                const rec = JSON.parse(this.getPref('lesson_mixed',
+                    '{"w":{},"p":{}}') || '{}').w || {};
+                const lem = {};
+                (this.loadUserLessons() || []).forEach(l =>
+                    (l.words || []).forEach(w => {
+                        if (w.id && w.lemma) lem[w.id] = String(w.lemma).toLowerCase();
+                    }));
+                Object.keys(rec).forEach(id => {
+                    const e = rec[id];
+                    if (e && e[0] && !e[3] && lem[id]) wrongLemmas.add(lem[id]);
+                });
+            } catch (e) {}
+            const score = w => {
+                let s = 0;
+                if ((w.focus || []).includes('weak'))                 s += 4;
+                if (wrongLemmas.has(String(w.word || '').toLowerCase())) s += 3;
+                if (w.nextReview != null && w.nextReview <= now)      s += 2;
+                s += Math.min(3, (w.wrongCount || 0) + (w.mistakeCount || 0)) * 0.1;
+                return s;
+            };
+            return this.loadNotebook()
+                .map(w => ({ w: w, s: score(w) }))
+                .filter(x => x.s >= 2)
+                .sort((a, b) => b.s - a.s)
+                .slice(0, n)
+                .map(x => x.w);
+        },
+
+        // ─── weak 标签一次性迁移 (v134) ─────────────────────
+        // 合流之前课文答错只加 mistakeCount 不打 weak 标签, 这批词在
+        // 应用内的薄弱筛选和新版后台口径 (只认标签) 里都会漏掉。补打
+        // 一次, 让它们进入统一的毕业流程。幂等: pref 标志防重跑。
+        migrateWeakTags: function() {
+            if (this.getPref('weak_migrated_v134', '') === '1') return 0;
+            const nb  = this.loadNotebook();
+            let   fix = 0;
+            nb.forEach(e => {
+                const focus = Array.isArray(e.focus) ? e.focus : (e.focus = []);
+                if (((e.mistakeCount || 0) + (e.wrongCount || 0)) > 0
+                    && !focus.includes('weak')) {
+                    focus.push('weak');
+                    e.focus = focus;
+                    fix++;
+                }
+            });
+            if (fix) this.saveNotebook(nb);
+            this.setPref('weak_migrated_v134', '1');
+            if (fix) console.log('[DB] weak 标签迁移: 补打 ' + fix + ' 词');
+            return fix;
+        },
+
         // Words due today (or earlier). Treats missing nextReview as
         // "due now" so the entire pre-SRS notebook surfaces on first use.
         getDueWords: function() {

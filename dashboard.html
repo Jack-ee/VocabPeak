@@ -410,13 +410,18 @@ function computeStats(model){
 
 /* ---------- 薄弱词 ---------- */
 function weakWords(notebook){
+  /* v134 口径: 只认 weak 标签 —— 毕业 (连对>=4 且跨>=3 个学习日) 即
+     退出本区, 这正是"明显掌握了才退出"的规则; 长期不练标签不消失。
+     错次仅作排序与展示。lastResultAt 用来显示"多久没练"。 */
+  const now = Date.now();
   const rows = notebook.map(w=>({
     word:w.word||"",
     meaning:w.meaning||"",
-    mistakes:Number(w.mistakeCount||w.wrongCount||0),
+    mistakes:Number(w.mistakeCount||0)+Number(w.wrongCount||0),
+    idleDays:w.lastResultAt ? Math.floor((now-w.lastResultAt)/86400000) : null,
     flagged:Array.isArray(w.focus) && w.focus.includes("weak")
-  })).filter(w=> w.flagged || w.mistakes>0);
-  rows.sort((a,b)=> (b.flagged-a.flagged) || (b.mistakes-a.mistakes));
+  })).filter(w=> w.flagged);
+  rows.sort((a,b)=> (b.mistakes-a.mistakes));
   return rows;
 }
 
@@ -650,8 +655,9 @@ function renderWeak(model){
       <span class="w">${escapeHtml(w.word)}</span>
       <span class="m">${escapeHtml(w.meaning)}</span>
       ${w.mistakes>0?`<span class="x">✗${w.mistakes}</span>`:``}
+      ${w.idleDays!=null && w.idleDays>=7?`<span class="x" title="距最近一次练习">${w.idleDays}天未练</span>`:``}
     </div>`).join("") + `</div>` +
-    (rows.length>40 ? `<div class="hint" style="margin-top:10px">仅显示错得最多的前 40 个。</div>` : ``);
+    (rows.length>40 ? `<div class="hint" style="margin-top:10px">仅显示错得最多的前 40 个。薄弱词只因掌握退出（连对 4 次且跨 3 个学习日），不因时间退出。</div>` : ``);
 }
 
 function escapeHtml(s){

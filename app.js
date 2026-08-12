@@ -1829,6 +1829,9 @@
             // 课程订阅 (v131): boot 已 await initCourses, 缓存就绪;
             // init 内部再延时错峰, 让首次同步拉取先落地。
             safeCall('CourseFeed', () => window.CourseFeed?.init?.());
+            // weak 标签一次性迁移 (v134): 合流前课文错词补打 weak,
+            // 进入统一毕业流程。幂等, 跑过即跳过。
+            safeCall('WeakMigrate', () => window.DB?.migrateWeakTags?.());
 
             // Header stats
             refreshStats();

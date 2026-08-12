@@ -71,14 +71,16 @@ const css = fs.readFileSync(path.join(DIR, 'lessons.css'), 'utf8');
 ok(/\.ls-time-card \{/.test(css) && /\.ls-time-card b \{/.test(css), 'lessons.css 有卡片样式');
 
 // ─── 3. 版本 ────────────────────────────────────────────────
+// 注: v133 (激励卡) 与 v134 (薄弱词闭环) 合并为同一次发版,
+// 版本断言按实际上线版本 hsv-v37 / ?v=134 校验。
 sec('3. 版本');
 const idx = fs.readFileSync(path.join(DIR, 'index.html'), 'utf8');
 const sw  = fs.readFileSync(path.join(DIR, 'sw.js'), 'utf8');
 const vs  = [...idx.matchAll(/\?v=(\d+)/g)].map(x => x[1]);
-ok(new Set(vs).size === 1 && vs[0] === '133',
-   'index.html 全部 ?v=133 (' + vs.length + ' 处)');
+ok(new Set(vs).size === 1 && vs[0] === '134',
+   'index.html 全部 ?v=134 (' + vs.length + ' 处)');
 ok(vs.length === 25, '?v= 引用总数 25 处');
-ok(/const CACHE_NAME = 'hsv-v36'/.test(sw), 'sw.js CACHE_NAME = hsv-v36');
+ok(/const CACHE_NAME = 'hsv-v37'/.test(sw), 'sw.js CACHE_NAME = hsv-v36');
 ok(/hsv-v36 \(\?v=133\)/.test(sw), 'sw.js 有 v36 变更日志');
 
 console.log('\n' + '═'.repeat(46));

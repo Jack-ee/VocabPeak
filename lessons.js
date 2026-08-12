@@ -604,14 +604,24 @@ window.Lessons = (function () {
         }).join('');
         // 综合练习入口: 跨全部课程抽题, 优先重现做错的与没练过的。
         const ms    = mixedStats();
-        // 激励卡 (v133): 给孩子自己看的学习时长 —— 只说"已学多少",
-        // 永远正向; 分钟向上取整, 起步就有正反馈; 完全没学过则不显示。
+        // 激励卡 (v133) + 今日特训入口 (v134): 只说"已学多少", 永远
+        // 正向; 特训按钮零决策 —— 家长说"去复习", 孩子点一下就开练
+        // (薄弱/到期/课文错词三路聚合, 见 db.js getTrainerWords)。
         // 监督性的信号 (跳过精读/作答过快) 只在家长后台, 这里不出现。
         const ts = _tWeekStats();
-        const timeCard = (ts.todaySec > 0 || ts.weekSec > 0)
-            ? `<div class="ls-time-card">\u23F1 ${ts.todaySec > 0
+        let trainerN = 0;
+        try { trainerN = (window.DB?.getTrainerWords?.(999) || []).length; }
+        catch (e) {}
+        const trainerBtn = trainerN > 0
+            ? `<button class="ls-trainer-btn" id="ls-trainer-go">\u{1F3AF} \u4ECA\u65E5\u7279\u8BAD<span class="ls-trainer-n">${trainerN > 99 ? '99+' : trainerN}</span></button>`
+            : '';
+        const timeTxt = (ts.todaySec > 0 || ts.weekSec > 0)
+            ? `\u23F1 ${ts.todaySec > 0
                   ? '\u4ECA\u5929\u5DF2\u5B66 <b>' + Math.ceil(ts.todaySec / 60) + ' \u5206\u949F</b> \u00b7 \u672C\u5468\u5171 <b>' + Math.ceil(ts.weekSec / 60) + ' \u5206\u949F</b>'
-                  : '\u672C\u5468\u5DF2\u5B66 <b>' + Math.ceil(ts.weekSec / 60) + ' \u5206\u949F</b>'}</div>`
+                  : '\u672C\u5468\u5DF2\u5B66 <b>' + Math.ceil(ts.weekSec / 60) + ' \u5206\u949F</b>'}`
+            : '';
+        const timeCard = (timeTxt || trainerBtn)
+            ? `<div class="ls-time-card"><span>${timeTxt}</span>${trainerBtn}</div>`
             : '';
         const mixed = (ms.w.total || ms.p.total) ? `
             <div class="ls-mixed-card">
@@ -926,14 +936,15 @@ window.Lessons = (function () {
         if (!silent) toast('\u{1F4D6} \u5DF2\u52A0\u5165\u751F\u8BCD\u672C: ' + w.lemma);
     }
 
-    // 答错自动强化: 静默加入生词本 (已有则合并不重复), 再把该词
-    // 的复习状态拉回「到期」—— 单词模块的到期复习队列 (遗忘曲线
-    // 1/3/7/14/30/60 天) 即刻可见, 后续按间隔复习强化。
+    // 答错自动强化: 静默加入生词本 (已有则合并不重复), 再走统一记账
+    // (v134: DB.recordWordResult 一处完成 mistakeCount / weak 打标 /
+    // SRS 拉回到期 —— 原 flagQuizMistake 的职责已并入, 不再单独调用
+    // 以免双计)。单词模块的到期复习队列即刻可见。
     function reinforceWord(w) {
         if (!window.DB?.upsertNotebookWord) return;
         try {
             addWordToNotebook(w, true);
-            window.DB.flagQuizMistake?.(w.lemma);
+            window.DB.recordWordResult?.(w.lemma, false, 'lesson');
         } catch (e) {}
     }
 
@@ -1373,6 +1384,10 @@ window.Lessons = (function () {
         catch (e) {}
         bumpPracRec('w', w.id, isCorrect);          // 练习档案: 综合练习按它选题
         if (!isCorrect) reinforceWord(w);           // 答错 → 生词本 + 拉回到期复习
+        // v134: 答对也记账 —— 该词若在生词本里 (多半是以前错过的),
+        // 课文里答对同样推动薄弱词毕业进度 (连对跨日规则见 db.js);
+        // 不在生词本则 no-op。
+        else window.DB?.recordWordResult?.(w.lemma, true, 'lesson');
         persistClozeSess();                         // 会话进度落盘, 关掉再回来能接着做
         speak(w.surface);
         renderClozeQuestion();                      // 状态驱动重渲染: 选项着色/回填/反馈
@@ -2438,6 +2453,13 @@ window.Lessons = (function () {
         // 通用: 任何带 data-say 的小喇叭
         const sayBtn = t.closest('[data-say]');
         if (sayBtn) { e.stopPropagation(); speak(sayBtn.dataset.say); return; }
+
+        // 今日特训 (v134): 切到单词页并直接开练 —— 零决策入口
+        if (t.closest('#ls-trainer-go')) {
+            try { document.querySelector('.nav-tab[data-nav="my-words"]')?.click(); } catch (e2) {}
+            try { window.MyWords?.startTrainer?.(); } catch (e2) {}
+            return;
+        }
 
         // 课程切换下拉
         if (t.closest('#ls-lesson-switch')) { toggleSwitchMenu(); return; }
