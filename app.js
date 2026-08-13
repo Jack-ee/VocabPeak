@@ -1321,11 +1321,17 @@
         document.getElementById('btn-merge-forms')?.addEventListener('click', openMergeForms);
 
         // ─── 课程订阅 (v131) ────────────────────────────────
-        const feedUrlEl = document.getElementById('feed-url-input');
-        if (feedUrlEl) feedUrlEl.value = window.DB?.getPref?.('course_feed_url', '') || '';
+        const feedUrlEl  = document.getElementById('feed-url-input');
+        const feedPassEl = document.getElementById('feed-pass-input');
+        if (feedUrlEl)  feedUrlEl.value  = window.DB?.getPref?.('course_feed_url', '') || '';
+        if (feedPassEl) feedPassEl.value = window.DB?.getPref?.('course_feed_pass', '') || '';
         document.getElementById('btn-save-feed-url')?.addEventListener('click', () => {
-            window.DB?.setPref?.('course_feed_url', (feedUrlEl?.value || '').trim());
-            showToast('已保存课程订阅源');
+            window.DB?.setPref?.('course_feed_url',  (feedUrlEl?.value  || '').trim());
+            // v140: 解密口令随快照同步 —— 孩子的设备一次配置全家生效。
+            // 它不是 API 密钥 (无计费风险), 且课程本就在同一 Gist 里,
+            // 能读 Gist 者本就能读课程, 同步口令不扩大暴露面。
+            window.DB?.setPref?.('course_feed_pass', (feedPassEl?.value || '').trim());
+            showToast('已保存课程订阅设置');
         });
         const feedAutoEl = document.getElementById('pref-feed-auto');
         if (feedAutoEl) {

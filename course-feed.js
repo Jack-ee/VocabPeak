@@ -87,6 +87,30 @@ window.CourseFeed = (function () {
             .map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
+    // ─── 加密课程解密 (v140, 版权防护) ───────────────────────
+    // 发布工具用 AES-256-GCM 加密后, 仓库里只有密文 blob (fork 者拿
+    // 不到可读语料); 订阅端凭口令 (pref course_feed_pass, 随快照同步
+    // 到孩子各设备) 解密。与发布侧的约定: 密钥 = PBKDF2(口令, salt,
+    // 10 万轮, SHA-256), salt 由 manifest._encSalt 携带; 信封
+    // {enc:1, iv, ct} 中 ct = 密文||tag (WebCrypto 解密所需连体格式)。
+    function _b64bytes(s) {
+        return Uint8Array.from(atob(s), c => c.charCodeAt(0));
+    }
+    async function deriveKey(pass, saltB64) {
+        const km = await crypto.subtle.importKey('raw',
+            new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+        return crypto.subtle.deriveKey(
+            { name: 'PBKDF2', salt: _b64bytes(saltB64),
+              iterations: 100000, hash: 'SHA-256' },
+            km, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+    }
+    async function decryptEnvelope(env, cryptoKey) {
+        const pt = await crypto.subtle.decrypt(
+            { name: 'AES-GCM', iv: _b64bytes(env.iv) },
+            cryptoKey, _b64bytes(env.ct));
+        return JSON.parse(new TextDecoder().decode(pt));
+    }
+
     // ─── 状态行 (设置页存在时更新) ───────────────────────────
     function setStatus(msg) {
         try {
@@ -128,6 +152,26 @@ window.CourseFeed = (function () {
                 return _last;
             }
 
+            // v140: 加密清单 —— 没配口令就到此为止, 给出明确指引;
+            // 口令随快照同步, 孩子的设备一次配置全家生效。
+            let cryptoKey = null;
+            if (manifest._enc) {
+                const pass = (pref('course_feed_pass', '') || '').trim();
+                if (!pass) {
+                    const msg = '\u8BFE\u7A0B\u5DF2\u52A0\u5BC6\uFF0C\u8BF7\u5728\u8BBE\u7F6E \u2192 \u8BFE\u7A0B\u8BA2\u9605 \u586B\u5BC6\u7801';
+                    if (manual) toast(msg);
+                    setStatus(msg);
+                    _last = { time: Date.now(), error: 'need pass' };
+                    return _last;
+                }
+                try { cryptoKey = await deriveKey(pass, manifest._encSalt || ''); }
+                catch (e) {
+                    if (manual) toast('\u5BC6\u7801\u5904\u7406\u5931\u8D25');
+                    _last = { time: Date.now(), error: 'key derive failed' };
+                    return _last;
+                }
+            }
+
             // 2. 与本机比对: 只取「本机没有」或「_v 更新」的课
             const local = {};
             (window.DB.loadUserLessons() || []).forEach(l => {
@@ -161,7 +205,14 @@ window.CourseFeed = (function () {
                         const h = await sha256hex(text);
                         if (h !== c.sha256) throw new Error('sha256 mismatch');
                     }
-                    const obj = JSON.parse(text);
+                    // v140: sha 校验的是落盘文件本身 (密文即校验密文);
+                    // 信封带 enc 标记则解密, 明文课照旧 —— 混合清单可用,
+                    // 口令不对时 AES-GCM 认证失败会抛错, 计入失败数。
+                    let obj = JSON.parse(text);
+                    if (obj && obj.enc) {
+                        if (!cryptoKey) throw new Error('encrypted, no key');
+                        obj = await decryptEnvelope(obj, cryptoKey);
+                    }
                     if (!obj || obj.id !== c.id) throw new Error('id mismatch');
                     if (obj._v == null) obj._v = c._v || 0;
                     batch.push(obj);
@@ -190,8 +241,11 @@ window.CourseFeed = (function () {
                 ? ('\u8BFE\u7A0B\u5DF2\u66F4\u65B0: \u65B0\u589E ' + added +
                    ' \u00b7 \u66F4\u65B0 ' + updated +
                    (failed ? ' \u00b7 \u5931\u8D25 ' + failed : ''))
-                : (failed ? ('\u4E0B\u8F7D\u5931\u8D25 ' + failed + ' \u95E8')
-                          : '\u5DF2\u662F\u6700\u65B0');
+                : (failed
+                    ? (manifest._enc && !batch.length
+                        ? '\u4E0B\u8F7D\u5931\u8D25 ' + failed + ' \u95E8 \u2014 \u5BC6\u7801\u662F\u5426\u6B63\u786E\uFF1F'
+                        : '\u4E0B\u8F7D\u5931\u8D25 ' + failed + ' \u95E8')
+                    : '\u5DF2\u662F\u6700\u65B0');
             console.log('[Feed] ' + msg);
             if (manual || changed) toast(msg);
             setStatus(msg);

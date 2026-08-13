@@ -1,5 +1,24 @@
 // sw.js — VocabPeak Service Worker
 
+// hsv-v43 (?v=140) — 课程发布加密 (版权防护):
+//   • 动机: 课程语料源自购入教材, 明码放公开仓库会被 fork 二次传播。
+//     加密后仓库里只有密文 blob; 这是访问控制不是 DRM —— 持口令者仍
+//     可提取内容, 防的是公开扩散。
+//   • 发布侧: make-course-release.js --key <口令> (或 COURSE_PACK_KEY
+//     环境变量)。AES-256-GCM, 密钥 = PBKDF2(口令, 10 万轮)。确定性
+//     加密 (关键): salt 派生自口令, 每课 iv 绑定明文内容 —— 内容不变
+//     密文逐字节不变, sha256 稳定, 订阅端零重下; 内容变 iv 随之变,
+//     无 GCM 同 iv 异明文风险。加密时 manifest 不带课名 (课名也是
+//     内容), 带 _enc:1 与 _encSalt。
+//   • 订阅侧 (course-feed.js): WebCrypto 解密; 口令存 pref
+//     course_feed_pass, 随快照同步 (孩子设备一次配置全家生效; 它不是
+//     API 密钥, 且课程本就在同一 Gist 里, 同步不扩大暴露面)。sha
+//     校验的是密文文件本身; 明文课向后兼容, 混合清单可用; 口令错时
+//     AES-GCM 认证失败计入失败数并提示"密码是否正确"。
+//   • 设置 → 课程订阅 新增密码框, 与订阅源同一保存按钮。
+//   • ⚠ 部署次序: 先发客户端 (新客户端兼容明文旧清单), 再加密重发
+//     courses/; 旧明文已进 git 历史, 需要 filter-repo/BFG 清历史。
+
 // hsv-v42 (?v=139) — 填空上限收紧至一组 (一天一课节奏):
 //   • 上限由 组容量×2 收紧为 组容量×1 (默认 30 题一轮一组): 按
 //     「一天一课」定 —— 当天还有精读与短语匹配, 全天约 25-40 分钟
@@ -546,7 +565,7 @@
 
 // 缓存名与 EMPro 隔离：Cache Storage 也是按 origin 共享的，两个应用
 // 的 CACHE_NAME 必须不同，否则会互相删除对方的缓存。
-const CACHE_NAME = 'hsv-v42';
+const CACHE_NAME = 'hsv-v43';
 const ASSETS = [
     './',
     './index.html',
