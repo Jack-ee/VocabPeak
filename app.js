@@ -975,6 +975,8 @@
         // Debug panel toggle
         const dbgEl     = document.getElementById('pref-debug-panel');
         if (dbgEl) dbgEl.checked = window.DB.getPref('debug_panel_enabled', 'false') === 'true';
+        const tdEl      = document.getElementById('pref-test-device');
+        if (tdEl) tdEl.checked = window.DB.getPref('device_test_mode', 'false') === 'true';
     }
 
     function populateVoiceSelect() {
@@ -1226,6 +1228,10 @@
         document.getElementById('btn-sync-pull')?.addEventListener('click', () => window.SyncManager?.pull?.(true));
 
         // Debug panel toggle
+        document.getElementById('pref-test-device')?.addEventListener('change', (e) => {
+            window.DB.setPref('device_test_mode', e.target.checked ? 'true' : 'false');
+            showToast(e.target.checked ? '本机已标记为测试设备，学习数据不再落账' : '已恢复正常记录');
+        });
         document.getElementById('pref-debug-panel')?.addEventListener('change', (e) => {
             window.DB.setPref('debug_panel_enabled', e.target.checked ? 'true' : 'false');
             // The module exposes itself as window.Debug; older builds used

@@ -228,6 +228,8 @@
         精读 = 课文页阅读/听读的专注分钟数（挂机不计）；练习 = 填空/短语/综合练习。
         <b>⚠ 跳过精读</b>：当天该课练习不少而精读几乎为零；<b>⚠ 作答过快</b>：平均每题不足 3 秒，可能在乱点。
         信号只是提示，具体情况请结合孩子当天安排判断。
+        课表已过滤单课单日不足 1 分钟的碎屑（应用启动自动恢复旧课造成的误记）；天表保持全量。
+        家长自己调试 APP 时，请在自己设备开启 设置 → 数据 → 开发者 → 本机为测试设备，测试动作不落账。
       </div>
     </div>
 
@@ -525,13 +527,23 @@ function renderLessonTime(model){
     `<tr><th>日期</th><th>精读</th><th>练习</th><th>答题</th><th>秒/题</th><th>信号</th></tr>` + dayRows;
 
   // 按课累计（最近学过的 10 门，按最近学习日期倒序）
-  const perLesson = {};   // id → {r,e,q,qs,last}
+  // v141 碎屑过滤: 应用启动会自动恢复上次打开的课, 停留几十秒就给旧课
+  // 记 1 分钟级碎屑 (典型如孤零零的"1 分")。单课单日 r+e 不足 60 秒的
+  // 贡献不计入课表累计、也不刷新"最近学习"。天表保持全量, 总分钟不变。
+  const MIN_DAY_SEC = 60;
+  const d0 = new Date();
+  const todayKey = d0.getFullYear() + "-" +
+    String(d0.getMonth()+1).padStart(2,"0") + "-" +
+    String(d0.getDate()).padStart(2,"0");
+  const perLesson = {};   // id → {r,e,q,qs,tr,te,last}
   dayKeys.forEach(day=>{
     const acts = lt[day] || {};
     Object.keys(acts).forEach(id=>{
       const x = acts[id]||{};
-      const p = perLesson[id] || (perLesson[id] = { r:0,e:0,q:0,qs:0,last:"" });
+      if(((x.r||0)+(x.e||0)) < MIN_DAY_SEC) return;   // 碎屑: 跳过
+      const p = perLesson[id] || (perLesson[id] = { r:0,e:0,q:0,qs:0,tr:0,te:0,last:"" });
       p.r+=x.r||0; p.e+=x.e||0; p.q+=x.q||0; p.qs+=x.qs||0;
+      if(day === todayKey){ p.tr+=x.r||0; p.te+=x.e||0; }
       if(day > p.last) p.last = day;
     });
   });
@@ -541,8 +553,12 @@ function renderLessonTime(model){
     .slice(0,10)
     .map(p=>{
       const name = p.id==="mixed" ? "综合练习" : (titles[p.id] || p.id);
+      const today = (p.tr+p.te) > 0
+        ? `${fmtMin(p.tr)} / ${fmtMin(p.te)}`
+        : '<span class="dim">—</span>';
       return `<tr>
         <td>${escapeHtml(name)}</td>
+        <td>${today}</td>
         <td>${fmtMin(p.r)}</td>
         <td>${fmtMin(p.e)}</td>
         <td class="date">${p.last}</td>
@@ -550,7 +566,7 @@ function renderLessonTime(model){
       </tr>`;
     }).join("");
   lsBody.innerHTML =
-    `<tr><th>课程</th><th>累计精读</th><th>累计练习</th><th>最近学习</th><th>信号</th></tr>` + rows;
+    `<tr><th>课程</th><th>今日 读/练</th><th>累计精读</th><th>累计练习</th><th>最近学习</th><th>信号</th></tr>` + rows;
 }
 
 /* ---- 热力图：最近 18 周 ---- */

@@ -1049,7 +1049,10 @@ window.SyncManager = (function() {
         'mw_pos_all', 'mw_pos_core', 'mw_pos_pronunciation',
         'mw_pos_spelling', 'mw_pos_weak',
         'mw_shuffle',        // shuffle on/off — per-device view preference
-        'mw_shuffle_seed'    // shuffle permutation seed — per device
+        'mw_shuffle_seed',   // shuffle permutation seed — per device
+        // v141: 测试设备开关是"这台机器"的属性, 同步出去孩子平板就
+        // 全家不记学习数据了 —— 必须永远本地
+        'device_test_mode'
     ]);
 
     function hookSaves() {

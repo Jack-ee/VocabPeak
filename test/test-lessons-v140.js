@@ -114,9 +114,9 @@ const feedSrc = fs.readFileSync(path.join(DIR, 'course-feed.js'), 'utf8');
     ok(/course_feed_pass/.test(app), 'app.js 接线保存口令');
     const sw = fs.readFileSync(path.join(DIR, 'sw.js'), 'utf8');
     const vs = [...idx.matchAll(/\?v=(\d+)/g)].map(x => x[1]);
-    ok(new Set(vs).size === 1 && vs[0] === '140', 'index.html 全部 ?v=140 (' + vs.length + ' 处)');
+    ok(new Set(vs).size === 1 && vs[0] === '141', 'index.html 全部 ?v=141 (' + vs.length + ' 处)');
     ok(vs.length === 25, '?v= 引用总数 25 处');
-    ok(/const CACHE_NAME = 'hsv-v43'/.test(sw), 'sw.js CACHE_NAME = hsv-v43');
+    ok(/const CACHE_NAME = 'hsv-v44'/.test(sw), 'sw.js CACHE_NAME = hsv-v43');
     ok(/hsv-v43 \(\?v=140\)/.test(sw), 'sw.js 有 v43 变更日志');
 
     fs.rmSync(tmp, { recursive: true, force: true });

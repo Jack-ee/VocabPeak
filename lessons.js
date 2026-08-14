@@ -87,6 +87,7 @@ window.Lessons = (function () {
     }
     function tMarkActivity() { _tLastAct = Date.now(); }
     function _tTick() {
+        if (window.DB?.isTestDevice?.()) return;   // v141: 测试设备不计时
         if (document.hidden) return;
         if (Date.now() - _tLastAct > TIME_IDLE_MS) return;
         const c = _tCtx();
@@ -94,6 +95,7 @@ window.Lessons = (function () {
         _tBucket(_tYmd(), c.act)[c.kind] += 5;
     }
     function _tNoteAnswer(sec) {
+        if (window.DB?.isTestDevice?.()) return;   // v141: 测试设备不计时
         const c = _tCtx() || { act: 'mixed' };
         const b = _tBucket(_tYmd(), c.act);
         b.q  += 1;
@@ -222,6 +224,7 @@ window.Lessons = (function () {
         try { window.DB?.setPref?.('lesson_mixed', JSON.stringify(r)); } catch (e) {}
     }
     function bumpPracRec(kind, key, ok) {
+        if (window.DB?.isTestDevice?.()) return;   // v141: 测试设备不记档案
         const r   = loadPracRec();
         const map = kind === 'p' ? r.p : r.w;
         const e   = map[key] || [0, 0, 0, 1];

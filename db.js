@@ -384,6 +384,13 @@
         setPrefQuiet: function(name, val) {
             localStorage.setItem(key('pref_' + name), val);
         },
+        // v141: 测试设备开关 —— 家长在自己设备上调试 APP 时, 学习
+        // 记账 (时长/答题档案/天记录/薄弱词) 全部跳过, 不污染孩子的
+        // 学习数据。本地设置绝不同步 (sync.js 黑名单里有它): 同步出
+        // 去孩子平板就全家不记了。历史已混入的数据无法回溯区分。
+        isTestDevice: function() {
+            return localStorage.getItem(key('pref_device_test_mode')) === 'true';
+        },
 
         // --- Vocabulary Notebook ---
         loadNotebook: function() {
@@ -777,6 +784,7 @@
         GRADUATE_STREAK: 4,
         GRADUATE_DAYS  : 3,
         recordWordResult: function(word, isCorrect, source, _today) {
+            if (this.isTestDevice()) return null;   // v141: 测试设备不记
             const nb   = this.loadNotebook();
             const wLow = String(word || '').toLowerCase();
             const idx  = nb.findIndex(w => String(w.word || '').toLowerCase() === wLow);
@@ -987,6 +995,7 @@
         // Deliberately leaves totalSessions / modeUsage untouched so the
         // per-session averages stay meaningful.
         markActiveDay: function() {
+            if (this.isTestDevice()) return;   // v141: 测试设备不记
             const stats  = this.loadStats();
             const before = stats.lastActiveDate;
             _advanceStreak(stats);
@@ -1005,6 +1014,7 @@
         // Increment today's counters by `delta` (any of newWords / reviewed /
         // quizTotal / quizCorrect). Safe to call on every study gesture.
         bumpDaily: function(delta) {
+            if (this.isTestDevice()) return;   // v141: 测试设备不记
             delta = delta || {};
             const ymd = _localYMD();
             const k   = key('day_' + ymd);

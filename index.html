@@ -22,9 +22,9 @@
          sw.js to match (e.g. 'hsv-vN+1').
          Current version: v=107
          ========================================================= -->
-    <link rel="stylesheet" href="style.css?v=140">
-    <link rel="stylesheet" href="expressions-coach.css?v=140">
-    <link rel="stylesheet" href="lessons.css?v=140">
+    <link rel="stylesheet" href="style.css?v=141">
+    <link rel="stylesheet" href="expressions-coach.css?v=141">
+    <link rel="stylesheet" href="lessons.css?v=141">
 </head>
 <body>
 
@@ -409,6 +409,11 @@ eloquent manifest scrutinize caveat
                         <input type="checkbox" id="pref-debug-panel" style="width:16px;height:16px;cursor:pointer">
                         <span>显示调试面板（右下角 <strong>DBG</strong> 按钮）</span>
                     </label>
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;margin-top:8px">
+                        <input type="checkbox" id="pref-test-device" style="width:16px;height:16px;cursor:pointer">
+                        <span>本机为测试设备（不记录学习数据）</span>
+                    </label>
+                    <p style="font-size:10px;color:var(--text-tertiary);margin-top:4px">家长调试 APP 用：开启后本机产生的学习时长、答题档案、天记录、薄弱词一律不落账，家长后台数据保持干净。仅本机生效，不随同步走。孩子的设备请勿开启。</p>
                     <p style="font-size:10px;color:var(--text-tertiary);margin-top:4px">开启后右下角会出现一个悬浮诊断面板，含布局测量、PWA 状态、图标探测和实时日志。正常使用请关闭。</p>
                 </section>
             </div>
@@ -429,31 +434,31 @@ eloquent manifest scrutinize caveat
 
 <div id="toast-container"></div>
 
-<script src="config.js?v=140"></script>
-<script src="dictionary.js?v=140"></script>
-<script src="vocab-hs-data.js?v=140"></script>
-<script src="lessons-data.js?v=140"></script>
-<script src="db.js?v=140"></script>
-<script src="ai-engine.js?v=140"></script>
-<script src="my-words.js?v=140"></script>
-<script src="cloze.js?v=140"></script>
-<script src="writing-lab.js?v=140"></script>
-<script src="vocab-drill.js?v=140"></script>
-<script src="reader.js?v=140"></script>
-<script src="lessons.js?v=140"></script>
-<script src="speaking-coach.js?v=140"></script>
-<script src="expressions-data.js?v=140"></script>
-<script src="expressions-coach.js?v=140"></script>
-<script src="sentence.js?v=140"></script>
-<script src="sentence-drill.js?v=140"></script>
-<script src="sync.js?v=140"></script>
-<script src="tts-pack.js?v=140"></script>
-<script src="course-feed.js?v=140"></script>
-<script src="app.js?v=140"></script>
+<script src="config.js?v=141"></script>
+<script src="dictionary.js?v=141"></script>
+<script src="vocab-hs-data.js?v=141"></script>
+<script src="lessons-data.js?v=141"></script>
+<script src="db.js?v=141"></script>
+<script src="ai-engine.js?v=141"></script>
+<script src="my-words.js?v=141"></script>
+<script src="cloze.js?v=141"></script>
+<script src="writing-lab.js?v=141"></script>
+<script src="vocab-drill.js?v=141"></script>
+<script src="reader.js?v=141"></script>
+<script src="lessons.js?v=141"></script>
+<script src="speaking-coach.js?v=141"></script>
+<script src="expressions-data.js?v=141"></script>
+<script src="expressions-coach.js?v=141"></script>
+<script src="sentence.js?v=141"></script>
+<script src="sentence-drill.js?v=141"></script>
+<script src="sync.js?v=141"></script>
+<script src="tts-pack.js?v=141"></script>
+<script src="course-feed.js?v=141"></script>
+<script src="app.js?v=141"></script>
 <!-- Debug panel — hidden by default, toggled via Settings → Developer.
      Script always loads so console-log capture is active even when UI
      is hidden, enabling post-mortem inspection of recent errors. -->
-<script src="debug-panel.js?v=140"></script>
+<script src="debug-panel.js?v=141"></script>
 <script>
 // --- PWA install: capture the browser's install prompt ---
 // Chrome fires beforeinstallprompt when install criteria are met.
