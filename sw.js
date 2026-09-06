@@ -1,5 +1,22 @@
 // sw.js — VocabPeak Service Worker
 
+// hsv-v45 (?v=142) — 离线补推 + 分享一键配置链接:
+//   • 离线补推 (孩子平板的核心保障): push 失败 (离线/抖动/token 过期)
+//     时置"待推送"标志 (localStorage, 跨重启存活), 由 online 事件、
+//     启动、focus、30 秒轮询四个时机主动补推。此前 triggerSave 的推送
+//     失败后不重试, 离线学一周的记录要等"下一次联网状态下的学习动作"
+//     才偶然上云 —— 现在联网后 30 秒内必达。离线时 triggerSave 直接
+//     标脏不空跑网络请求。轮询里先补推再拉取 (顺序重要: 先推避免与
+//     旧快照反复对账)。
+//   • 同步图标反映状态: 有未上传变更时显示 ☁️↑ 并可点击立即重试,
+//     家长一眼看出孩子平板"还没上云"。
+//   • 一键配置链接 (新模块 setup-link.js): 设置 → 课程订阅 → 生成
+//     配置链接, 得到 #setup=<base64url> 链接, 对方打开即弹确认框,
+//     同意后写入 语音代理地址 / 课程订阅源 / (可选) 语音包密钥与
+//     课程口令。安全边界: 绝不含 GitHub token 与 Gist ID (同步必须
+//     各自配置); 用 hash 不用 query (不进服务器日志); 必须确认且逐项
+//     列出; 导入后立刻清 hash。密钥是否随链接走由分享者当场选择。
+
 // hsv-v44 (?v=141) — 数据卫生: 测试设备开关 + 碎屑过滤 + 今日列:
 //   • 测试设备开关 (设置 → 数据 → 开发者): 家长在自己设备调试 APP
 //     时开启, 本机的学习时长 / 答题档案 (bumpPracRec) / 天记录
@@ -578,7 +595,7 @@
 
 // 缓存名与 EMPro 隔离：Cache Storage 也是按 origin 共享的，两个应用
 // 的 CACHE_NAME 必须不同，否则会互相删除对方的缓存。
-const CACHE_NAME = 'hsv-v44';
+const CACHE_NAME = 'hsv-v45';
 const ASSETS = [
     './',
     './index.html',
@@ -606,6 +623,7 @@ const ASSETS = [
     './sync.js',
     './tts-pack.js',
     './course-feed.js',
+    './setup-link.js',
     './app.js',
     './debug-panel.js',
     './icon-192.png',

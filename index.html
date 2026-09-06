@@ -22,9 +22,9 @@
          sw.js to match (e.g. 'hsv-vN+1').
          Current version: v=107
          ========================================================= -->
-    <link rel="stylesheet" href="style.css?v=141">
-    <link rel="stylesheet" href="expressions-coach.css?v=141">
-    <link rel="stylesheet" href="lessons.css?v=141">
+    <link rel="stylesheet" href="style.css?v=142">
+    <link rel="stylesheet" href="expressions-coach.css?v=142">
+    <link rel="stylesheet" href="lessons.css?v=142">
 </head>
 <body>
 
@@ -399,6 +399,7 @@ eloquent manifest scrutinize caveat
                             <span>启动时自动检查</span>
                         </label>
                         <button class="wl-btn-secondary" id="btn-feed-check" style="padding:6px 10px">&#x1F4E5; 立即检查</button>
+                        <button class="wl-btn-secondary" id="btn-setup-link" style="padding:6px 10px">&#x1F517; 生成配置链接</button>
                         <span id="feed-status" style="font-size:11px;color:var(--text-tertiary)"></span>
                     </div>
                     <p style="font-size:10px;color:var(--text-tertiary);margin-top:4px">从发布源自动接收课程的新增与更新：只增不删，本机改动过的课不会被旧版覆盖。分享本站地址给别人，对方打开即自动收到全部课程。</p>
@@ -434,31 +435,32 @@ eloquent manifest scrutinize caveat
 
 <div id="toast-container"></div>
 
-<script src="config.js?v=141"></script>
-<script src="dictionary.js?v=141"></script>
-<script src="vocab-hs-data.js?v=141"></script>
-<script src="lessons-data.js?v=141"></script>
-<script src="db.js?v=141"></script>
-<script src="ai-engine.js?v=141"></script>
-<script src="my-words.js?v=141"></script>
-<script src="cloze.js?v=141"></script>
-<script src="writing-lab.js?v=141"></script>
-<script src="vocab-drill.js?v=141"></script>
-<script src="reader.js?v=141"></script>
-<script src="lessons.js?v=141"></script>
-<script src="speaking-coach.js?v=141"></script>
-<script src="expressions-data.js?v=141"></script>
-<script src="expressions-coach.js?v=141"></script>
-<script src="sentence.js?v=141"></script>
-<script src="sentence-drill.js?v=141"></script>
-<script src="sync.js?v=141"></script>
-<script src="tts-pack.js?v=141"></script>
-<script src="course-feed.js?v=141"></script>
-<script src="app.js?v=141"></script>
+<script src="config.js?v=142"></script>
+<script src="dictionary.js?v=142"></script>
+<script src="vocab-hs-data.js?v=142"></script>
+<script src="lessons-data.js?v=142"></script>
+<script src="db.js?v=142"></script>
+<script src="ai-engine.js?v=142"></script>
+<script src="my-words.js?v=142"></script>
+<script src="cloze.js?v=142"></script>
+<script src="writing-lab.js?v=142"></script>
+<script src="vocab-drill.js?v=142"></script>
+<script src="reader.js?v=142"></script>
+<script src="lessons.js?v=142"></script>
+<script src="speaking-coach.js?v=142"></script>
+<script src="expressions-data.js?v=142"></script>
+<script src="expressions-coach.js?v=142"></script>
+<script src="sentence.js?v=142"></script>
+<script src="sentence-drill.js?v=142"></script>
+<script src="sync.js?v=142"></script>
+<script src="tts-pack.js?v=142"></script>
+<script src="course-feed.js?v=142"></script>
+<script src="setup-link.js?v=142"></script>
+<script src="app.js?v=142"></script>
 <!-- Debug panel — hidden by default, toggled via Settings → Developer.
      Script always loads so console-log capture is active even when UI
      is hidden, enabling post-mortem inspection of recent errors. -->
-<script src="debug-panel.js?v=141"></script>
+<script src="debug-panel.js?v=142"></script>
 <script>
 // --- PWA install: capture the browser's install prompt ---
 // Chrome fires beforeinstallprompt when install criteria are met.

@@ -23,6 +23,8 @@ window.SyncManager = (function() {
 
     const GIST_API     = 'https://api.github.com/gists';
     const DEBOUNCE_MS  = 3000;
+    // v142: 待推送标志键 (离线补推用, 跨重启存活)
+    const K_PUSH_DIRTY = APP_PREFIX + 'sync_push_dirty';
     const POLL_MS      = 30000;
 
     // 应用存储前缀（单一来源，与 EMPro 的 "emp_" 隔离）。同源部署时这些
@@ -126,6 +128,11 @@ window.SyncManager = (function() {
         startPolling();
         window.addEventListener('focus', onFocus);
         document.addEventListener('visibilitychange', onVisibilityChange);
+        // v142: 网络恢复即补推 —— 孩子平板离线学完, 一联网 (或下次开机
+        // 联网启动) 就把离线期间的记录送上云, 家长后台不再等下一次学习
+        // 动作偶然触发。
+        window.addEventListener('online', () => { flushPending('online'); });
+        if (isDirty()) setTimeout(() => flushPending('startup'), 2000);
     }
 
     // One-time migration: earlier versions of sync.js incorrectly advanced
@@ -143,6 +150,7 @@ window.SyncManager = (function() {
 
     function onFocus() {
         if (isListenActive()) return;
+        if (isDirty()) { flushPending('focus'); return; }   // v142
         if (getToken() && getGistId()) pull(false);
     }
 
@@ -156,6 +164,9 @@ window.SyncManager = (function() {
         pollTimer = setInterval(() => {
             if (isListenActive()) return;
             if (!document.hidden && getToken() && getGistId() && !isSyncing) {
+                // v142: 有未推送的离线变更时先补推, 再拉取 —— 顺序很
+                // 重要: 先推可避免拉到的旧快照与本地并集反复对账。
+                if (isDirty()) { flushPending('poll'); return; }
                 pull(false);
             }
         }, POLL_MS);
@@ -899,6 +910,21 @@ window.SyncManager = (function() {
         }
     }
 
+    // v142: 待推送标志 —— 离线学习的核心保障。push 失败 (离线/网络
+    // 抖动/token 过期) 时置位, 由 online 事件与 30 秒轮询主动补推,
+    // 不再等下一次学习动作偶然触发。孩子平板离线学一周, 联网后 30
+    // 秒内数据必达家长后台。标志存 localStorage: 跨重启存活 —— 离线
+    // 学完直接关应用, 下次开机联网照样补推。
+    function markDirty() {
+        try { localStorage.setItem(K_PUSH_DIRTY, '1'); } catch (e) {}
+    }
+    function clearDirty() {
+        try { localStorage.removeItem(K_PUSH_DIRTY); } catch (e) {}
+    }
+    function isDirty() {
+        try { return localStorage.getItem(K_PUSH_DIRTY) === '1'; } catch (e) { return false; }
+    }
+
     async function push(showToast) {
         if (!getToken() || isSyncing) {
             if (showToast) window.App?.showToast?.('Set GitHub token in Settings first.');
@@ -918,13 +944,28 @@ window.SyncManager = (function() {
             //   skips. Other devices' pushes still trigger pulls correctly.
             const data = collectSyncData();
             const ok   = await writeGist(data);
-            if (ok) setLastPull(data._syncTime);
+            if (ok) { setLastPull(data._syncTime); clearDirty(); }
+            else    { markDirty(); }               // v142: 失败留待补推
             if (showToast) window.App?.showToast?.(ok ? 'Synced to cloud.' : 'Sync failed — check token.');
             return ok;
+        } catch (e) {
+            // v142: 离线时 fetch 直接抛错, 这条路径以前会静默丢掉本次推送
+            markDirty();
+            console.log('[Sync] push failed:', e.message || e);
+            if (showToast) window.App?.showToast?.('Sync failed — check network.');
+            return false;
         } finally {
             isSyncing = false;
             updateSyncUI();
         }
+    }
+
+    // v142: 补推 —— 有脏标志且联网时推一次。由 online 事件与轮询调用。
+    async function flushPending(reason) {
+        if (!isDirty() || isSyncing || !getToken() || !getGistId()) return false;
+        if (typeof navigator !== 'undefined' && navigator.onLine === false) return false;
+        console.log('[Sync] flushing pending push (' + (reason || '') + ')');
+        return push(false);
     }
 
     // First-time setup: after a token is saved, look for an existing Gist
@@ -1007,6 +1048,11 @@ window.SyncManager = (function() {
 
     function triggerSave() {
         if (suspendHooks || !getToken()) return;
+        // v142: 离线时不必空跑一遍网络请求 —— 直接标脏, 联网后补推
+        if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+            markDirty();
+            return;
+        }
         if (saveTimer) clearTimeout(saveTimer);
         // Defer the push while playback is active. Any data changes made
         // during playback (e.g. tracking progress on played sentences) will
@@ -1109,10 +1155,15 @@ window.SyncManager = (function() {
         const lastAny  = Math.max(lastPush, lastPull);
 
         if (hasToken && hasGist) {
-            el.textContent = '\u2601\uFE0F';  // ☁️
-            el.title = lastAny
-                ? `Synced: ${new Date(lastAny).toLocaleTimeString()}\n(click to pull now)`
-                : 'Cloud sync active — click to pull';
+            // v142: 有未推送的离线变更时图标变提示态 —— 孩子平板离线
+            // 学完, 家长一眼看出"还没上云", 联网后自动变回。
+            const pending = isDirty();
+            el.textContent = pending ? '\u2601\uFE0F\u2191' : '\u2601\uFE0F';
+            el.title = pending
+                ? '\u6709\u672A\u4E0A\u4F20\u7684\u5B66\u4E60\u8BB0\u5F55 \u2014 \u8054\u7F51\u540E\u81EA\u52A8\u4E0A\u4F20\uFF08\u70B9\u51FB\u7ACB\u5373\u91CD\u8BD5\uFF09'
+                : (lastAny
+                    ? `Synced: ${new Date(lastAny).toLocaleTimeString()}\n(click to pull now)`
+                    : 'Cloud sync active — click to pull');
         } else if (hasToken) {
             el.textContent = '\u2601\uFE0F';
             el.title = 'First save will create your sync Gist';
@@ -1184,6 +1235,9 @@ window.SyncManager = (function() {
             await push(true);
             return;
         }
+        // v142: 有未推送的离线变更 → 点击优先推送 (而不是拉取), 否则
+        // 家长手动点了半天图标, 平板上的离线记录仍然在原地。
+        if (isDirty()) { await push(true); return; }
         // Manual pull
         await pull(true);
     }
@@ -1191,6 +1245,8 @@ window.SyncManager = (function() {
     // ─── Public API ──────────────────────────────────────────
     return {
         init,
+        flushPending,                       // v142: 手动补推 (调试用)
+        hasPendingPush: isDirty,            // v142: 是否有未推送的离线变更
         restorePrePull,
         triggerSave,
         pull,

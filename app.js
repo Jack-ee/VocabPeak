@@ -1349,6 +1349,23 @@
         document.getElementById('btn-feed-check')?.addEventListener('click', () => {
             window.CourseFeed?.check?.(true);
         });
+        // v142: 生成分享配置链接 —— 新用户打开即预填语音代理/订阅源,
+        // 不必逐项口述。密钥类字段问一次要不要带 (链接会经微信流转)。
+        document.getElementById('btn-setup-link')?.addEventListener('click', async () => {
+            const hasSecret = !!((window.DB?.getPref?.('pack_key', '') || '').trim()
+                              || (window.DB?.getPref?.('course_feed_pass', '') || '').trim());
+            const withSecret = hasSecret
+                ? confirm('链接中是否包含密钥与课程密码？\n\n确定 = 包含（对方一键就绪，但链接本身即凭证，请私下发送）\n取消 = 不含（对方需你另行告知口令）')
+                : false;
+            const url = window.SetupLink?.build?.(withSecret) || '';
+            if (!url) { showToast('生成失败'); return; }
+            try {
+                await navigator.clipboard.writeText(url);
+                showToast('配置链接已复制' + (withSecret ? '（含密钥，请私下发送）' : '（不含密钥）'));
+            } catch (e) {
+                prompt('复制下面的配置链接发给对方：', url);
+            }
+        });
     }
 
     // ─── Notebook modal ─────────────────────────────────────
@@ -1825,6 +1842,9 @@
 
     // ─── Boot ───────────────────────────────────────────────
     async function boot() {
+        // v142: 配置链接最先处理 —— 命中则写配置并 reload, 后续初始化
+        // 用新配置跑, 免得新用户第一次打开还要再刷新一次。
+        try { if (window.SetupLink?.applyFromHash?.()) return; } catch (e) {}
         try {
             // 课程存 IndexedDB (v128): 必须先灌满内存缓存再初始化各模块 ——
             // loadUserLessons() 是同步接口, 读的就是这份缓存。首次运行会
