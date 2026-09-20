@@ -1775,6 +1775,7 @@
         refreshStats,
         // Helpers other modules can use for safe HTML rendering
         escHtml: escapeHtml,
+        getPackVoices,          // v143: 课文播放锁定会话音色时要用
         escAttr: escapeAttr,
         // Study-session lifecycle (suppresses auto-reload during playback)
         beginSession,

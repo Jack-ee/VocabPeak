@@ -515,6 +515,7 @@ window.Lessons = (function () {
     function stopPlay() {
         playToken++;
         try { window.App?.stopSpeak?.(); } catch (e) {}
+        try { window.TTSPack?.endVoiceSession?.(); } catch (e) {}   // v143: 中途停止也解锁
         if (root) {
             root.querySelectorAll('.ls-sent.playing').forEach(el => el.classList.remove('playing'));
             const btn = root.querySelector('#ls-play-all');
@@ -531,6 +532,10 @@ window.Lessons = (function () {
         stopPlay();
         const token = ++playToken;
         window.App?.beginSession?.();
+        // v143: 锁定本次朗读的音色 —— 一段 (乃至整课) 连播保持同一个
+        // "朗读者", 逐句换声音会让听感支离破碎。下次播放重新随机,
+        // "重听换个声音"的好处保留。
+        try { window.TTSPack?.beginVoiceSession?.(window.App?.getPackVoices?.()); } catch (e) {}
         const btn = root.querySelector('#ls-play-all');
         if (btn && sids.length > 1) { btn.textContent = '\u23F9 \u505C\u6B62'; btn.dataset.playing = '1'; }
         let finishedAll = true;
@@ -548,6 +553,7 @@ window.Lessons = (function () {
             if (token !== playToken) { finishedAll = false; break; }
         }
         window.App?.endSession?.();
+        try { window.TTSPack?.endVoiceSession?.(); } catch (e) {}   // v143
         if (token !== playToken) return;
         root.querySelectorAll('.ls-sent.playing').forEach(x => x.classList.remove('playing'));
         if (btn) { btn.textContent = '\u25B6 \u64AD\u653E\u5168\u6587'; btn.dataset.playing = ''; }

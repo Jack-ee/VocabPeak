@@ -350,6 +350,24 @@ window.TTSPack = (function () {
         } catch (e) { /* ignore */ }
     }
 
+    // ─── 会话音色锁定 (v143) ─────────────────────────────────
+    // 课文连续朗读时, 逐句随机换音色会让听感支离破碎 (一段话里换了
+    // 三个人读)。播放会话开始时锁定一个音色, 整场保持同一个"朗读者";
+    // 下一次播放重新随机, "重听换个声音"的好处保留。
+    // 单词卡的逐词随机不受影响 —— 那里换声音是刻意设计。
+    let _sessionVoice = null;
+    function beginVoiceSession(preferredVoices) {
+        const pool = (Array.isArray(preferredVoices) && preferredVoices.length)
+            ? preferredVoices.map(v => String(v).toLowerCase())
+            : [];
+        _sessionVoice = pool.length
+            ? pool[Math.floor(Math.random() * pool.length)]
+            : null;
+        if (_sessionVoice) console.log('[pack] voice session: ' + _sessionVoice);
+        return _sessionVoice;
+    }
+    function endVoiceSession() { _sessionVoice = null; }
+
     // Play one word from the pack. preferredVoices, when given, restricts
     // the random pick to the user's chosen voices; if none of those are
     // cached for this word, any cached voice is used so offline audio is
@@ -375,7 +393,11 @@ window.TTSPack = (function () {
             const narrowed = cached.filter(v => want.has(v));
             if (narrowed.length) pool = narrowed;
         }
-        const voice = pool[Math.floor(Math.random() * pool.length)];
+        // v143: 会话锁定的音色优先 —— 该句没有这个音色的片段时才退回
+        // 随机挑 (只影响这一句, 锁不变, 下一句有就继续用锁定的)。
+        const voice = (_sessionVoice && pool.indexOf(_sessionVoice) >= 0)
+            ? _sessionVoice
+            : pool[Math.floor(Math.random() * pool.length)];
         const blob  = await getClip(text, voice);
         if (!blob) {
             console.log('[pack] MISS ' + JSON.stringify(norm(text))
@@ -457,6 +479,8 @@ window.TTSPack = (function () {
         getCachedVoices: getCachedVoices,
         coverage       : coverage,
         playWord       : playWord,
+        beginVoiceSession: beginVoiceSession,   // v143: 锁定会话音色
+        endVoiceSession  : endVoiceSession,
         stop           : stop,
         deleteWord     : deleteWord,
         status         : status,

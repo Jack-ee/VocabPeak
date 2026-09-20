@@ -1,5 +1,17 @@
 // sw.js — VocabPeak Service Worker
 
+// hsv-v46 (?v=143) — 课文朗读音色会话锁定 (实机反馈):
+//   • 问题: 离线音频包的 playWord 每次调用都随机挑音色, 课文连播时
+//     一段话里换了三个人读, 听感支离破碎。
+//   • 修法: TTSPack 新增 beginVoiceSession/endVoiceSession。课文播放
+//     (单句/段落/整课三个入口都走 playSentences) 开始时锁定一个音色,
+//     整场保持同一个"朗读者"; 结束与中途停止均解锁, 下次播放重新
+//     随机 —— "重听换个声音"的好处保留。
+//   • 某句恰好没有锁定音色的片段时, 只该句退回随机 (锁不变, 下一句
+//     有就继续用锁定的), 离线音频永不浪费。
+//   • 不影响: 单词卡的逐词随机换音色是刻意设计, 保持原样; 在线神经
+//     语音本就用设置里的固定音色。
+
 // hsv-v45 (?v=142) — 离线补推 + 分享一键配置链接:
 //   • 离线补推 (孩子平板的核心保障): push 失败 (离线/抖动/token 过期)
 //     时置"待推送"标志 (localStorage, 跨重启存活), 由 online 事件、
@@ -595,7 +607,7 @@
 
 // 缓存名与 EMPro 隔离：Cache Storage 也是按 origin 共享的，两个应用
 // 的 CACHE_NAME 必须不同，否则会互相删除对方的缓存。
-const CACHE_NAME = 'hsv-v45';
+const CACHE_NAME = 'hsv-v46';
 const ASSETS = [
     './',
     './index.html',
