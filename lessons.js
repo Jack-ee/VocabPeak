@@ -554,19 +554,60 @@ window.Lessons = (function () {
         const btn = root.querySelector('#ls-play-all');
         if (btn && sids.length > 1) { btn.textContent = '\u23F9 \u505C\u6B62'; btn.dataset.playing = '1'; }
         let finishedAll = true;
-        for (const sid of sids) {
-            if (token !== playToken) { finishedAll = false; break; }
-            tMarkActivity();   // v132: 句子播放推进算活动, 纯听读不判挂机
-            const s  = sentenceById(curLesson, sid);
-            const el = root.querySelector(`.ls-sent[data-sid="${sid}"]`);
-            root.querySelectorAll('.ls-sent.playing').forEach(x => x.classList.remove('playing'));
-            if (el) {
-                el.classList.add('playing');
-                try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {}
+        // v145: 逐句容错 —— 任何一句出问题 (数据缺 id、DOM 查询抛错、
+        // 引擎异常) 都只跳过那一句, 绝不中断整篇朗读。此前循环体裸奔,
+        // 单句抛错会让整个 async 函数中断, 表现正是"只播一句就停"。
+        // 诊断日志同时给出每句的去向, 实机排障一眼可见。
+        console.log('[Lessons] ▶ 开始朗读: ' + sids.length + ' 句 (token ' + token + ')');
+        let played = 0, skipped = 0;
+        for (let i = 0; i < sids.length; i++) {
+            const item = sids[i];
+            if (token !== playToken) {
+                console.log('[Lessons] 在第 ' + (i + 1) + ' 句前被打断 (token 变化)');
+                finishedAll = false; break;
             }
-            if (s) await speakAsync(s.text);
-            if (token !== playToken) { finishedAll = false; break; }
+            try {
+                tMarkActivity();   // v132: 句子播放推进算活动, 纯听读不判挂机
+                // v145: 直接接受句子对象, 绕开 id 这一脆弱环节 —— 导入课
+                // 的句子 id 若缺失或重复, 按 id 反查会找不到 (或永远返回
+                // 同一句), 整篇朗读就废了。传 id 的老调用点仍兼容。
+                const s   = (item && typeof item === 'object') ? item
+                                                              : sentenceById(curLesson, item);
+                const sid = (s && s.id != null) ? s.id : item;
+                let el = null;
+                try { el = root.querySelector(`.ls-sent[data-sid="${sid}"]`); }
+                catch (e) { console.warn('[Lessons] 句子选择器无效: ' + sid, e); }
+                try {
+                    root.querySelectorAll('.ls-sent.playing')
+                        .forEach(x => x.classList.remove('playing'));
+                } catch (e) {}
+                if (el) {
+                    el.classList.add('playing');
+                    try { el.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) {}
+                }
+                if (!s) {
+                    skipped++;
+                    console.warn('[Lessons] 第 ' + (i + 1) + '/' + sids.length +
+                                 ' 句在课文数据里找不到, 跳过: ' + JSON.stringify(sid));
+                    continue;
+                }
+                const t0 = Date.now();
+                await speakAsync(s.text);
+                played++;
+                console.log('[Lessons] 第 ' + (i + 1) + '/' + sids.length + ' 句读完 (' +
+                            (Date.now() - t0) + 'ms)');
+            } catch (e) {
+                skipped++;
+                console.error('[Lessons] 第 ' + (i + 1) + '/' + sids.length +
+                              ' 句出错, 跳过继续: ', e);
+            }
+            if (token !== playToken) {
+                console.log('[Lessons] 第 ' + (i + 1) + ' 句后被打断 (token 变化)');
+                finishedAll = false; break;
+            }
         }
+        console.log('[Lessons] ■ 朗读结束: 读了 ' + played + ' 句, 跳过 ' + skipped +
+                    ', 完整=' + finishedAll);
         window.App?.endSession?.();
         try { window.TTSPack?.endVoiceSession?.(); } catch (e) {}   // v143
         if (token !== playToken) return;
@@ -2549,7 +2590,15 @@ window.Lessons = (function () {
         const playAll = t.closest('#ls-play-all');
         if (playAll) {
             if (playAll.dataset.playing) stopPlay();
-            else playSentences(allSentences(curLesson).map(s => s.id));
+            else {
+                // v145: 播放全文 = 全部段落的全部句子。数据异常时明确
+                // 提示而不是静默只读一句 (曾表现为"点了只播一句就停")。
+                const all = allSentences(curLesson);
+                console.log('[Lessons] 播放全文: ' + (curLesson.paras || []).length +
+                            ' 段 / ' + all.length + ' 句');
+                if (!all.length) { toast('本课没有可朝读的句子'); return; }
+                playSentences(all);           // v145: 传对象, 不依赖 id
+            }
             return;
         }
         if (t.closest('#ls-sheet-close')) { closeWordSheet(); return; }
@@ -2566,8 +2615,21 @@ window.Lessons = (function () {
         // 课文: 整段播放 / 段译显隐
         const paraBtn = t.closest('.ls-para-play');
         if (paraBtn) {
-            const p = paraById(curLesson, paraBtn.dataset.para);
-            if (p) playSentences((p.sentences || []).map(s => s.id));
+            // v145: 段落 ▶ = 朗读整段。段落 id 缺失或对不上时 (导入课
+            // 语料可能没写 id) 退回按 DOM 顺序取第几段, 而不是静默不播。
+            let p = paraById(curLesson, paraBtn.dataset.para);
+            if (!p) {
+                const btns = Array.from(root.querySelectorAll('.ls-para-play'));
+                const idx  = btns.indexOf(paraBtn);
+                p = (curLesson.paras || [])[idx] || null;
+                console.warn('[Lessons] 段落 id 未命中 (' +
+                             JSON.stringify(paraBtn.dataset.para) + '), 按顺序回退到第 ' +
+                             (idx + 1) + ' 段: ' + (p ? '成功' : '失败'));
+            }
+            const list = p ? (p.sentences || []) : [];
+            console.log('[Lessons] 播放本段: ' + list.length + ' 句');
+            if (!list.length) { toast('本段没有可朝读的句子'); return; }
+            playSentences(list);              // v145: 传对象, 不依赖 id
             return;
         }
         const trBtn = t.closest('.ls-para-tr');
