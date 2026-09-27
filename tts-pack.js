@@ -337,6 +337,10 @@ window.TTSPack = (function () {
     // --- Public: playback -------------------------------------------
 
     let _audio = null;
+    // v144: 当前片段的结束回调 —— stop() 摘掉 onended 后必须由它放行
+    // 调用方, 否则 await 这次播放的链条 (课文朗读) 永久挂起。与
+    // app.js 的 speakNative 同一契约: onEnd 恰好调用一次。
+    let _audioFinish = null;
 
     function stop() {
         try {
@@ -348,6 +352,10 @@ window.TTSPack = (function () {
                 _audio = null;
             }
         } catch (e) { /* ignore */ }
+        // 放行等待中的调用方 (置空在前, 防重入)
+        const f = _audioFinish;
+        _audioFinish = null;
+        if (typeof f === 'function') { try { f(); } catch (e) { /* ignore */ } }
     }
 
     // ─── 会话音色锁定 (v143) ─────────────────────────────────
@@ -426,10 +434,12 @@ window.TTSPack = (function () {
         const finish = () => {
             if (done) return;
             done = true;
+            if (_audioFinish === finish) _audioFinish = null;
             if (_audio === audio) _audio = null;
             try { URL.revokeObjectURL(url); } catch (e) { /* ignore */ }
             if (typeof onEnd === 'function') onEnd();
         };
+        _audioFinish = finish;          // v144: 交给 stop() 兜底放行
         audio.onended = finish;
         audio.onerror = finish;
         try { await audio.play(); }

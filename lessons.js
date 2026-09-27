@@ -523,8 +523,23 @@ window.Lessons = (function () {
         }
     }
 
+    // v144: 超时兜底 —— 语音引擎 (设备 TTS / 音频包 / 神经语音) 任何
+    // 一环丢掉结束回调, 都不该让整课朗读永久卡在某一句。按文本长度
+    // 估算上限 (约 12 字符/秒, 3 倍余量, 至少 8 秒最多 90 秒), 到点
+    // 照常推进下一句。正常播放永远早于超时 resolve, 这条路只在异常
+    // 时生效; resolve 只认第一次, 不会重复推进。
     function speakAsync(text) {
-        return new Promise(resolve => { speak(text, resolve); });
+        return new Promise(resolve => {
+            let done = false;
+            const finish = () => { if (!done) { done = true; resolve(); } };
+            const ms = Math.min(90000, Math.max(8000,
+                          Math.round(String(text || '').length / 12 * 3000)));
+            const t  = setTimeout(() => {
+                console.warn('[Lessons] speak timeout — 跳到下一句');
+                finish();
+            }, ms);
+            speak(text, () => { clearTimeout(t); finish(); });
+        });
     }
 
     async function playSentences(sids) {

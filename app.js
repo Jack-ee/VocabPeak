@@ -114,11 +114,23 @@
         }
         const wantLang = (opts && opts.lang) || '';
         const seq  = ++_nativeSeq;
+        // v144 契约修复 (关键): onEnd 必须恰好被调用一次 —— 调用方可能
+        // 在 await 它 (课文播放的 speakAsync 就是), 不调用 = Promise
+        // 永久挂起 = "点播放全文只响一句就停"。v137 为拦"快速跳过"在
+        // 这里加了抑制式序号守卫 (seq 不等就不 fire / doSpeak 直接
+        // return), 等于允许 onEnd 丢失 —— 那是回归的根源。
+        // 打断语义交回调用方: playQueue 有 autoplayToken、playSentences
+        // 有 playToken, 它们在回调里各自判断要不要继续, 所以照常 fire
+        // 不会让"快速跳过"复发。真正修好快速跳过的是下面"仅在引擎忙时
+        // cancel + 隔 80ms 再 speak", 那部分原样保留。
+        let fired = false;
         const fire = () => {
-            if (seq === _nativeSeq && typeof onEnd === 'function') onEnd();
+            if (fired) return;                 // 恰好一次 (onend/onerror 可能都来)
+            fired = true;
+            if (typeof onEnd === 'function') onEnd();
         };
         const doSpeak = () => {
-            if (seq !== _nativeSeq) return;      // 已有更新的话语接管
+            if (seq !== _nativeSeq) { fire(); return; }   // 已被接管: 也要放行调用方
             try {
                 const u = new SpeechSynthesisUtterance(String(text));
 
@@ -138,9 +150,9 @@
                 u.rate    = Number(rate) || parseFloat(window.DB?.getPref?.('speech_speed', '0.9')) || 0.9;
                 u.pitch   = 1.05;   // slight lift helps voices like Google US English sound less flat
                 u.volume  = 1;
-                // onend 与 onerror 都收敛到 fire: 序号守卫保证被 cancel
-                // 打断的旧话语 (onerror: interrupted/canceled) 不会推进
-                // 新链条, 同时真正的播放失败照常推进防卡死。
+                // onend 与 onerror 都收敛到 fire (内部去重, 恰好一次):
+                // 正常读完、被 cancel 打断、引擎报错, 调用方都会被放行,
+                // 绝不留下无人 resolve 的 Promise。
                 u.onend   = fire;
                 u.onerror = fire;
                 _nativeKeepAlive(seq);

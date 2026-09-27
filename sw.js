@@ -1,5 +1,23 @@
 // sw.js — VocabPeak Service Worker
 
+// hsv-v47 (?v=144) — 修复"播放全文只响一句就停" (v137 回归):
+//   • 根因: v137 为拦自动播放的"快速跳过", 在 speakNative 里加了抑制
+//     式序号守卫 —— doSpeak 在 seq 失效时直接 return, fire 在 seq 不等
+//     时吞掉回调。这等于允许 onEnd 丢失, 而课文朗读 await 它
+//     (speakAsync), 回调一丢 Promise 永久挂起, 表现为"响一句就停,
+//     按钮还卡在停止态"。任何让 _nativeSeq 递增的调用都会触发, 其中
+//     stopSpeak() 最常见 (speakNeural 开头必调)。
+//   • 修法 (摆正职责): onEnd 恢复"恰好调用一次"的契约 —— 正常读完、
+//     被 cancel 打断、引擎报错, 调用方一律放行 (内部 fired 标志去重)。
+//     "被打断不该推进"交还调用方: playQueue 有 autoplayToken,
+//     playSentences 有 playToken, 各自在回调里判断, 所以快速跳过不会
+//     复发; 真正修好它的"仅在引擎忙时 cancel + 隔 80ms 再 speak"
+//     原样保留。
+//   • 同族隐患一并修: TTSPack.stop() 摘掉 onended 后也会丢回调, 现在
+//     由模块级 _audioFinish 放行等待中的调用方。
+//   • 纵深防御: lessons 的 speakAsync 加超时兜底 (按文本长度估算,
+//     8-90 秒), 任何引擎异常都只影响一句, 不再卡死整课朗读。
+
 // hsv-v46 (?v=143) — 课文朗读音色会话锁定 (实机反馈):
 //   • 问题: 离线音频包的 playWord 每次调用都随机挑音色, 课文连播时
 //     一段话里换了三个人读, 听感支离破碎。
@@ -607,7 +625,7 @@
 
 // 缓存名与 EMPro 隔离：Cache Storage 也是按 origin 共享的，两个应用
 // 的 CACHE_NAME 必须不同，否则会互相删除对方的缓存。
-const CACHE_NAME = 'hsv-v46';
+const CACHE_NAME = 'hsv-v47';
 const ASSETS = [
     './',
     './index.html',
