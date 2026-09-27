@@ -547,10 +547,23 @@ window.Lessons = (function () {
         stopPlay();
         const token = ++playToken;
         window.App?.beginSession?.();
-        // v143: 锁定本次朗读的音色 —— 一段 (乃至整课) 连播保持同一个
-        // "朗读者", 逐句换声音会让听感支离破碎。下次播放重新随机,
-        // "重听换个声音"的好处保留。
-        try { window.TTSPack?.beginVoiceSession?.(window.App?.getPackVoices?.()); } catch (e) {}
+        // v143/v146: 音色按「段」锁定 —— 同一段内始终同一个朗读者
+        // (逐句换人听感支离破碎), 跨到下一段才换人 (整篇一个声音又
+        // 太单调)。下面在循环里按段边界重新锁定; 这里建句子→段落的
+        // 索引, 对象引用优先、id 兜底, 兼容导入课 id 缺失或重复。
+        const paraOfObj = new Map(), paraOfId = new Map();
+        (curLesson.paras || []).forEach((p, pi) => {
+            (p.sentences || []).forEach(s => {
+                paraOfObj.set(s, pi);
+                if (s && s.id != null && !paraOfId.has(s.id)) paraOfId.set(s.id, pi);
+            });
+        });
+        const paraIndexOf = (s) => {
+            if (s && paraOfObj.has(s)) return paraOfObj.get(s);
+            if (s && s.id != null && paraOfId.has(s.id)) return paraOfId.get(s.id);
+            return -1;
+        };
+        let curPara = -2;   // 与任何真实段号都不同, 保证第一句必定锁定一次
         const btn = root.querySelector('#ls-play-all');
         if (btn && sids.length > 1) { btn.textContent = '\u23F9 \u505C\u6B62'; btn.dataset.playing = '1'; }
         let finishedAll = true;
@@ -590,6 +603,16 @@ window.Lessons = (function () {
                     console.warn('[Lessons] 第 ' + (i + 1) + '/' + sids.length +
                                  ' 句在课文数据里找不到, 跳过: ' + JSON.stringify(sid));
                     continue;
+                }
+                // v146: 进入新的一段就换一个朗读者 (段内保持不变)。
+                // 段号取不到时 (-1) 沿用当前音色, 不无谓地换来换去。
+                const pIdx = paraIndexOf(s);
+                if (pIdx !== -1 && pIdx !== curPara) {
+                    curPara = pIdx;
+                    try {
+                        const v = window.TTSPack?.beginVoiceSession?.(window.App?.getPackVoices?.());
+                        console.log('[Lessons] 第 ' + (pIdx + 1) + ' 段 → 朗读者 ' + (v || '(设备语音)'));
+                    } catch (e) {}
                 }
                 const t0 = Date.now();
                 await speakAsync(s.text);

@@ -364,16 +364,26 @@ window.TTSPack = (function () {
     // 下一次播放重新随机, "重听换个声音"的好处保留。
     // 单词卡的逐词随机不受影响 —— 那里换声音是刻意设计。
     let _sessionVoice = null;
+    // v146: 每段换人 —— 音色池多于一个时, 避开上一段刚用过的那个,
+    // 否则随机很容易连着两段同一个人, 听上去像没换。跨播放也记着,
+    // 所以重听同一段大概率也是新声音。
+    let _prevSessionVoice = null;
     function beginVoiceSession(preferredVoices) {
         const pool = (Array.isArray(preferredVoices) && preferredVoices.length)
             ? preferredVoices.map(v => String(v).toLowerCase())
             : [];
-        _sessionVoice = pool.length
-            ? pool[Math.floor(Math.random() * pool.length)]
-            : null;
-        if (_sessionVoice) console.log('[pack] voice session: ' + _sessionVoice);
+        if (!pool.length) { _sessionVoice = null; return null; }
+        let choices = pool;
+        if (pool.length > 1 && _prevSessionVoice) {
+            const alt = pool.filter(v => v !== _prevSessionVoice);
+            if (alt.length) choices = alt;
+        }
+        _sessionVoice     = choices[Math.floor(Math.random() * choices.length)];
+        _prevSessionVoice = _sessionVoice;
+        console.log('[pack] voice session: ' + _sessionVoice);
         return _sessionVoice;
     }
+    // 只清当前锁定; _prevSessionVoice 故意保留, 让下一段/下一次继续换人
     function endVoiceSession() { _sessionVoice = null; }
 
     // Play one word from the pack. preferredVoices, when given, restricts
