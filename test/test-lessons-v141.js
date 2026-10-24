@@ -1,8 +1,15 @@
 // test-lessons-v141.js — v141 (hsv-v44) 测试设备开关 + 碎屑过滤 + 今日列
-// 运行: node test-lessons-v141.js   (需 fake-indexeddb)
-require('fake-indexeddb/auto');
+// 运行: node test/test-lessons-v141.js
+//   v147: fake-indexeddb 改为可选 —— 装了就用 (npm install), 没装时 db.js
+//   课程库自动回退 localStorage, 本测试关心的记账逻辑不受影响
+let FIDB = null;
+try { FIDB = require('fake-indexeddb'); } catch (e) { /* 可选依赖 */ }
 const fs = require('fs'), path = require('path');
-const DIR = path.join(__dirname, 'VocabPeak-main');
+// v147: 兼容两种摆放 —— 仓库内 test/ 目录 (推荐, npm test), 或旧习惯的「与 VocabPeak-main 同级」
+const DIR = (() => {
+    const sib = path.join(__dirname, 'VocabPeak-main');
+    return fs.existsSync(path.join(sib, 'index.html')) ? sib : path.join(__dirname, '..');
+})();
 let pass = 0, fail = 0;
 const ok = (c, n, x) => { if (c) pass++; else { fail++; console.log('  ✗ ' + n + (x ? ' → ' + x : '')); } };
 const sec = t => console.log('\n── ' + t + ' ──');
@@ -21,8 +28,8 @@ function loadDB() {
     global.localStorage = makeLS();
     const prefix = 'hsv' + Math.random().toString(36).slice(2, 8) + '_';
     global.window = { APP_CONFIG: { STORAGE_PREFIX: prefix, PROFILE_ID: 'kid' } };
-    global.indexedDB   = require('fake-indexeddb').indexedDB;
-    global.IDBKeyRange = require('fake-indexeddb').IDBKeyRange;
+    global.indexedDB   = FIDB ? FIDB.indexedDB   : undefined;
+    global.IDBKeyRange = FIDB ? FIDB.IDBKeyRange : undefined;
     (new Function('window', 'localStorage', 'indexedDB', 'IDBKeyRange', 'console', dbSrc))
         (global.window, global.localStorage, global.indexedDB, global.IDBKeyRange,
          { log() {}, warn() {}, error() {} });
@@ -33,7 +40,7 @@ function loadDB() {
 sec('1. 测试设备豁免');
 let DB = loadDB();
 DB.saveNotebook([{ word: 'a', meaning: '1', focus: [] }]);
-DB.setPref('device_test_mode', 'true');
+DB.setTestDevice(true);                     // v147: 开关改存本机键
 ok(DB.isTestDevice() === true, '开关读取正确');
 ok(DB.recordWordResult('a', false, 'quiz') === null, '薄弱词记账豁免');
 let w = DB.loadNotebook()[0];
@@ -46,7 +53,7 @@ for (let i = 0; i < global.localStorage.length; i++) {
     if (k && k.includes('day_')) dayKeys.push(k);
 }
 ok(dayKeys.length === 0, '天记录未落账');
-DB.setPref('device_test_mode', 'false');
+DB.setTestDevice(false);
 DB.recordWordResult('a', false, 'quiz');
 w = DB.loadNotebook()[0];
 ok(w.wrongCount === 1 && (w.focus || []).includes('weak'), '关闭开关后记账恢复正常');
@@ -59,15 +66,18 @@ ok(/bumpPracRec\([^)]*\) \{\n        if \(window\.DB\?\.isTestDevice\?\.\(\)\) r
    '练习档案豁免');
 ok(/markActiveDay: function\(\) \{\n            if \(this\.isTestDevice\(\)\) return;/.test(dbSrc),
    'markActiveDay 豁免');
-ok(/'device_test_mode'/.test(syncSrc.slice(syncSrc.indexOf('PREF_SYNC_BLOCKLIST'), syncSrc.indexOf('PREF_SYNC_BLOCKLIST') + 900)),
-   '开关在同步黑名单 (绝不同步到孩子设备)');
+// v147: 原断言只查「黑名单里有这个字符串」—— 黑名单只拦推送触发, 不拦
+// 收集与拉取, 开关照样泄漏, 这条却一直是绿的。改为检查存储位置; 真实
+// 推送/拉取路由的验证在 test-sync-merge-v147.js。
+ok(/const K_TEST_DEVICE = PREFIX \+ 'device_test_mode';/.test(dbSrc),
+   '开关存非同步键 (不带档案段, 不进快照)');
 
 // ─── 2. UI 接线 ─────────────────────────────────────────────
 sec('2. UI');
 const idx = fs.readFileSync(path.join(DIR, 'index.html'), 'utf8');
 const app = fs.readFileSync(path.join(DIR, 'app.js'), 'utf8');
 ok(/id="pref-test-device"/.test(idx) && /本机为测试设备/.test(idx), '开发者区有开关');
-ok(/device_test_mode/.test(app) && /本机已标记为测试设备/.test(app), 'app.js 接线 + 状态提示');
+ok(/setTestDevice/.test(app) && /本机已标记为测试设备/.test(app), 'app.js 接线 + 状态提示');
 
 // ─── 3. dashboard 碎屑过滤与今日列 ──────────────────────────
 sec('3. 后台');
@@ -83,11 +93,8 @@ ok(/碎屑/.test(dash) && /本机为测试设备/.test(dash), '说明文字更�
 // ─── 4. 版本 ────────────────────────────────────────────────
 sec('4. 版本');
 const sw = fs.readFileSync(path.join(DIR, 'sw.js'), 'utf8');
+    // v147: 版本号一致性统一由 test-release.js 按当前版本检查 (历史版本号钉死已移除)
 const vs = [...idx.matchAll(/\?v=(\d+)/g)].map(x => x[1]);
-ok(new Set(vs).size === 1 && vs[0] === '141', 'index.html 全部 ?v=141 (' + vs.length + ' 处)');
-ok(vs.length === 25, '?v= 引用总数 25 处');
-ok(/const CACHE_NAME = 'hsv-v44'/.test(sw), 'sw.js CACHE_NAME = hsv-v44');
-ok(/hsv-v44 \(\?v=141\)/.test(sw), 'sw.js 有 v44 变更日志');
 
 console.log('\n' + '═'.repeat(46));
 console.log(`  通过 ${pass} 项, 失败 ${fail} 项`);

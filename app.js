@@ -206,7 +206,10 @@
     // Voices the pack generator accepts. The user picks a subset in
     // Settings; that subset drives both cloud generation and rotation.
     const PACK_VOICE_LIST    = ['alloy', 'ash', 'ballad', 'coral', 'echo', 'fable', 'nova', 'onyx', 'sage', 'shimmer', 'verse'];
-    const PACK_VOICE_DEFAULT = ['ash', 'fable', 'nova', 'shimmer'];
+    // v147: 默认值对齐线上音频包实际构建的音色 (tools/wordlist.txt 第 5 行)。
+    // 原默认 ash/fable/nova/shimmer 与线上包不一致: 一台还没同步过的新设备
+    // 若直接导出词表, 云端会给全部条目补合成 shimmer (按词计费)。
+    const PACK_VOICE_DEFAULT = ['ash', 'coral', 'echo', 'fable', 'nova'];
     const _ttsCache      = new Map();   // `${voice}|${text}` → object URL (in-memory)
     let   _neuralAudio   = null;        // currently-playing HTMLAudioElement
     let   _neuralAbort   = null;        // AbortController for an in-flight fetch
@@ -900,8 +903,29 @@
         const modal = document.getElementById('settings-modal');
         if (!modal) return;
         hydrateSettingsUI();
+        try { window.SyncManager?.updateSyncUI?.(); } catch (e) {}   // v147: 刷新同步状态行
         activateSettingsTab('set-general');   // always open on the first tab
         modal.classList.add('open');
+    }
+
+    // v147: 测试设备开关开着时, 头部常驻一个「🧪 测试」标记。原来开关
+    // 只在切换那一刻弹一次 toast, 之后毫无痕迹 —— 若它误留在孩子的设备
+    // 上, 学习记录会静默不落账, 谁也看不出来。
+    function updateTestDeviceBadge() {
+        const on  = !!window.DB?.isTestDevice?.();
+        let badge = document.getElementById('test-device-badge');
+        if (!on) { if (badge) badge.remove(); return; }
+        if (badge) return;
+        // 放在 header-right (手机宽度下 header-stats 会被隐藏, 标记必须始终可见)
+        const host = document.querySelector('.header-right');
+        if (!host) return;
+        badge = document.createElement('span');
+        badge.id        = 'test-device-badge';
+        badge.title     = '本机为测试设备：学习数据不记录（设置 → 数据 → 开发者）';
+        badge.style.cssText = 'align-self:center;color:var(--danger);border:1px solid var(--danger);' +
+                              'border-radius:999px;padding:2px 8px;font-size:11px;font-weight:600;white-space:nowrap';
+        badge.textContent   = '\u{1F9EA} 测试';
+        host.insertBefore(badge, host.firstChild);
     }
     function closeSettings() {
         document.getElementById('settings-modal')?.classList.remove('open');
@@ -988,7 +1012,7 @@
         const dbgEl     = document.getElementById('pref-debug-panel');
         if (dbgEl) dbgEl.checked = window.DB.getPref('debug_panel_enabled', 'false') === 'true';
         const tdEl      = document.getElementById('pref-test-device');
-        if (tdEl) tdEl.checked = window.DB.getPref('device_test_mode', 'false') === 'true';
+        if (tdEl) tdEl.checked = !!window.DB.isTestDevice?.();   // v147: 改存本机键
     }
 
     function populateVoiceSelect() {
@@ -1241,7 +1265,8 @@
 
         // Debug panel toggle
         document.getElementById('pref-test-device')?.addEventListener('change', (e) => {
-            window.DB.setPref('device_test_mode', e.target.checked ? 'true' : 'false');
+            window.DB.setTestDevice(e.target.checked);   // v147: 本机键, 永不同步
+            updateTestDeviceBadge();
             showToast(e.target.checked ? '本机已标记为测试设备，学习数据不再落账' : '已恢复正常记录');
         });
         document.getElementById('pref-debug-panel')?.addEventListener('change', (e) => {
@@ -1879,6 +1904,17 @@
                 console.error('[app] Missing required globals:', missing.join(', '));
                 showToast('启动错误：' + missing.join(', ') + ' not loaded.');
             }
+            // v147: 同步模块自检。浏览器自带一个同名的 SyncManager 接口
+            // (Background Sync), sync.js 一旦加载失败, window.SyncManager
+            // 仍然"存在", 所有 ?.() 调用静默空转 —— v142~v146 同步全线
+            // 停摆却没有任何提示, 就是这么藏住的。这里按方法探测, 失败即报。
+            if (typeof window.SyncManager?.init !== 'function') {
+                const pfx = (window.APP_CONFIG && window.APP_CONFIG.STORAGE_PREFIX) || 'hsv_';
+                let hasToken = false;
+                try { hasToken = !!localStorage.getItem(pfx + 'sync_token'); } catch (e) {}
+                console.error('[app] sync.js failed to load — SyncManager.init missing');
+                if (hasToken) showToast('⚠ 云同步模块加载失败，学习记录暂时无法上传', 6000);
+            }
 
             // Wire top-level UI first — these must work even if a module init fails.
             bindTabs();
@@ -1917,6 +1953,16 @@
             // weak 标签一次性迁移 (v134): 合流前课文错词补打 weak,
             // 进入统一毕业流程。幂等, 跑过即跳过。
             safeCall('WeakMigrate', () => window.DB?.migrateWeakTags?.());
+
+            // v147: 测试设备开关迁到本机键并一次性重置。旧开关随同步泄漏过,
+            // 无法分辨某台设备上的「开」是本机设的还是同步带来的 —— 一律
+            // 关掉最安全 (宁可家长调试机多记几条, 不能让孩子平板不记)。
+            safeCall('TestDeviceMigrate', () => {
+                if (window.DB?.migrateTestDeviceFlag?.()) {
+                    showToast('测试设备开关已改为仅本机生效，并已重置为关闭。若这台是家长调试设备，请到 设置 → 数据 → 开发者 重新勾选。', 9000);
+                }
+            });
+            safeCall('TestDeviceBadge', updateTestDeviceBadge);
 
             // Header stats
             refreshStats();

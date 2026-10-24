@@ -1,0 +1,11 @@
+# 本地依赖与缓存 (测试用, 应用本身无需构建)
+node_modules/
+__pycache__/
+*.pyc
+
+# 音频包构建产物: 由 CI 生成并发布到 Release, 不进仓库
+tools/dist/*
+!tools/dist/.gitkeep
+
+# 本地备份文件 (含学习数据, 不要提交到公开仓库)
+vocabpeak-backup-*.json

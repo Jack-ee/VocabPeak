@@ -1,0 +1,11 @@
+{
+  "name": "vocabpeak",
+  "private": true,
+  "description": "VocabPeak 高考英语词汇 PWA — 本文件只用于跑测试, 应用本身无需构建",
+  "scripts": {
+    "test": "node test/run-all.js"
+  },
+  "devDependencies": {
+    "fake-indexeddb": "^6.0.0"
+  }
+}

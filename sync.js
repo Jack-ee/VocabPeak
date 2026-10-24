@@ -23,15 +23,21 @@ window.SyncManager = (function() {
 
     const GIST_API     = 'https://api.github.com/gists';
     const DEBOUNCE_MS  = 3000;
-    // v142: 待推送标志键 (离线补推用, 跨重启存活)
-    const K_PUSH_DIRTY = APP_PREFIX + 'sync_push_dirty';
     const POLL_MS      = 30000;
 
     // 应用存储前缀（单一来源，与 EMPro 的 "emp_" 隔离）。同源部署时这些
     // 裸键（token / gist id / api key）不带 profile 前缀，必须靠应用前缀
     // 区分，否则两个应用会共用同一套同步凭证和 Gist。
+    // ⚠ v147: 必须是本函数体里第一个用到前缀的声明 —— v142 把
+    // K_PUSH_DIRTY 写在它前面, const 暂时性死区让整个模块加载即抛错,
+    // 同步从 v142 起全线停摆 (浏览器自带同名的 SyncManager 接口, 所有
+    // SyncManager?.xxx?.() 调用静默空转, 毫无报错)。
     const APP_PREFIX = (window.APP_CONFIG && window.APP_CONFIG.STORAGE_PREFIX) || 'hsv_';
     const APP_TAG    = APP_PREFIX.replace(/_+$/, '');   // "hsv_" -> "hsv"（用于 Gist 文件名）
+    // v142: 待推送标志键 (离线补推用, 跨重启存活)
+    const K_PUSH_DIRTY = APP_PREFIX + 'sync_push_dirty';
+    // v147: 最近一次推送失败的原因 (本机诊断用, 不带档案段 → 不进快照)
+    const K_LAST_ERR   = APP_PREFIX + 'sync_last_error';
 
     // Raw localStorage keys (NOT wrapped by DB.setPref — metadata must be
     // exactly-matched across devices, not profile-prefixed).
@@ -121,6 +127,7 @@ window.SyncManager = (function() {
         migrateLegacyToken();
         fixPoisonedSyncTime();
         hookSaves();
+        detectUnpushedLearning();          // v147: 先查有没有积压未上传的学习记录
         if (getToken() && getGistId()) {
             await pull(false);  // silent initial pull
         }
@@ -146,6 +153,33 @@ window.SyncManager = (function() {
         localStorage.removeItem(K_LAST_PUSH);
         localStorage.setItem(FIX_FLAG, '1');
         console.log('[Sync] Applied v2 timestamp fix');
+    }
+
+    // v147: 自愈检查 —— 本机有学习记录 (按天日志的 updatedAt) 晚于最后
+    // 一次与云端对齐的时间, 说明这些记录从没成功上传过: 置待推送标志,
+    // 由 init 末尾的补推送上云。专为「推送路径静默失效」这类事故兜底
+    // (v142~v146 同步模块加载即崩, 孩子平板积压了 7 周记录却无人知晓):
+    // 修好的版本第一次启动就把积压补推上去, 不必等下一次学习动作。
+    function detectUnpushedLearning() {
+        try {
+            if (!getToken() || !getGistId() || isDirty()) return false;
+            const since = Math.max(getLastPush(), getLastPull());
+            const pre   = keyPrefix() + 'day_';
+            let newest  = 0;
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (!k || !k.startsWith(pre)) continue;
+                const r = _safeParse(localStorage.getItem(k), null);
+                if (r) newest = Math.max(newest, _num(r.updatedAt));
+            }
+            if (newest > since) {
+                markDirty();
+                console.log('[Sync] found learning records newer than the last sync (' +
+                            new Date(newest).toLocaleString() + ') — will push');
+                return true;
+            }
+        } catch (e) { /* 自检失败不影响正常同步 */ }
+        return false;
     }
 
     function onFocus() {
@@ -381,12 +415,37 @@ window.SyncManager = (function() {
             // 老老实实读一次 (期间别的设备可能也推过)
             try { localStorage.removeItem(K_GIST_STAMP); } catch (e) {}
             setLastPush(Date.now());
+            setLastError('');
             updateSyncUI();
             return true;
         } catch (e) {
             console.warn('[Sync] Write failed:', e.message || e);
+            setLastError(e.message || String(e));
             return false;
         }
+    }
+
+    // v147: 推送失败原因落本机 (设置 → 同步 显示), 方便在孩子平板上
+    // 一眼看出是令牌过期 (401)、没网还是别的问题
+    function setLastError(msg) {
+        try {
+            if (msg) localStorage.setItem(K_LAST_ERR, Date.now() + '|' + String(msg).slice(0, 200));
+            else     localStorage.removeItem(K_LAST_ERR);
+        } catch (e) {}
+    }
+    function getLastError() {
+        try {
+            const v = localStorage.getItem(K_LAST_ERR) || '';
+            const i = v.indexOf('|');
+            return i > 0 ? { at: Number(v.slice(0, i)) || 0, msg: v.slice(i + 1) } : null;
+        } catch (e) { return null; }
+    }
+    function errorHint(msg) {
+        if (/\b401\b/.test(msg)) return 'GitHub 令牌无效或已过期，请在设置里换一个新令牌';
+        if (/\b403\b/.test(msg)) return 'GitHub 拒绝访问（令牌权限不足或请求过多）';
+        if (/\b404\b/.test(msg)) return '找不到同步 Gist';
+        if (/fetch|network|Failed/i.test(msg)) return '网络不通';
+        return msg;
     }
 
     // ─── Collect / Merge ─────────────────────────────────────
@@ -401,6 +460,26 @@ window.SyncManager = (function() {
         return typeof k === 'string' && k.endsWith('_pref_tts_openai_key');
     }
 
+    // ─── 纯本机键 (v147) ─────────────────────────────────────
+    // 这些是「这台机器」的属性: 不进推送快照、不被远端写入、远端缺失
+    // 也不删除。v141~v146 只把它们放进 PREF_SYNC_BLOCKLIST —— 那只拦
+    // 「改这个键时触发推送」, 收集与拉取照样带着它们走: 家长调试机上
+    // 开的测试开关会随下一次任何推送上云, 再被孩子平板拉下来, 平板从
+    // 此静默不记学习数据; 单词页位置、打乱状态也被另一台设备拽来拽去。
+    // device_test_mode 从 v147 起已改存非同步键 (db.js), 这里仍按旧名
+    // 拦截 —— 云端旧快照里还留着它, 绝不能再被套用。
+    const DEVICE_LOCAL_PREFS         = new Set(['mw_progress', 'mw_shuffle', 'mw_shuffle_seed',
+                                                'device_test_mode', 'debug_panel_enabled']);
+    const DEVICE_LOCAL_PREF_PREFIXES = ['mw_pos_'];
+    function isDeviceLocalName(name) {
+        return DEVICE_LOCAL_PREFS.has(name) ||
+               DEVICE_LOCAL_PREF_PREFIXES.some(p => String(name).startsWith(p));
+    }
+    function isDeviceLocalKey(k) {
+        const p = keyPrefix() + 'pref_';
+        return typeof k === 'string' && k.startsWith(p) && isDeviceLocalName(k.slice(p.length));
+    }
+
     function collectSyncData() {
         const prefix   = keyPrefix();
         const data     = {};
@@ -410,6 +489,7 @@ window.SyncManager = (function() {
             // 课程已迁出 localStorage (见 db.js initCourses), 这里再挡一道:
             // 老设备迁移前的残留键不该重新污染主载荷。
             if (k === prefix + 'lessons_user') continue;
+            if (isDeviceLocalKey(k)) continue;                     // v147
             if (k.startsWith(prefix) && !isSecretPref(k)) data[k] = localStorage.getItem(k);
         }
         // v72: API key is now OPT-IN. Even on a private Gist, an API key
@@ -559,6 +639,171 @@ window.SyncManager = (function() {
         return JSON.stringify(out);
     }
 
+    // ─── 生词本逐词合并 (v147) ───────────────────────────────
+    // 生词本是整个应用最值钱的数据 (1600+ 词的 SRS 进度与薄弱词), 却一直
+    // 是整键后写覆盖: 谁最后推送, 谁的整本生词本就盖掉别人的。平时各设备
+    // 30 秒内就互相对齐, 问题不显; 一旦长时间断同步 (v142~v146 同步模块
+    // 加载即崩, 断了 7 周), 第一台带着旧生词本推上去的设备会抹掉孩子平板
+    // 上积攒的全部复习进度。改为逐词合并, 每个词按三组字段各自取新:
+    //   学习状态 (srsLevel/nextReview/对错计数…): 学习戳记新的一侧
+    //   焦点标记 (focus: 核心/发音/拼写/薄弱):   焦点戳记新的一侧
+    //   内容字段 (释义/搭配/例句/音标…):          editedAt 新的一侧, 并互补空字段
+    // 戳记相等一律取远端 (保持原 LWW 语义, PC 上的补全照常下发)。
+    // 顺序以远端为基、本机独有的词追加在后 —— 确定性, 两台设备不会因
+    // 顺序不同而无限互推。删除靠墓碑 (pref nb_tomb, db.js 落盘时生成):
+    // 词条全部戳记都不晚于墓碑时间即视为已删; 删后又重新加入/学习过的
+    // 词戳记更新, 保留。
+    // ⚠ nbAnyStamp 与 db.js 的 _nbAnyStamp 必须保持一致。
+    const NB_LEARN_FIELDS = ['srsLevel', 'nextReview', 'lastReview', 'reviewCount',
+                             'mistakeCount', 'wrongCount', 'correctStreak', 'streakDays',
+                             'lastResultAt', 'learnAt', 'strength', 'reviewedAt'];
+    const NB_FOCUS_FIELDS = ['focus', 'focusAt'];
+    const NB_TOMB_KEEP_MS = 400 * 86400000;
+    function _num(v) { const n = Number(v); return isFinite(n) ? n : 0; }
+    function nbLearnStamp(e) {
+        return Math.max(_num(e.lastReview), _num(e.lastResultAt), _num(e.reviewedAt), _num(e.learnAt));
+    }
+    function nbFocusStamp(e) { return Math.max(_num(e.focusAt), _num(e.lastResultAt)); }
+    function nbEditStamp(e)  { return _num(e.editedAt); }
+    function nbAnyStamp(e) {
+        return Math.max(_num(e.addedAt), nbLearnStamp(e), _num(e.focusAt),
+                        _num(e.editedAt), _num(e.revivedAt));
+    }
+    function nbWordKey(e) { return String((e && e.word) || '').trim().toLowerCase(); }
+    function _isEmptyVal(v) { return v == null || v === '' || (Array.isArray(v) && v.length === 0); }
+    // 键序无关的稳定序列化, 只用于"内容是否相同"的判断
+    function _stable(v) {
+        if (Array.isArray(v)) return '[' + v.map(_stable).join(',') + ']';
+        if (v && typeof v === 'object') {
+            return '{' + Object.keys(v).filter(k => v[k] !== undefined).sort()
+                .map(k => JSON.stringify(k) + ':' + _stable(v[k])).join(',') + '}';
+        }
+        return JSON.stringify(v === undefined ? null : v);
+    }
+    // 词条是否为「没动过的内置词」: 新设备首次运行自动载入的那批
+    function _isPristineBuiltin(e) {
+        return e && e.source === '高中核心词汇' && !nbLearnStamp(e) && !nbEditStamp(e) &&
+               !_num(e.focusAt) && !(Array.isArray(e.focus) && e.focus.length);
+    }
+
+    function mergeNbEntry(a, b) {                       // a = 本机, b = 远端
+        const cw  = nbEditStamp(a) > nbEditStamp(b) ? a : b;
+        const co  = cw === a ? b : a;
+        const out = Object.assign({}, co, cw);
+        Object.keys(co).forEach(k => {
+            if (NB_LEARN_FIELDS.includes(k) || NB_FOCUS_FIELDS.includes(k)) return;
+            if (k === 'packIndex') {
+                if (!_num(out.packIndex) && _num(co.packIndex)) out.packIndex = co.packIndex;
+                return;
+            }
+            if (_isEmptyVal(out[k]) && !_isEmptyVal(co[k])) out[k] = co[k];
+        });
+        const lw = nbLearnStamp(a) > nbLearnStamp(b) ? a : b;
+        NB_LEARN_FIELDS.forEach(f => { if (lw[f] === undefined) delete out[f]; else out[f] = lw[f]; });
+        const fw = nbFocusStamp(a) > nbFocusStamp(b) ? a : b;
+        NB_FOCUS_FIELDS.forEach(f => { if (fw[f] === undefined) delete out[f]; else out[f] = fw[f]; });
+        if (_num(a.addedAt) && _num(b.addedAt)) out.addedAt = Math.min(_num(a.addedAt), _num(b.addedAt));
+        return _sameFlat(out, b) ? b : out;
+    }
+    // 词条是一层平铺对象 (值为标量或小数组), 逐键比较比整体 _stable 快一个量级
+    function _sameFlat(x, y) {
+        const kx = Object.keys(x).filter(k => x[k] !== undefined);
+        const ky = Object.keys(y).filter(k => y[k] !== undefined);
+        if (kx.length !== ky.length) return false;
+        for (const k of kx) {
+            const u = x[k], v = y[k];
+            if (u === v) continue;
+            if (u && v && typeof u === 'object' && typeof v === 'object') {
+                if (_stable(u) !== _stable(v)) return false;
+            } else return false;
+        }
+        return true;
+    }
+
+    // opts.tombs: 合并后的墓碑 {词: 删除时间}; opts.neverSynced: 本机从未
+    // 与云端对齐过 (新设备) —— 此时本机独有的「没动过的内置词」不追加,
+    // 以云端为准 (否则孩子删掉的词会被新设备的自动载入带回来)。
+    function mergeNotebook(localStr, remoteStr, opts) {
+        opts = opts || {};
+        const tombs = opts.tombs || {};
+        let L, R;
+        try { L = JSON.parse(localStr); } catch (e) { L = null; }
+        try { R = JSON.parse(remoteStr); } catch (e) { R = null; }
+        if (!Array.isArray(R)) return Array.isArray(L) ? localStr : remoteStr;   // 远端坏了: 保本机
+        if (!Array.isArray(L)) return remoteStr;
+        const lmap = new Map();
+        L.forEach(e => { const k = nbWordKey(e); if (k && !lmap.has(k)) lmap.set(k, e); });
+        const dead = (k, e) => tombs[k] != null && nbAnyStamp(e) <= _num(tombs[k]);
+        const seen = new Set();
+        const out  = [];
+        let same   = true;                                // 结果是否与远端完全相同
+        R.forEach(b => {
+            const k = nbWordKey(b);
+            if (!k || seen.has(k)) { same = false; return; }   // 空词/重复词: 顺手清理
+            seen.add(k);
+            const a = lmap.get(k);
+            // 快速路径: 两边词条逐字相同 (绝大多数词) 就不做字段级比较 ——
+            // 1700 词的生词本在平板上逐词 _stable 比较要近一秒
+            const e = !a ? b : (JSON.stringify(a) === JSON.stringify(b) ? b : mergeNbEntry(a, b));
+            if (dead(k, e)) { same = false; return; }
+            if (e !== b) same = false;
+            out.push(e);
+        });
+        L.forEach(a => {
+            const k = nbWordKey(a);
+            if (!k || seen.has(k)) return;
+            seen.add(k);
+            if (dead(k, a)) return;
+            if (opts.neverSynced && _isPristineBuiltin(a)) return;
+            same = false;
+            out.push(a);
+        });
+        return same ? remoteStr : JSON.stringify(out);
+    }
+
+    // 墓碑并集, 同词取较晚的删除时间; 过期 (400 天) 的丢弃
+    function mergeTombs(localStr, remoteStr) {
+        const L = _safeParse(localStr, {});
+        const R = _safeParse(remoteStr, {});
+        const cut = Date.now() - NB_TOMB_KEEP_MS;
+        const out = {};
+        new Set(Object.keys(L).concat(Object.keys(R))).forEach(k => {
+            const t = Math.max(_num(L[k]), _num(R[k]));
+            if (t > cut) out[k] = t;
+        });
+        return (remoteStr != null && _stable(out) === _stable(R)) ? remoteStr : JSON.stringify(out);
+    }
+
+    // 统计 (连续天数/最近学习日): 最近学习日晚的一侧胜, 同日取连续天数大的;
+    // 累计会话数取大。原来整键覆盖, 旧快照会把孩子的连续天数打回去。
+    function mergeStats(localStr, remoteStr) {
+        const L = _safeParse(localStr, null);
+        const R = _safeParse(remoteStr, null);
+        if (!R) return localStr != null ? localStr : remoteStr;
+        if (!L) return remoteStr;
+        const la = String(L.lastActiveDate || ''), ra = String(R.lastActiveDate || '');
+        const w  = la > ra ? L : (ra > la ? R : (_num(L.streakDays) > _num(R.streakDays) ? L : R));
+        const out = Object.assign({}, w);
+        out.totalSessions = Math.max(_num(L.totalSessions), _num(R.totalSessions));
+        const mu = {};
+        [L.modeUsage || {}, R.modeUsage || {}].forEach(m =>
+            Object.keys(m).forEach(k => { mu[k] = Math.max(mu[k] || 0, _num(m[k])); }));
+        out.modeUsage = mu;
+        return _stable(out) === _stable(R) ? remoteStr : JSON.stringify(out);
+    }
+
+    // 按天日志: 同一天两边都有时取活动量大的整条 (保持正确率口径一致),
+    // 量相同取 updatedAt 新的; 原来是同键后写覆盖。
+    function mergeDay(localStr, remoteStr) {
+        const L = _safeParse(localStr, null);
+        const R = _safeParse(remoteStr, null);
+        if (!R) return localStr != null ? localStr : remoteStr;
+        if (!L) return remoteStr;
+        const tot = d => _num(d.newWords) + _num(d.reviewed) + _num(d.quizTotal);
+        const useLocal = tot(L) > tot(R) || (tot(L) === tot(R) && _num(L.updatedAt) > _num(R.updatedAt));
+        return useLocal ? localStr : remoteStr;
+    }
+
     // Merge remote payload into local storage.
     //   • If remote _syncTime > local last-pull, apply remote wholesale.
     //   • Local keys that are NOT in the remote payload are removed,
@@ -598,9 +843,13 @@ window.SyncManager = (function() {
             const localBefore   = {};
             const localKeys     = new Set();
             const apiKeySyncOn  = isApiKeySyncEnabled();   // v72
+            // v147: 本机从未与云端对齐过 (新设备首次绑定) —— 生词本合并时
+            // 不追加本机独有的「没动过的内置词」, 以云端为准
+            const neverSynced   = !getLastPull() && !getLastPush();
             for (let i = 0; i < localStorage.length; i++) {
                 const k = localStorage.key(i);
                 if (!k) continue;
+                if (isDeviceLocalKey(k)) continue;                 // v147: 本机键不参与
                 if (k.startsWith(prefix) && !isSecretPref(k))  { localKeys.add(k); localBefore[k] = localStorage.getItem(k); }
                 else if (k === K_API_KEY && apiKeySyncOn) { localKeys.add(k); localBefore[k] = localStorage.getItem(k); }
             }
@@ -647,6 +896,18 @@ window.SyncManager = (function() {
             mergeFns[prefix + 'pref_lesson_mixed']    = mergeLessonMixed;
             mergeFns[prefix + 'pref_lesson_sess']     = mergeLessonSess;
             mergeFns[prefix + 'pref_lesson_time']     = mergeLessonTime;   // v132
+            // v147: 生词本逐词合并 + 删除墓碑 + 统计合并。墓碑先合并好, 生词
+            // 本合并要用它 (远端键的遍历顺序不保证墓碑在前)。
+            const tombKey    = prefix + 'pref_nb_tomb';
+            const tombMerged = (remote[tombKey] != null || localBefore[tombKey] != null)
+                ? mergeTombs(localBefore[tombKey], remote[tombKey]) : null;
+            const tombsObj   = tombMerged ? _safeParse(tombMerged, {}) : {};
+            mergeFns[tombKey]            = () => tombMerged;
+            mergeFns[prefix + 'notebook'] = (l, r) => mergeNotebook(l, r, { tombs: tombsObj, neverSynced: neverSynced });
+            mergeFns[prefix + 'stats']    = mergeStats;
+            // 按天日志 (动态键名): 同日两边都有时合并, 见 mergeDay
+            const dayPrefix = prefix + 'day_';
+            const mergeFnOf = (k) => mergeFns[k] || (k.startsWith(dayPrefix) ? mergeDay : null);
 
             // 内容型键 (v126): 这些键承载"攒起来的东西" —— 导入的课程、
             // 生词本、短语精选。远端快照里没有它们时只能说明对面是旧
@@ -659,6 +920,11 @@ window.SyncManager = (function() {
                 prefix + 'pref_lesson_phrase_sel',
                 prefix + 'notebook'
             ]);
+            // v147: 所有 pref 键同理 —— 应用从不删除单个 pref (只有全部重置
+            // 会清, 而那时令牌也一起清掉、不会推送), 远端缺某个 pref 只说明
+            // 对面是旧快照。原来照删不误: 本机新生成的巩固短文 (cloze_*)、
+            // 新设的语音代理地址, 会被一台断同步多日的旧设备整键抹掉。
+            const prefKeyPrefix = prefix + 'pref_';
 
             // Keys that REQUIRE a page reload to take effect. Anything not
             // in this set takes effect on the next render of the relevant
@@ -683,11 +949,14 @@ window.SyncManager = (function() {
                 // v72: only accept inbound emp_api_key when the user has
                 // opted in. An opted-out device must never silently inherit
                 // an API key from another device's sync payload.
+                // v147: 本机键 (测试开关/单词页位置…) 一律不套用远端值
+                if (isDeviceLocalKey(k)) { localKeys.delete(k); return; }
                 const accept = (k.startsWith(prefix) && !isSecretPref(k)) || (k === K_API_KEY && apiKeySyncOn);
                 if (accept) {
                     let toWrite = remote[k];
-                    if (mergeFns[k] && localBefore[k] != null) {
-                        toWrite = mergeFns[k](localBefore[k], remote[k]);
+                    const fn = mergeFnOf(k);
+                    if (fn && localBefore[k] != null) {
+                        toWrite = fn(localBefore[k], remote[k]);
                         if (toWrite !== remote[k]) mergedUnion++;   // 并集超出远端
                     }
                     if (localBefore[k] !== toWrite) {
@@ -709,10 +978,9 @@ window.SyncManager = (function() {
             // 本地又有 _pruneDayLog(400) 各自兜底，保留没有膨胀风险；这些
             // 键随本机下次推送并回云端（pull() 看到 preservedDayKeys>0 会
             // 主动补一次防抖推送，家长后台才能看到离线期间的记录）。
-            // 注意：同一天两台设备各自离线学习仍是后写覆盖（同键 LWW），
-            // day 键解决的是"跨天互删"，不做同日计数合并。
+            // 同一天两台设备都有记录时 (v147 起) 走 mergeDay 取活动量大的
+            // 一条, 不再是同键后写覆盖; 仍不做计数相加 (无法区分重复)。
             let preservedDayKeys = 0;
-            const dayPrefix = prefix + 'day_';
             if (localKeys.size > 0) {
                 localKeys.forEach(k => {
                     if (k.startsWith(dayPrefix)) { preservedDayKeys++; return; }
@@ -724,6 +992,7 @@ window.SyncManager = (function() {
                     // 出更短的数组, 那时键是存在的, 覆盖照常生效。这一条
                     // 之前缺失, 一台带旧数据的设备绑进来就把导入课冲掉了。
                     if (contentKeys.has(k)) { mergedUnion++; return; }
+                    if (k.startsWith(prefKeyPrefix)) { mergedUnion++; return; }   // v147
                     changed = true;
                     if (requiresReload(k)) configChanged = true;
                     else                   dataChangeCount++;
@@ -951,6 +1220,7 @@ window.SyncManager = (function() {
         } catch (e) {
             // v142: 离线时 fetch 直接抛错, 这条路径以前会静默丢掉本次推送
             markDirty();
+            setLastError(e.message || String(e));
             console.log('[Sync] push failed:', e.message || e);
             if (showToast) window.App?.showToast?.('Sync failed — check network.');
             return false;
@@ -1129,7 +1399,7 @@ window.SyncManager = (function() {
         if (typeof origSetPref === 'function') {
             window.DB.setPref = function(name, val) {
                 const result = origSetPref.apply(this, [name, val]);
-                if (!PREF_SYNC_BLOCKLIST.has(name)) triggerSave();
+                if (!PREF_SYNC_BLOCKLIST.has(name) && !isDeviceLocalName(name)) triggerSave();
                 return result;
             };
         }
@@ -1171,6 +1441,28 @@ window.SyncManager = (function() {
             el.textContent = '\u26A1';  // ⚡
             el.title = 'Set GitHub token in Settings to enable cloud sync';
         }
+        renderStatusLine();
+    }
+
+    // v147: 设置 → 同步 里的状态行: 上次成功上传时间 / 待上传 / 失败原因。
+    // 家长在孩子平板上打开设置就能确认"记录到底传上去没有"。
+    function renderStatusLine() {
+        const line = document.getElementById('sync-status-line');
+        if (!line) return;
+        const fmt = t => t ? new Date(t).toLocaleString('zh-CN',
+            { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '从未';
+        if (!getToken()) { line.textContent = '未配置同步'; line.style.color = ''; return; }
+        const err  = getLastError();
+        const push = getLastPush();
+        let txt = '上次上传成功：' + fmt(push);
+        if (isDirty()) txt += ' · 有未上传的记录';
+        if (err && err.at > push) {
+            txt += ' · ⚠ ' + fmt(err.at) + ' 上传失败：' + errorHint(err.msg);
+            line.style.color = 'var(--danger)';
+        } else {
+            line.style.color = '';
+        }
+        line.textContent = txt;
     }
 
     // 查看 / 回滚拉取前快照。控制台用法:
@@ -1247,6 +1539,8 @@ window.SyncManager = (function() {
         init,
         flushPending,                       // v142: 手动补推 (调试用)
         hasPendingPush: isDirty,            // v142: 是否有未推送的离线变更
+        getLastError,                       // v147: 最近一次推送失败原因 (诊断)
+        isDeviceLocalKey,                   // v147: 测试/诊断用
         restorePrePull,
         triggerSave,
         pull,

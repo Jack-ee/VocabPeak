@@ -5,7 +5,11 @@
 // 运行: node test-lessons-v140.js
 const fs = require('fs'), path = require('path'), os = require('os');
 const crypto = require('crypto');
-const DIR = path.join(__dirname, 'VocabPeak-main');
+// v147: 兼容两种摆放 —— 仓库内 test/ 目录 (推荐, npm test), 或旧习惯的「与 VocabPeak-main 同级」
+const DIR = (() => {
+    const sib = path.join(__dirname, 'VocabPeak-main');
+    return fs.existsSync(path.join(sib, 'index.html')) ? sib : path.join(__dirname, '..');
+})();
 let pass = 0, fail = 0;
 const ok = (c, n, x) => { if (c) pass++; else { fail++; console.log('  ✗ ' + n + (x ? ' → ' + x : '')); } };
 const sec = t => console.log('\n── ' + t + ' ──');
@@ -113,11 +117,8 @@ const feedSrc = fs.readFileSync(path.join(DIR, 'course-feed.js'), 'utf8');
     ok(/id="feed-pass-input"/.test(idx) && /type="password"/.test(idx), '设置页有密码框');
     ok(/course_feed_pass/.test(app), 'app.js 接线保存口令');
     const sw = fs.readFileSync(path.join(DIR, 'sw.js'), 'utf8');
+    // v147: 版本号一致性统一由 test-release.js 按当前版本检查 (历史版本号钉死已移除)
     const vs = [...idx.matchAll(/\?v=(\d+)/g)].map(x => x[1]);
-    ok(new Set(vs).size === 1 && vs[0] === '141', 'index.html 全部 ?v=141 (' + vs.length + ' 处)');
-    ok(vs.length === 25, '?v= 引用总数 25 处');
-    ok(/const CACHE_NAME = 'hsv-v44'/.test(sw), 'sw.js CACHE_NAME = hsv-v43');
-    ok(/hsv-v43 \(\?v=140\)/.test(sw), 'sw.js 有 v43 变更日志');
 
     fs.rmSync(tmp, { recursive: true, force: true });
     console.log('\n' + '═'.repeat(46));

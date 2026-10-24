@@ -7,7 +7,11 @@
 //     ③ 段落 id 未命中 → 按 DOM 顺序回退, 不再静默不播
 // 运行: node test-lessons-v145.js
 const fs = require('fs'), path = require('path');
-const DIR = path.join(__dirname, 'VocabPeak-main');
+// v147: 兼容两种摆放 —— 仓库内 test/ 目录 (推荐, npm test), 或旧习惯的「与 VocabPeak-main 同级」
+const DIR = (() => {
+    const sib = path.join(__dirname, 'VocabPeak-main');
+    return fs.existsSync(path.join(sib, 'index.html')) ? sib : path.join(__dirname, '..');
+})();
 let pass = 0, fail = 0;
 const ok = (c, n, x) => { if (c) pass++; else { fail++; console.log('  ✗ ' + n + (x ? ' → ' + x : '')); } };
 const sec = t => console.log('\n── ' + t + ' ──');
@@ -119,11 +123,8 @@ const good = { id:'U01', paras:[
     sec('6. 版本');
     const idx = fs.readFileSync(path.join(DIR, 'index.html'), 'utf8');
     const sw  = fs.readFileSync(path.join(DIR, 'sw.js'), 'utf8');
+    // v147: 版本号一致性统一由 test-release.js 按当前版本检查 (历史版本号钉死已移除)
     const vs  = [...idx.matchAll(/\?v=(\d+)/g)].map(x => x[1]);
-    ok(new Set(vs).size === 1 && vs[0] === '145', 'index.html 全部 ?v=145 (' + vs.length + ' 处)');
-    ok(vs.length === 26, '?v= 引用总数 26 处');
-    ok(/const CACHE_NAME = 'hsv-v48'/.test(sw), 'sw.js CACHE_NAME = hsv-v48');
-    ok(/hsv-v48 \(\?v=145\)/.test(sw), 'sw.js 有 v48 变更日志');
 
     console.log('\n' + '═'.repeat(46));
     console.log(`  通过 ${pass} 项, 失败 ${fail} 项`);

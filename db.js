@@ -351,6 +351,35 @@
         } catch (e) { /* ignore */ }
     }
 
+    // ─── 生词本删除墓碑 (v147) ──────────────────────────────
+    // 生词本同步从整键覆盖改为逐词合并 (sync.js mergeNotebook) 后, 「删
+    // 词」必须显式记下来, 否则另一台设备的并集会把删掉的词带回来。落盘
+    // 时与上一版比对: 消失的词记一条 {词: 删除时间} 到 pref nb_tomb (随
+    // 快照同步)。重新加入一个有墓碑的词时打 revivedAt, 让它的戳记晚于
+    // 墓碑 —— 墓碑本身不删 (删了会在设备间来回互推), 400 天后自然过期。
+    // ⚠ _nbAnyStamp 必须与 sync.js 的 nbAnyStamp 保持一致。
+    const NB_TOMB_KEEP_MS = 400 * 86400000;
+    let   _nbCache        = null;           // { raw, set }: 上次落盘的词集合, 免得每次重解析
+    function _num(v) { const n = Number(v); return isFinite(n) ? n : 0; }
+    function _nbWord(e) { return String((e && e.word) || '').trim().toLowerCase(); }
+    function _nbWordSet(arr) {
+        const s = new Set();
+        (Array.isArray(arr) ? arr : []).forEach(e => { const w = _nbWord(e); if (w) s.add(w); });
+        return s;
+    }
+    function _nbAnyStamp(e) {
+        return Math.max(_num(e.addedAt), _num(e.lastReview), _num(e.lastResultAt), _num(e.reviewedAt),
+                        _num(e.learnAt), _num(e.focusAt), _num(e.editedAt), _num(e.revivedAt));
+    }
+    // upsert 时用来判断「内容是否真的改了」(决定是否打 editedAt)
+    const NB_CONTENT_FIELDS = ['meaning', 'enDef', 'collo', 'colloCn', 'register', 'context',
+                               'contextCn', 'phonetic', 'note', 'tags'];
+
+    // 测试设备开关 (v141) 从 v147 起存这里: 不带档案段 → 不匹配同步前缀
+    // (hsv_kid_), 永远不会进推送快照。旧键 hsv_kid_pref_device_test_mode
+    // 曾随同步泄漏, 启动时由 migrateTestDeviceFlag 清掉。
+    const K_TEST_DEVICE = PREFIX + 'device_test_mode';
+
     window.DB = {
         // --- Profile ---
         getProfile: function() {
@@ -386,10 +415,25 @@
         },
         // v141: 测试设备开关 —— 家长在自己设备上调试 APP 时, 学习
         // 记账 (时长/答题档案/天记录/薄弱词) 全部跳过, 不污染孩子的
-        // 学习数据。本地设置绝不同步 (sync.js 黑名单里有它): 同步出
-        // 去孩子平板就全家不记了。历史已混入的数据无法回溯区分。
+        // 学习数据。必须只属于本机: 同步出去孩子平板就全家不记了。
+        // v147: v141 只把它列进 sync.js 的推送触发黑名单, 实际仍随快照
+        // 同步 —— 现改存非同步键 K_TEST_DEVICE。历史已混入的数据无法回溯区分。
         isTestDevice: function() {
-            return localStorage.getItem(key('pref_device_test_mode')) === 'true';
+            try { return localStorage.getItem(K_TEST_DEVICE) === 'true'; } catch (e) { return false; }
+        },
+        setTestDevice: function(on) {
+            if (on) localStorage.setItem(K_TEST_DEVICE, 'true');
+            else    localStorage.removeItem(K_TEST_DEVICE);
+        },
+        // 一次性迁移: 清掉旧的 (会同步的) 开关键。返回旧开关是否开着,
+        // 开着则由调用方提示 —— 新开关一律从「关」开始。
+        migrateTestDeviceFlag: function() {
+            const legacy = key('pref_device_test_mode');
+            const v = localStorage.getItem(legacy);
+            if (v == null) return false;
+            localStorage.removeItem(legacy);
+            if (v === 'true') console.warn('[DB] 旧测试设备开关是开着的, 已重置为关闭 (v147)');
+            return v === 'true';
         },
 
         // --- Vocabulary Notebook ---
@@ -397,7 +441,33 @@
             return safeJSON(localStorage.getItem(key('notebook')), []);
         },
         saveNotebook: function(arr) {
-            localStorage.setItem(key('notebook'), JSON.stringify(arr || []));
+            arr = Array.isArray(arr) ? arr : [];
+            const nbKey = key('notebook');
+            // v147: 与上一版比对, 生成删除墓碑 / 复活标记 (见文件头 NB_TOMB 注释)
+            let nextSet = null;
+            try {
+                const prevRaw = localStorage.getItem(nbKey);
+                const prevSet = (_nbCache && _nbCache.raw === prevRaw)
+                    ? _nbCache.set : _nbWordSet(safeJSON(prevRaw, []));
+                nextSet = _nbWordSet(arr);
+                const tKey  = key('pref_nb_tomb');
+                const tombs = safeJSON(localStorage.getItem(tKey), {}) || {};
+                const now   = Date.now();
+                let dirty   = false;
+                prevSet.forEach(w => { if (!nextSet.has(w)) { tombs[w] = now; dirty = true; } });
+                arr.forEach(e => {
+                    const w = _nbWord(e);
+                    if (w && tombs[w] != null && _nbAnyStamp(e) <= _num(tombs[w])) e.revivedAt = now;
+                });
+                if (dirty) {
+                    const cut = now - NB_TOMB_KEEP_MS;
+                    Object.keys(tombs).forEach(w => { if (_num(tombs[w]) <= cut) delete tombs[w]; });
+                    localStorage.setItem(tKey, JSON.stringify(tombs));
+                }
+            } catch (e) { console.warn('[DB] notebook tombstone bookkeeping failed', e); }
+            const raw = JSON.stringify(arr);
+            localStorage.setItem(nbKey, raw);
+            _nbCache = nextSet ? { raw: raw, set: nextSet } : null;
         },
 
         // ─── 课文精读: 用户导入的课 (IndexedDB, v128) ───────
@@ -617,6 +687,11 @@
                 Object.keys(old).forEach(k => {
                     if (!(k in item)) item[k] = old[k];
                 });
+                // v147: 内容真的改了 (补全/编辑) 才打 editedAt —— 逐词合并时
+                // 内容字段取 editedAt 新的一侧, 免得编辑被另一台设备的旧版盖掉
+                const contentChanged = NB_CONTENT_FIELDS.some(f =>
+                    JSON.stringify(item[f] == null ? '' : item[f]) !== JSON.stringify(old[f] == null ? '' : old[f]));
+                if (contentChanged) item.editedAt = Date.now();
                 if (matchedViaLemma) {
                     console.log(`[DB] Lemma-matched "${old.word}" → "${item.word}", merged.`);
                 }
@@ -652,7 +727,8 @@
             const i     = focus.indexOf(focusType);
             if (i >= 0) focus.splice(i, 1);
             else        focus.push(focusType);
-            w.focus = focus;
+            w.focus   = focus;
+            w.focusAt = Date.now();      // v147: 手动标记的戳记, 逐词合并用
             nb[idx] = w;
             this.saveNotebook(nb);
             return focus.includes(focusType);
@@ -759,6 +835,7 @@
             e.srsLevel     = 0;
             e.nextReview   = null;                     // null = due now
             e.mistakeCount = (e.mistakeCount || 0) + 1;
+            e.learnAt      = Date.now();               // v147: 学习戳记, 逐词合并用
             nb[idx] = e;
             this.saveNotebook(nb);
             return e;
@@ -1154,6 +1231,8 @@
                 }
             }
             toRemove.forEach(k => localStorage.removeItem(k));
+            _nbCache = null;
+            localStorage.removeItem(K_TEST_DEVICE);              // v147: 本机键也是设置
             // v130: 拉取前快照 (键名下划线开头, 不匹配档案前缀) 也是学习
             // 数据 —— 转交设备时属于隐私残留, 重置一并清掉。
             localStorage.removeItem('_' + PREFIX + pid + '_prepull');
@@ -1174,7 +1253,10 @@
                     // v130: 漏网之鱼 —— Gist 戳记与「同步 API key」开关也是
                     // 同步侧状态, 真全清时不该留下
                     `${PREFIX}sync_gist_stamp`,
-                    `${PREFIX}sync_api_key`
+                    `${PREFIX}sync_api_key`,
+                    // v147: 待推送标志与推送失败记录
+                    `${PREFIX}sync_push_dirty`,
+                    `${PREFIX}sync_last_error`
                 ].forEach(k => localStorage.removeItem(k));
             }
         },

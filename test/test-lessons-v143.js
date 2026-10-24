@@ -3,7 +3,11 @@
 //     解锁后恢复随机; 单词卡逐词随机不受影响
 // 运行: node test-lessons-v143.js
 const fs = require('fs'), path = require('path');
-const DIR = path.join(__dirname, 'VocabPeak-main');
+// v147: 兼容两种摆放 —— 仓库内 test/ 目录 (推荐, npm test), 或旧习惯的「与 VocabPeak-main 同级」
+const DIR = (() => {
+    const sib = path.join(__dirname, 'VocabPeak-main');
+    return fs.existsSync(path.join(sib, 'index.html')) ? sib : path.join(__dirname, '..');
+})();
 let pass = 0, fail = 0;
 const ok = (c, n, x) => { if (c) pass++; else { fail++; console.log('  ✗ ' + n + (x ? ' → ' + x : '')); } };
 const sec = t => console.log('\n── ' + t + ' ──');
@@ -24,6 +28,7 @@ function extract(src, name, isAsync) {
 }
 // 用局部 console 桩喂给被测函数, 不污染全局 (否则测试自己的输出也没了)
 let _sessionVoice = null;
+let _prevSessionVoice = null;   // v146 起 beginVoiceSession 还会读写它 (相邻段不重复)
 const quiet = { log() {}, warn() {}, error() {} };
 eval(extract(packSrc, 'beginVoiceSession').replace('console.log', 'quiet.log'));
 eval(extract(packSrc, 'endVoiceSession'));
@@ -91,11 +96,8 @@ ok(/_sessionVoice && pool\.indexOf\(_sessionVoice\) >= 0/.test(packSrc),
 sec('3. 版本');
 const idx = fs.readFileSync(path.join(DIR, 'index.html'), 'utf8');
 const sw  = fs.readFileSync(path.join(DIR, 'sw.js'), 'utf8');
+    // v147: 版本号一致性统一由 test-release.js 按当前版本检查 (历史版本号钉死已移除)
 const vs  = [...idx.matchAll(/\?v=(\d+)/g)].map(x => x[1]);
-ok(new Set(vs).size === 1 && vs[0] === '144', 'index.html 全部 ?v=144 (' + vs.length + ' 处)');
-ok(vs.length === 26, '?v= 引用总数 26 处');
-ok(/const CACHE_NAME = 'hsv-v47'/.test(sw), 'sw.js CACHE_NAME = hsv-v46');
-ok(/hsv-v47 \(\?v=144\)/.test(sw), 'sw.js 有 v47 变更日志');
 
 console.log('\n' + '═'.repeat(46));
 console.log(`  通过 ${pass} 项, 失败 ${fail} 项`);

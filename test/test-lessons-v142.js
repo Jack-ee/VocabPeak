@@ -4,7 +4,11 @@
 //   • 配置链接: 编解码往返、绝不含 token、确认后才写、导入清 hash
 // 运行: node test-lessons-v142.js
 const fs = require('fs'), path = require('path');
-const DIR = path.join(__dirname, 'VocabPeak-main');
+// v147: 兼容两种摆放 —— 仓库内 test/ 目录 (推荐, npm test), 或旧习惯的「与 VocabPeak-main 同级」
+const DIR = (() => {
+    const sib = path.join(__dirname, 'VocabPeak-main');
+    return fs.existsSync(path.join(sib, 'index.html')) ? sib : path.join(__dirname, '..');
+})();
 let pass = 0, fail = 0;
 const ok = (c, n, x) => { if (c) pass++; else { fail++; console.log('  ✗ ' + n + (x ? ' → ' + x : '')); } };
 const sec = t => console.log('\n── ' + t + ' ──');
@@ -34,6 +38,7 @@ let netMode = 'ok', pushes = 0;
 let isSyncing = false;
 const getToken = () => 't', getGistId = () => 'g';
 const updateSyncUI = () => {}, setLastPull = () => {};
+const setLastError = () => {};   // v147: push 失败时记原因 (这里桩掉)
 const collectSyncData = () => ({ _syncTime: 1 });
 const writeGist = async () => {
     pushes++;
@@ -144,12 +149,9 @@ eval(extract('push', true));
     sec('4. 版本');
     const idx = fs.readFileSync(path.join(DIR, 'index.html'), 'utf8');
     const sw  = fs.readFileSync(path.join(DIR, 'sw.js'), 'utf8');
+    // v147: 版本号一致性统一由 test-release.js 按当前版本检查 (历史版本号钉死已移除)
     const vs  = [...idx.matchAll(/\?v=(\d+)/g)].map(x => x[1]);
-    ok(new Set(vs).size === 1 && vs[0] === '142', 'index.html 全部 ?v=142 (' + vs.length + ' 处)');
-    ok(vs.length === 26, '?v= 引用 26 处 (25 + setup-link.js)');
     ok(/'\.\/setup-link\.js',/.test(sw), 'sw.js 预缓存新模块 (离线可用)');
-    ok(/const CACHE_NAME = 'hsv-v45'/.test(sw), 'sw.js CACHE_NAME = hsv-v45');
-    ok(/hsv-v45 \(\?v=142\)/.test(sw), 'sw.js 有 v45 变更日志');
 
     console.log('\n' + '═'.repeat(46));
     console.log(`  通过 ${pass} 项, 失败 ${fail} 项`);
