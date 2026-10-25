@@ -182,6 +182,7 @@ window.Daily = (function () {
                     <label class="dl-page" title="老师布置到哪一页，新词就从哪一页开始">\u{1F4D6} 新词从默写本第
                         <input id="dl-page" type="number" inputmode="numeric" min="1" max="${pageMax()}" value="${pgN}"> 页起</label>
                     ${pgW ? `<button class="dl-link" id="dl-pagedic" data-page="${pgN}">\u{1F4DD} 默写第 ${pgN} 页（${pgW} 词）</button>` : ''}
+                    ${pgW && window.Book ? `<button class="dl-link" id="dl-pagebook" data-page="${pgN}">\u{1F4D2} 看第 ${pgN} 页</button>` : ''}
                 </div>`;
         if (c.empty) {
             const msg = c.touched
@@ -756,6 +757,8 @@ window.Daily = (function () {
     function onClick(e) {
         const t = e.target;
         if (t.closest('#dl-start'))  { start(); return; }
+        const pb = t.closest('#dl-pagebook');
+        if (pb) { window.Book?.show?.(Number(pb.dataset.page) || 1); return; }
         const pd = t.closest('#dl-pagedic');
         if (pd) { start({ page: Number(pd.dataset.page) || 1 }); return; }
         if (t.closest('#dl-more')) {

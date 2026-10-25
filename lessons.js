@@ -3142,6 +3142,7 @@ window.Lessons = (function () {
         init          : init,
         stopPlay      : stopPlay,
         speechEntries : speechEntries,
+        open          : (id, tab) => openLesson(id, tab || 'read'),   // v152: 默写本里「读这篇短文」
         parseImport   : parseImport,   // 纯函数, 供测试/调试
         _sattolo      : sattolo        // 供测试: 错位排列不变量
     };

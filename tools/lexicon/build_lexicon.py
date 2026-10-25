@@ -185,4 +185,21 @@ js = ('// lexicon-3500.js — 统一词库 (由 tools/lexicon/build_lexicon.py �
       '// X 常用词·词表外 (不做目标词, 可查, 可手动入生词本)。\n'
       'window.HSV_LEXICON = ' + json.dumps(payload, ensure_ascii=False, separators=(',', ':')) + ';\n')
 open(os.path.join(ROOT, 'lexicon-3500.js'), 'w', encoding='utf-8').write(js)
+
+# v152: 默写本原样逐行 (book-3500.js) —— 应用里「默写本」页逐页显示, 序号、
+# 顺序、重复条目都与纸质本 / PDF 完全一致, 只是把空着的英文列填上。
+# 每行 [序号, 英文 (纸质本原样, 变形词不换成原形), 音标, 中文]; 页码由 pages 换算。
+book_rows = []
+for n in sorted(words):
+    r = rows.get(n, {})
+    book_rows.append([n, words[n],
+                      fixes['ipa'].get(str(n)) or clean_ipa(r.get('ipa')),
+                      clean_zh(fixes['zh'].get(str(n)) or r.get('zh'))])
+book = {'v': 1, 'built': payload['built'], 'pages': pages, 'rows': book_rows,
+        'forms': {k: v for k, v in fixes['forms'].items()}}
+bjs = ('// book-3500.js — 默写本逐行 (由 tools/lexicon/build_lexicon.py 生成, 勿手改)\n'
+       '// rows: [序号, 英文, 音标, 中文], 与《英语·单词本》PDF 逐行一致; pages: 每页第一个序号。\n'
+       'window.HSV_BOOK = ' + json.dumps(book, ensure_ascii=False, separators=(',', ':')) + ';\n')
+open(os.path.join(ROOT, 'book-3500.js'), 'w', encoding='utf-8').write(bjs)
+print('默写本', len(book_rows), '行,', len(pages), '页, 大小 %.0f KB' % (len(bjs.encode('utf-8')) / 1024))
 print('词库', len(out), '词', levels, '大小 %.0f KB' % (len(js.encode('utf-8')) / 1024))

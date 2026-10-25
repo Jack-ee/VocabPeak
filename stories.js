@@ -163,6 +163,8 @@ window.Stories = (function () {
     const STORE      = 'stories';
     const GEN_KEY    = PREFIX + 'stories_gen';     // 本机键 (无档案段, 不进同步)
 
+    let _exIdx = null, _exRef = null;  // v152: exampleOf 的懒索引 (短文列表换了就重建)
+
     let _list     = [];
     let _ready    = false;
     let _checking = false;
@@ -308,6 +310,27 @@ window.Stories = (function () {
         check     : check,
         list      : function () { return _list.slice(); },
         byId      : function (id) { return _list.find(s => s.id === id) || null; },
+        // v152: 目标词 → 它在短文里的原句 (默写本、今日任务的例句)
+        exampleOf : function (word) {
+            const k = String(word || '').trim().toLowerCase();
+            if (!k) return null;
+            if (!_exIdx || _exRef !== _list) {
+                _exIdx = new Map();
+                _exRef = _list;
+                _list.slice().sort((a, b) => (a.id < b.id ? -1 : 1)).forEach(s => {
+                    const sents = {};
+                    (s.paras || []).forEach(p => (p.sentences || []).forEach(x => { sents[x.id] = x; }));
+                    (s.words || []).forEach(t => {
+                        const lk = String(t.lemma || '').toLowerCase();
+                        const x  = sents[t.sent];
+                        if (!lk || !x || _exIdx.has(lk)) return;
+                        _exIdx.set(lk, { text: x.text, zh: x.zh || '', surface: t.surface || t.lemma, ctx: t.zh || '',
+                                         phr: (t.phrases || [])[0] || null, sid: s.id, title: s.title || '' });
+                    });
+                });
+            }
+            return _exIdx.get(k) || null;
+        },
         ready     : function () { return _ready; },
         lastResult: function () { return _last; }
     };
