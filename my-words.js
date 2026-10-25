@@ -64,7 +64,9 @@ window.MyWords = (function() {
     }
 
     function getFilteredList() {
-        if (studyFilter === 'all') return studyList;
+        // v149: 「全部」不含已斩的熟词; 熟词单独一个筛选
+        if (studyFilter === 'all') return studyList.filter(w => !window.DB.isCut(w));
+        if (studyFilter === 'cut') return studyList.filter(w => window.DB.isCut(w));
         // Due filter pulls from DB directly so it always reflects current
         // review state (a word becomes "not due" the moment you review it).
         if (studyFilter === 'due') {
@@ -108,6 +110,7 @@ window.MyWords = (function() {
         shuffleOn   = window.DB.getPref('mw_shuffle', 'false') === 'true';
         shuffleSeed = parseInt(window.DB.getPref('mw_shuffle_seed', '0'), 10) || 0;
         autoLoadBuiltinIfFirstRun();   // 首次运行开箱即用：自动纳入核心词
+        const merged = autoMergeLexicon3500();   // v149: 3500 词整本并入 (每台设备一次)
         bindEvents();
         refreshStudyList();
 
@@ -149,6 +152,13 @@ window.MyWords = (function() {
 
         render();
         console.log('[MyWords] init complete, words:', studyList.length, 'group:', currentGroup, 'idx:', currentIdx);
+        if (merged && merged.added) {
+            window.App?.updateNotebookBadge?.();
+            setTimeout(() => window.App?.showToast?.(
+                `已把 3500 词默写本并入单词本：新增 ${merged.added} 词`
+                + (merged.cut ? `（其中 ${merged.cut} 个非常简单的词放在「✂️ 熟词」）` : '')
+                + '，原有学习记录不变。', 6000), 1200);
+        }
 
         // Defensive retry: if init ran before localStorage was fully
         // populated (e.g., racing with a sync pull that reloaded the
@@ -204,6 +214,7 @@ window.MyWords = (function() {
         // they open MyWords they'll see fresh data via the normal init.
         window.addEventListener('hsv:datachanged', () => {
             const isOnMyWordsTab = document.getElementById('view-my-words')?.classList.contains('active');
+            autoMergeLexicon3500();      // 新设备: 云端数据到了才并 (已并过则立即返回)
             refreshStudyList();
             window.App?.updateNotebookBadge?.();
             if (isOnMyWordsTab) {
@@ -242,8 +253,9 @@ window.MyWords = (function() {
         }
         const load3500 = document.getElementById('mw-load-3500');
         if (load3500) {
+            // v149 起启动时自动整本并入, 这个按钮只剩兜底 (例如并入前新加的设备)
             const n = lexicon3500New().length;
-            load3500.textContent = `载入 3500 新增词 (${n})`;
+            load3500.textContent = n ? `载入 3500 新增词 (${n})` : '3500 词已全部并入';
             load3500.disabled    = !n;
             load3500.addEventListener('click', loadLexicon3500);
         }
@@ -640,6 +652,53 @@ window.MyWords = (function() {
     // 安全前提：仅当①未标记过 ②生词本为空 ③本机还没配置云同步 时才载入。
     // 未配置同步时 push() 直接返回，saveNotebook 不会误推；一旦某台设备配置了
     // 同步，其它设备走同步拉取、不会重复自动载入，避免覆盖已丰富的数据。
+    // v149: 3500 词默写本整本并入生词本, 每台设备一次 (逻辑见
+    // DB.mergeLexicon3500)。配了同步却从没和云端对齐过的新设备先等云端
+    // 数据 (拉取后的 hsv:datachanged 里再并), 免得本机先并出一本「全新」
+    // 的生词本、把孩子删过的词带回云端。重排后组号会变: 迁移前记下「全部」
+    // 里当前看的那个词, 迁移后把位置换算回同一个词。
+    function autoMergeLexicon3500() {
+        try {
+            if (window.DB.getPref('lex3500_merged', '') === '1') return null;
+            const L = window.HSV_LEXICON;
+            if (!L || !Array.isArray(L.words) || !L.words.length) return null;
+            const nb = window.DB.loadNotebook() || [];
+            if (!nb.length) return null;
+            const pfx    = (window.APP_CONFIG && window.APP_CONFIG.STORAGE_PREFIX) || 'hsv_';
+            const syncOn = !!(localStorage.getItem(pfx + 'sync_token') || localStorage.getItem(pfx + 'sync_gist_id'));
+            const synced = !!(Number(localStorage.getItem(pfx + 'sync_last_pull'))
+                              || Number(localStorage.getItem(pfx + 'sync_last_push')));
+            if (syncOn && !synced) return null;
+
+            const prog   = loadProgress();
+            const size   = getGroupSize();
+            const allPos = !prog.filter || prog.filter === 'all';
+            const view   = (arr) => (shuffleOn ? _seededShuffle(arr, shuffleSeed) : arr)
+                                        .filter(w => !window.DB.isCut(w));
+            let anchor = '';
+            if (allPos) {
+                const at = view(nb)[Math.max(0, prog.group | 0) * size + Math.max(0, prog.idx | 0)];
+                anchor   = at ? String(at.word || '').trim().toLowerCase() : '';
+            }
+            const res = window.DB.mergeLexicon3500(L.words);
+            window.DB.setPref('lex3500_merged', '1');
+            if (anchor) {
+                const i = view(window.DB.loadNotebook() || [])
+                    .findIndex(w => String(w.word || '').trim().toLowerCase() === anchor);
+                if (i >= 0) {
+                    const pos = { group: Math.floor(i / size), idx: i % size };
+                    window.DB.setPref('mw_progress', JSON.stringify(Object.assign({}, prog, pos)));
+                    let p2 = {};
+                    try { p2 = JSON.parse(window.DB.getPref('mw_pos_all', '{}')) || {}; } catch (e) { p2 = {}; }
+                    window.DB.setPref('mw_pos_all', JSON.stringify(Object.assign(p2, pos)));
+                }
+            }
+            console.log('[MyWords] 3500 词并入生词本: 新增 ' + res.added + ' (其中熟词 ' + res.cut +
+                        '), 补音标 ' + res.filled + ', 共 ' + res.total + ' 词');
+            return res;
+        } catch (e) { console.warn('[MyWords] 3500 词并入失败', e); return null; }
+    }
+
     function autoLoadBuiltinIfFirstRun() {
         try {
             if (window.DB.getPref('builtin_autoloaded', '') === '1') return;
@@ -937,14 +996,14 @@ window.MyWords = (function() {
         if (!wordText) return;
         const wordLow = wordText.toLowerCase();
 
-        // Switch to "all" filter to find the word
-        studyFilter = 'all';
-        document.querySelectorAll('.mw-filter-pill').forEach(b =>
-            b.classList.toggle('active', b.dataset.filter === 'all')
-        );
-
+        // Switch to "all" filter to find the word (v149: 已斩的熟词在「熟词」里)
         refreshStudyList();
-        const globalIdx = studyList.findIndex(w => (w.word || '').toLowerCase() === wordLow);
+        const hit   = studyList.find(w => (w.word || '').toLowerCase() === wordLow);
+        studyFilter = (hit && window.DB.isCut(hit)) ? 'cut' : 'all';
+        document.querySelectorAll('.mw-filter-pill').forEach(b =>
+            b.classList.toggle('active', b.dataset.filter === studyFilter)
+        );
+        const globalIdx = getFilteredList().findIndex(w => (w.word || '').toLowerCase() === wordLow);
         if (globalIdx < 0) {
             window.App?.showToast?.(`"${wordText}" not found.`);
             return;
@@ -1518,6 +1577,16 @@ IMPORTANT:
             return;
         }
 
+        if (words.length === 0 && studyFilter === 'cut') {
+            area.innerHTML = `<div class="mw-empty"><p>还没有斩过的词。</p><p style="font-size:13px;color:var(--text-tertiary)">学单词时遇到太简单的词，点卡片右下角的「✂️ 斩」，它就不再进复习，会放到这里。</p></div>`;
+            updateFilterCounts();
+            return;
+        }
+        if (words.length === 0 && studyFilter === 'all') {
+            area.innerHTML = `<div class="mw-empty"><p>单词本里的词都斩完了。</p><p style="font-size:13px;color:var(--text-tertiary)">点上方的「✂️ 熟词」可以查看或取消斩。</p></div>`;
+            updateFilterCounts();
+            return;
+        }
         if (words.length === 0 && studyFilter !== 'all') {
             const labels = { core: '\u2B50 核心', pronunciation: '\uD83D\uDD0A 发音', spelling: '\u270F\uFE0F 拼写' };
             area.innerHTML = `<div class="mw-empty"><p>No words marked as ${labels[studyFilter] || studyFilter} yet.</p><p style="font-size:13px;color:var(--text-tertiary)">Browse your words and tap the ${labels[studyFilter]} button to mark them, then come back here.</p></div>`;
@@ -1531,7 +1600,8 @@ IMPORTANT:
     }
 
     function updateFilterCounts() {
-        const allCount   = studyList.length;
+        const cutCount   = studyList.filter(w => window.DB.isCut(w)).length;
+        const allCount   = studyList.length - cutCount;
         const coreCount  = studyList.filter(w => (w.focus || []).includes('core')).length;
         const pronCount  = studyList.filter(w => (w.focus || []).includes('pronunciation')).length;
         const spellCount = studyList.filter(w => (w.focus || []).includes('spelling')).length;
@@ -1558,10 +1628,13 @@ IMPORTANT:
                 : (window.DB.getTrainerWords?.(9999) || []).length;
         } catch {}
         set('mw-fc-trainer', trainerCount);
+        set('mw-fc-cut',     cutCount);
+        const cutPill = document.querySelector('.mw-filter-pill[data-filter="cut"]');
+        if (cutPill) cutPill.style.display = (cutCount > 0 || studyFilter === 'cut') ? '' : 'none';
 
         // Show/hide filter row. Always show if any words are marked OR
         // any due words exist OR we're not on the All filter.
-        const hasAnyMarked = coreCount + pronCount + spellCount + weakCount + trainerCount > 0;
+        const hasAnyMarked = coreCount + pronCount + spellCount + weakCount + trainerCount + cutCount > 0;
         const filterRow    = document.getElementById('mw-filter-row');
         if (filterRow) filterRow.style.display =
             (hasAnyMarked || dueCount > 0 || studyFilter !== 'all') ? 'flex' : 'none';
@@ -1637,6 +1710,7 @@ IMPORTANT:
                         ${focusBtn(w, 'spelling',      '\u270F\uFE0F', 'Spelling')}
                     </div>
                     <div class="mw-card-actions">
+                        ${cutBtn(w)}
                         <button class="mw-action-btn mw-enrich-btn" data-word="${escAttr(w.word)}">&#x2728; ${hasMeaning ? 'More' : 'Enrich'}</button>
                         ${!isWordComplete(w) ? '<span class="mw-incomplete-tag">needs enrich</span>' : ''}
                         <button class="mw-action-btn mw-delete-btn" data-word="${escAttr(w.word)}">&#x1F5D1;</button>
@@ -1685,6 +1759,7 @@ IMPORTANT:
                         ${focusBtn(w, 'pronunciation', '\uD83D\uDD0A',   'Pron.')}
                         ${focusBtn(w, 'spelling',      '\u270F\uFE0F',   'Spell')}
                     </div>
+                    <div class="mw-card-actions">${cutBtn(w)}</div>
                 </div>
             </div>`;
     }
@@ -1959,6 +2034,13 @@ Return ONLY valid JSON.`;
             return;
         }
 
+        const cutEl = e.target.closest('.mw-cut-btn');
+        if (cutEl) {
+            e.stopPropagation();
+            handleCut(cutEl.dataset.word, cutEl.dataset.cut === '1');
+            return;
+        }
+
         const enrichBtn = e.target.closest('.mw-enrich-btn');
         if (enrichBtn) { enrichWord(enrichBtn.dataset.word); return; }
 
@@ -1985,6 +2067,33 @@ Return ONLY valid JSON.`;
             currentIdx = parseInt(listItem.dataset.idx, 10);
             setView('cards'); speakCurrent();
         }
+    }
+
+    // v149: 斩 —— 太简单的词一键移出复习 (借鉴百词斩); 熟词里显示「取消斩」
+    function cutBtn(w) {
+        const cut = window.DB.isCut(w);
+        return cut
+            ? `<button class="mw-action-btn mw-cut-btn mw-cut-on" data-word="${escAttr(w.word)}" data-cut="0" title="取消斩，回到复习">↩︎ 取消斩</button>`
+            : `<button class="mw-action-btn mw-cut-btn" data-word="${escAttr(w.word)}" data-cut="1" title="太简单：移出复习，放进「熟词」">✂️ 斩</button>`;
+    }
+
+    function handleCut(word, on) {
+        if (!word) return;
+        if (autoplayOn) stopAutoplay();
+        const e = window.DB.setCut(word, on);
+        if (!e) return;
+        refreshStudyList();
+        // 当前词离开了这个筛选 (全部里斩掉 / 熟词里取消斩): 原位置自然落到下一个词
+        const n = getFilteredList().length;
+        currentGroup = Math.max(0, Math.min(currentGroup, getGroupCount() - 1));
+        currentIdx   = Math.max(0, Math.min(currentIdx, getGroupWords().length - 1));
+        quizAnswered = false;
+        saveProgress();
+        render();
+        updateFilterCounts();
+        window.App?.showToast?.(on
+            ? `已斩「${word}」：不再进复习，在「✂️ 熟词」里可以取消。`
+            : `已取消斩「${word}」，回到复习队列。${n ? '' : '熟词已清空。'}`, 3500);
     }
 
     function focusBtn(w, type, icon, label) {

@@ -113,8 +113,21 @@ srv.listen(0, async () => {
         const aiCards = await page.locator('.ls-card.ls-card-ai').count();
         ok(aiCards === MAN.stories.length, 'AI 短文列表 = 发布的篇数', aiCards + ' / ' + MAN.stories.length);
         ok(await page.locator('.ls-group-head').count() >= 1, '每 10 篇一个分组标题');
-        ok(/全部 AI 短文/.test(await page.locator('.ls-home').innerText()) || !(await page.locator('.ls-mixed-card').count()),
+        // v149: 综合练习并进练习条, 抽题范围写在 title 上
+        ok(/全部 AI 短文/.test(await page.locator('.ls-dash-pool').getAttribute('title').catch(() => '') || '')
+           || !(await page.locator('.ls-mixed-card').count()),
            '综合练习标为「全部 AI 短文」');
+        // v149 紧凑排版: 分组标题独占整行, 两栏卡片不撑出容器
+        const lay = await page.evaluate(() => {
+            const list = document.querySelector('.ls-card-list');
+            const gh   = document.querySelector('.ls-group-head');
+            const cs   = [...document.querySelectorAll('.ls-card')].slice(0, 4).map(c => c.getBoundingClientRect());
+            const lr   = list.getBoundingClientRect();
+            return { ghFull: Math.abs(gh.getBoundingClientRect().width - lr.width) < 8,
+                     inside: cs.every(r => r.right <= lr.right + 1),
+                     twoCol: window.innerWidth < 600 || (cs.length > 1 && Math.abs(cs[0].top - cs[1].top) < 2) };
+        });
+        ok(lay.ghFull && lay.inside && lay.twoCol, '分组标题整行、卡片不溢出、宽屏两栏', JSON.stringify(lay));
         const pool = await page.evaluate(() => {
             const ents = Lessons.speechEntries();
             return { n: ents.length, story: ents.some(x => /Lin Yue was offered admission/.test(x)) };
@@ -140,9 +153,14 @@ srv.listen(0, async () => {
         const tokBasic = page.locator('.ls-tok', { hasText: /^when$/i }).first();
         await tokBasic.click();
         await page.waitForSelector('#ls-sheet-overlay.open');
-        ok(await page.locator('#ls-lookup-add').count() === 0 && /基础词/.test(await page.locator('#ls-sheet').innerText()),
-           '基础词只查不收');
-        await page.click('#ls-sheet-close');
+        // v149: 基础词已作为熟词并入单词本 —— 弹层给「取消斩, 加入复习」
+        ok(/取消斩/.test(await page.locator('#ls-lookup-add').innerText().catch(() => '')),
+           '基础词 (熟词) 弹层给「取消斩，加入复习」');
+        await page.click('#ls-lookup-add');
+        ok(await page.evaluate(() => !DB.isCut(DB.loadNotebook().find(w => w.word.toLowerCase() === 'when'))),
+           '点了以后 when 回到复习');
+        await page.waitForTimeout(200);
+        if (await page.locator('#ls-sheet-overlay.open').count()) await page.click('#ls-sheet-close');
         await page.locator('.ls-tok', { hasText: /^Beijing$/ }).first().click();
         ok(/专有名词/.test(await page.locator('#ls-sheet').innerText()), '专名如实说明');
         await page.click('#ls-sheet-close');
@@ -202,32 +220,52 @@ srv.listen(0, async () => {
         ok(await page.locator('.ls-card').count() === nBookCards, '切回教材课文, 列表不受影响');
         storiesOffline = false;
 
-        sec('载入 3500 新增词: 只追加, 不动原有学习记录');
+        sec('v149: 3500 词启动时整本并入, 不动原有学习记录');
         await page.click('.nav-tab[data-nav="my-words"]');
+        const mg = await page.evaluate(() => {
+            const nb   = DB.loadNotebook();
+            const keys = new Set(nb.map(w => w.word.toLowerCase()));
+            const want = new Set(HSV_LEXICON.words.filter(w => w[1] > 0).map(w => w[0].toLowerCase()));
+            want.delete('accent');
+            const miss = [...want].filter(k => !keys.has(k));
+            const ab   = nb.find(w => w.word === 'abandon'), abi = nb.find(w => w.word === 'ability');
+            const acc  = nb.find(w => w.word === 'accept'),  ap  = nb.find(w => w.word === 'apple');
+            const ach  = nb.find(w => w.word === 'achieve');
+            return { n: nb.length, miss: miss.length, dup: nb.length !== keys.size, ab, abi, acc,
+                     tomb: keys.has('accent'), apCut: !!ap && DB.isCut(ap), achCut: !!ach && DB.isCut(ach),
+                     flag: DB.getPref('lex3500_merged', ''), head: nb.slice(0, 3).map(w => w.word) };
+        });
+        ok(mg.miss === 0 && !mg.dup && mg.flag === '1', '默写本 3500 词全部在单词本里, 无重复', JSON.stringify({ n: mg.n, miss: mg.miss }));
+        ok(mg.ab.srsLevel === 4 && mg.ab.nextReview === 1790000000000 && mg.ab.focus[0] === 'weak'
+           && mg.ab.mistakeCount === 3 && mg.ab.learnAt === 5, '已有词条的 SRS / 焦点 / 错题记录原样保留', JSON.stringify(mg.ab));
+        ok(mg.ab.phonetic && !mg.ab.editedAt, '缺音标的已有词补上音标, 不打内容戳', mg.ab.phonetic);
+        ok(mg.abi.phonetic === '/əˈbɪləti/' && mg.acc.meaning === 'v. 接受; 同意; 认可' && mg.acc.register === 'formal',
+           '已有音标与家长整理的内容不覆盖');
+        ok(!mg.tomb, '删掉过的词 (accent) 不塞回来');
+        ok(mg.apCut && !mg.achCut, '非常简单的词 (apple) 记为熟词, 其他新词正常学习');
+        ok(mg.head[0] === 'a', '按默写本顺序排列', mg.head.join(','));
         await page.evaluate(() => document.getElementById('mw-import-modal').classList.add('open'));
-        const label = await page.locator('#mw-load-3500').innerText();
-        const want  = await page.evaluate(() => {
-            const have = new Set(DB.loadNotebook().map(w => w.word.toLowerCase()));
-            return HSV_LEXICON.words.filter(w => w[1] > 0 && (w[4] === 'E' || w[4] === 'J') && !have.has(w[0].toLowerCase())
-                                               && w[0].toLowerCase() !== 'accent').length;
-        });
-        ok(label.indexOf('(' + want + ')') >= 0 && want > 600, '按钮显示待新增词数', label + ' / ' + want);
-        const before = await page.evaluate(() => DB.loadNotebook().length);
-        await page.click('#mw-load-3500');
-        const after = await page.evaluate(() => {
-            const nb = DB.loadNotebook();
-            return { n: nb.length, ab: nb.find(w => w.word === 'abandon'), abi: nb.find(w => w.word === 'ability'),
-                     acc: nb.find(w => w.word === 'achieve'), tomb: nb.some(w => w.word === 'accent'),
-                     b: nb.some(w => w.word === 'apple') };
-        });
-        ok(after.n === before + want, '新增数量正确', before + ' → ' + after.n);
-        ok(after.ab.srsLevel === 4 && after.ab.nextReview === 1790000000000 && after.ab.focus[0] === 'weak'
-           && after.ab.mistakeCount === 3 && after.ab.learnAt === 5, '已有词条的 SRS / 焦点 / 错题记录原样保留', JSON.stringify(after.ab));
-        ok(after.ab.phonetic && !after.ab.editedAt, '缺音标的已有词补上音标, 不打内容戳 (合并时靠空字段互补传播)', after.ab.phonetic);
-        ok(!after.tomb, '删掉过的词 (accent) 不塞回来');
-        ok(after.abi.phonetic === '/əˈbɪləti/' && !after.abi.editedAt, '已有音标不覆盖', JSON.stringify(after.abi));
-        ok(after.acc && after.acc.phonetic && after.acc.meaning && !after.b, '新词带音标释义, 基础词 (apple) 不进生词本');
-        ok(await page.locator('#mw-load-3500').isDisabled(), '载入后按钮置灰');
+        ok(/已全部并入/.test(await page.locator('#mw-load-3500').innerText()) && await page.locator('#mw-load-3500').isDisabled(),
+           '旧的「载入 3500 新增词」按钮显示已全部并入');
+        await page.evaluate(() => document.getElementById('mw-import-modal').classList.remove('open'));
+
+        sec('v149: 斩 / 熟词');
+        const cnt = await page.evaluate(() => ({
+            all: document.getElementById('mw-fc-all').textContent, cut: document.getElementById('mw-fc-cut').textContent,
+            pill: getComputedStyle(document.querySelector('.mw-filter-pill[data-filter="cut"]')).display,
+            nCut: DB.loadNotebook().filter(w => DB.isCut(w)).length, n: DB.loadNotebook().length }));
+        ok(cnt.cut === '(' + cnt.nCut + ')' && cnt.all === '(' + (cnt.n - cnt.nCut) + ')' && cnt.pill !== 'none',
+           '「全部」不含熟词, 「熟词」单独计数', JSON.stringify(cnt));
+        await page.click('.mw-filter-pill[data-filter="all"]');
+        await page.click('#mw-dm-cards').catch(() => {});
+        const w1 = await page.locator('.mw-word2').first().innerText();
+        await page.click('.mw-cut-btn[data-cut="1"]');
+        const w2 = await page.locator('.mw-word2').first().innerText();
+        const cutNow = await page.evaluate((w) => DB.isCut(DB.loadNotebook().find(x => x.word === w)), w1);
+        ok(cutNow && w2 !== w1, '点「✂️ 斩」: 当前词进熟词, 卡片换到下一个词', w1 + ' → ' + w2);
+        await page.click('.mw-filter-pill[data-filter="cut"]');
+        ok(await page.locator('.mw-cut-btn[data-cut="0"]').count() === 1, '熟词里的卡片显示「取消斩」');
+        await page.click('.mw-filter-pill[data-filter="all"]');
 
         sec('家长后台: AI 短文单独统计');
         const dash = await ctx.newPage();

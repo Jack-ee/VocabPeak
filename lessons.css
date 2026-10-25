@@ -1038,3 +1038,184 @@
 .ls-sheet-ipa  { font-size: 14px; color: var(--text-secondary); margin-top: 4px; font-family: var(--font-mono, inherit); }
 .ls-sheet-miss { color: var(--text-secondary); font-size: 14.5px; }
 .ls-sheet-note { font-size: 13px; color: var(--text-tertiary); margin-top: 12px; text-align: center; }
+
+/* ============================================================
+   v149 — 紧凑排版: 列表页两行头部 + 两行卡片; 课内页头与三步切换
+   并成一行; 正文行距与内边距收紧, 一屏多显示 20% 左右的正文。
+   ============================================================ */
+
+/* ---- 列表页第一行: 来源切换 · 说明 · 小按钮 ---- */
+.ls-home-top {
+    display     : flex;
+    align-items : center;
+    gap         : 10px;
+    margin      : 0 0 8px;
+}
+.ls-home-top .ls-src-seg { margin: 0; flex-shrink: 0; }
+.ls-home-top .ls-home-sub {
+    flex          : 1;
+    min-width     : 0;
+    margin        : 0;
+    font-size     : 12px;
+    color         : var(--text-tertiary);
+    white-space   : nowrap;
+    overflow      : hidden;
+    text-overflow : ellipsis;
+}
+.ls-top-btn {
+    flex-shrink   : 0;
+    background    : var(--bg-card);
+    border        : 1px solid var(--bg-accent);
+    border-radius : 999px;
+    padding       : 5px 12px;
+    font          : inherit;
+    font-size     : 12.5px;
+    color         : var(--text-secondary);
+    cursor        : pointer;
+    white-space   : nowrap;
+}
+.ls-top-btn:hover    { background: var(--bg-hover); color: var(--accent); }
+.ls-top-btn:disabled { opacity: 0.5; cursor: default; }
+
+/* ---- 列表页第二行: 练习条 (时长 + 综合练习 + 今日特训) ---- */
+.ls-dash {
+    display       : flex;
+    align-items   : center;
+    flex-wrap     : wrap;
+    gap           : 6px 12px;
+    background    : var(--accent-bg);
+    border        : 1px solid var(--accent-light);
+    border-radius : 12px;
+    padding       : 7px 10px 7px 12px;
+    margin        : 0 0 10px;
+}
+.ls-dash-stat {
+    flex        : 1 1 260px;
+    min-width   : 0;
+    font-size   : 12.5px;
+    line-height : 1.5;
+    color       : var(--text-secondary);
+}
+.ls-dash-stat b     { color: var(--text-primary); }
+.ls-dash-pool       { color: var(--accent-text); font-weight: 600; }
+.ls-dash-wrong      { color: #c0392b; margin-left: 4px; }
+.ls-dash-sep::before { content: '\00a0\00b7\00a0'; }
+.ls-dash-btns {
+    display     : flex;
+    gap         : 6px;
+    flex-shrink : 0;
+}
+.ls-dash-btn {
+    background    : var(--bg-card);
+    border        : 1px solid var(--accent-light);
+    border-radius : 8px;
+    padding       : 5px 10px;
+    font          : inherit;
+    font-size     : 12.5px;
+    color         : var(--accent-text);
+    cursor        : pointer;
+    white-space   : nowrap;
+}
+.ls-dash-btn:hover { background: var(--bg-hover); }
+.ls-dash-main {
+    background   : var(--accent);
+    border-color : var(--accent);
+    color        : var(--text-inverse, #fff);
+    font-weight  : 600;
+}
+.ls-dash .ls-trainer-btn { padding: 5px 10px; font-size: 12.5px; }
+
+/* ---- 课程卡片: 两行 ---- */
+.ls-card { padding: 8px 12px; border-radius: 10px; }
+.ls-card-row {
+    display     : flex;
+    align-items : baseline;
+    gap         : 8px;
+    min-width   : 0;
+}
+.ls-card-row .ls-card-title { flex: 1; min-width: 0; padding-right: 0; }
+.ls-card-id {
+    flex-shrink : 0;
+    font-size   : 11px;
+    color       : var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+}
+.ls-card .ls-card-del + .ls-card-row { padding-right: 22px; }
+.ls-card-meta { margin-top: 2px; gap: 5px; }
+.ls-card-sub  { font-size: 12px; }
+.ls-card-list { gap: 6px; }
+.ls-group-head { margin: 8px 2px 0; }
+
+/* 两栏网格: 分组标题独占整行; minmax(0,1fr) 防止长标题把列撑出容器 */
+@media (min-width: 600px) {
+    .ls-card-list {
+        display               : grid;
+        grid-template-columns : repeat(2, minmax(0, 1fr));
+        gap                   : 6px 8px;
+        max-width             : none;
+    }
+    .ls-card-list > .ls-group-head,
+    .ls-card-list > .ls-empty { grid-column: 1 / -1; }
+}
+
+/* ---- 课内页: 页头 + 三步切换 ---- */
+.ls-top { margin: 0 0 8px; }
+.ls-top .ls-head { margin: 0 0 6px; gap: 8px; }
+.ls-back { width: 34px; height: 34px; border-radius: 10px; }
+.ls-back .ls-ico { width: 19px; height: 19px; }
+.ls-head-title { font-size: 15.5px; }
+.ls-tabs { margin-bottom: 0; gap: 4px; }
+.ls-tab  { padding: 6px 4px; font-size: 13.5px; }
+@media (min-width: 700px) {
+    .ls-top {
+        display     : flex;
+        align-items : center;
+        gap         : 12px;
+    }
+    .ls-top .ls-head { flex: 1; min-width: 0; margin: 0; }
+    .ls-top .ls-tabs { flex: 0 0 300px; }
+}
+
+/* ---- 听读工具条与正文 ---- */
+.ls-read-bar { gap: 8px; margin-bottom: 8px; }
+.ls-read-bar #ls-play-all {
+    min-height : 0;
+    padding    : 6px 14px;
+    font-size  : 13.5px;
+}
+.ls-read-bar .ls-tool-btn { padding: 5px 10px; }
+.ls-read-hint-foot { display: none; }
+.ls-text {
+    padding     : 12px 14px;
+    line-height : 1.8;
+}
+.ls-para { margin-bottom: 10px; }
+.ls-para-zh { margin: -2px 0 10px; padding: 8px 12px; line-height: 1.75; }
+@media (min-width: 769px) {
+    .ls-text { padding: 16px 20px; line-height: 1.85; }
+}
+/* 窄屏: 提示语挪到正文下面, 工具条只留按钮; 正文卡贴边留更多宽度 */
+@media (max-width: 640px) {
+    .ls-read-hint-bar  { display: none; }
+    .ls-read-hint-foot {
+        display    : block;
+        margin     : 8px 2px 0;
+        font-size  : 12px;
+        color      : var(--text-tertiary);
+    }
+    .ls-text { padding: 10px 11px; border-radius: 12px; }
+    .ls-home-top .ls-home-sub { display: none; }
+    .ls-home-top { justify-content: space-between; }
+    .ls-dash-stat { flex-basis: 100%; }
+    .ls-dash-btns { width: 100%; }
+    .ls-dash-btn, .ls-dash .ls-trainer-btn { flex: 1; justify-content: center; }
+}
+/* 触屏手机的全局按钮最小高度 44px 在工具条里太占地方, 这里放宽到 36px */
+@media (max-width: 768px) and (pointer: coarse) {
+    .ls-read-bar #ls-play-all,
+    .ls-read-bar .ls-tool-btn,
+    .ls-dash-btn,
+    .ls-dash .ls-trainer-btn,
+    .ls-top-btn,
+    .ls-tab { min-height: 36px; }
+}

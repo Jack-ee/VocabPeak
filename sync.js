@@ -471,7 +471,7 @@ window.SyncManager = (function() {
     // v148: 课文页的来源切换 (教材课文 / AI 短文) 与点词模式也是本机视图状态。
     const DEVICE_LOCAL_PREFS         = new Set(['mw_progress', 'mw_shuffle', 'mw_shuffle_seed',
                                                 'device_test_mode', 'debug_panel_enabled',
-                                                'lesson_source']);
+                                                'lesson_source', 'lex3500_merged']);
     const DEVICE_LOCAL_PREF_PREFIXES = ['mw_pos_', 'lesson_tap_'];
     function isDeviceLocalName(name) {
         return DEVICE_LOCAL_PREFS.has(name) ||
@@ -656,9 +656,10 @@ window.SyncManager = (function() {
     // 词条全部戳记都不晚于墓碑时间即视为已删; 删后又重新加入/学习过的
     // 词戳记更新, 保留。
     // ⚠ nbAnyStamp 与 db.js 的 _nbAnyStamp 必须保持一致。
+    // v149: cutAt (斩) 跟 nextReview 同组 —— 斩/取消斩都打 learnAt, 新的一侧整组胜出
     const NB_LEARN_FIELDS = ['srsLevel', 'nextReview', 'lastReview', 'reviewCount',
                              'mistakeCount', 'wrongCount', 'correctStreak', 'streakDays',
-                             'lastResultAt', 'learnAt', 'strength', 'reviewedAt'];
+                             'lastResultAt', 'learnAt', 'strength', 'reviewedAt', 'cutAt'];
     const NB_FOCUS_FIELDS = ['focus', 'focusAt'];
     const NB_TOMB_KEEP_MS = 400 * 86400000;
     function _num(v) { const n = Number(v); return isFinite(n) ? n : 0; }

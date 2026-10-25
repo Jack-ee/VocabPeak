@@ -420,8 +420,11 @@ function computeStats(model){
   }
 
   // 掌握分布（依据 srsLevel，与 App 内 getReviewStats 一致）
-  let mastered=0, learning=0, fresh=0;
+  /* v149: 斩 = nextReview 推到两年以外 (与 App 的 DB.isCut 一致), 单列「熟词」 */
+  let mastered=0, learning=0, fresh=0, cut=0;
+  const cutLine = Date.now() + 730*86400000;
   notebook.forEach(w=>{
+    if(w.nextReview!=null && Number(w.nextReview) > cutLine){ cut++; return; }
     const lv=Number(w.srsLevel)||0;
     if(lv>=5) mastered++; else if(lv>0) learning++; else fresh++;
   });
@@ -433,7 +436,7 @@ function computeStats(model){
     today:{ ...t, acc:acc(t.quizCorrect,t.quizTotal) },
     week:{ ...wk, acc:acc(wk.quizCorrect,wk.quizTotal) },
     vocab: notebook.length,
-    mastered, learning, fresh
+    mastered, learning, fresh, cut
   };
 }
 
@@ -474,7 +477,7 @@ function render(model){
 
   // 数据卡片
   const accTxt = (a)=> a==null ? '<span class="dim">—</span>' : a+"%";
-  const masteryTotal = Math.max(1, s.mastered+s.learning+s.fresh);
+  const masteryTotal = Math.max(1, s.mastered+s.learning+s.fresh+s.cut);
   const pct = (n)=> (n/masteryTotal*100).toFixed(1)+"%";
   $("d-stats").innerHTML = `
     <div class="stat hot">
@@ -495,11 +498,12 @@ function render(model){
     <div class="stat">
       <div class="k">词汇量</div>
       <div class="v">${s.vocab}</div>
-      <div class="sub">已掌握 <b>${s.mastered}</b> · 学习中 <b>${s.learning}</b> · 新词 <b>${s.fresh}</b></div>
-      <div class="bars" title="已掌握 ${pct(s.mastered)} / 学习中 ${pct(s.learning)} / 新词 ${pct(s.fresh)}">
+      <div class="sub">已掌握 <b>${s.mastered}</b> · 学习中 <b>${s.learning}</b> · 新词 <b>${s.fresh}</b>${s.cut ? ` · 熟词（斩）<b>${s.cut}</b>` : ""}</div>
+      <div class="bars" title="已掌握 ${pct(s.mastered)} / 学习中 ${pct(s.learning)} / 新词 ${pct(s.fresh)}${s.cut ? " / 熟词 "+pct(s.cut) : ""}">
         <i style="width:${pct(s.mastered)};background:var(--green)"></i>
         <i style="width:${pct(s.learning)};background:var(--gold)"></i>
         <i style="width:${pct(s.fresh)};background:var(--line)"></i>
+        <i style="width:${pct(s.cut)};background:var(--green);opacity:.35"></i>
       </div>
     </div>`;
 

@@ -1060,10 +1060,11 @@
         getReviewStats: function() {
             const nb  = this.loadNotebook();
             const now = Date.now();
-            let due = 0, mastered = 0, learning = 0, neverReviewed = 0;
+            let due = 0, mastered = 0, learning = 0, neverReviewed = 0, cut = 0;
             for (const w of nb) {
                 if (w.nextReview == null)                   { due++; neverReviewed++; }
                 else if (Number(w.nextReview) <= now)         due++;
+                if (this.isCut(w))                            cut++;
                 if (Number(w.srsLevel) >= 5)                  mastered++;
                 else if (Number(w.srsLevel) > 0)              learning++;
             }
@@ -1072,8 +1073,101 @@
                 due           : due,
                 neverReviewed : neverReviewed,
                 learning      : learning,
-                mastered      : mastered
+                mastered      : mastered,
+                cut           : cut
             };
+        },
+
+        // ─── 斩 (v149) ──────────────────────────────────────
+        // 借鉴百词斩的「斩」: 认识的词一键移出复习。不加新状态, 只把
+        // nextReview 推到十年后 —— 复习、特训、到期统计这些按 nextReview
+        // 取词的地方天然把它排除, 没升级的旧版设备也一样。cutAt 记斩的
+        // 时间, 跟学习状态同组合并 (sync.js NB_LEARN_FIELDS)。课文练习答错
+        // 会把 nextReview 拉回「立即到期」, 斩随之失效: 斩错的词自己回来。
+        CUT_MS      : 3650 * 86400000,
+        CUT_HORIZON : 730 * 86400000,      // 复习间隔最长 120 天, 两年以外只可能是斩
+        isCut: function(w) {
+            return !!w && w.nextReview != null && Number(w.nextReview) > Date.now() + window.DB.CUT_HORIZON;
+        },
+        setCut: function(word, on) {
+            const nb   = this.loadNotebook();
+            const wLow = String(word || '').trim().toLowerCase();
+            const idx  = nb.findIndex(w => String(w.word || '').trim().toLowerCase() === wLow);
+            if (idx < 0) return null;
+            const e   = nb[idx];
+            const now = Date.now();
+            if (on) {
+                e.nextReview = now + this.CUT_MS;
+                e.cutAt      = now;
+            } else {
+                e.nextReview = null;           // 取消斩: 立即到期, 回到复习队列
+                delete e.cutAt;
+            }
+            e.learnAt = now;                   // 学习戳记: 逐词合并时这一侧胜出
+            nb[idx] = e;
+            this.saveNotebook(nb);
+            return e;
+        },
+
+        // ─── 3500 词默写本整本并入生词本 (v149) ─────────────
+        // lexWords: HSV_LEXICON.words ([词, 默写本序号, 音标, 中文, 级别, 搭配])。
+        //   • 已有词条一律不动学习记录, 只给空音标补词库音标 (不打 editedAt,
+        //     与 v148 的「载入 3500 新增词」口径一致)。
+        //   • 缺的词按级别补进来: H 核心 / E 拓展 / J 初中·值得学 正常学习;
+        //     B 非常简单 (a, about, after…) 直接记为已斩 (熟词), 不进复习,
+        //     在「熟词」里随时取消。删过的词 (墓碑) 不塞回来。
+        //   • 顺序重排为默写本顺序 (与 AI 短文同序, 每组 50 词对得上默写本
+        //     页码); 不在默写本里的词保持原相对顺序排在最后。
+        //   • 新词条只存非空字段 (同步载荷少一半), 戳记用固定的 LEX_T0 而不是
+        //     当前时间: 两台设备各自迁移出的词条逐字相同, 合并时不互相打架;
+        //     迁移之后的任何删除 (墓碑晚于 LEX_T0) 都能压住它们。
+        LEX_T0: Date.UTC(2026, 9, 25),
+        mergeLexicon3500: function(lexWords) {
+            const res = { added: 0, cut: 0, filled: 0, moved: false, total: 0 };
+            if (!Array.isArray(lexWords) || !lexWords.length) return res;
+            const nb = this.loadNotebook() || [];
+            let tombs = {};
+            try { tombs = JSON.parse(this.getPref('nb_tomb', '{}') || '{}') || {}; } catch (e) { tombs = {}; }
+            const have = new Map();
+            nb.forEach(e => { const k = _nbWord(e); if (k && !have.has(k)) have.set(k, e); });
+            const T0     = this.LEX_T0;
+            const LV     = { H: '核心', E: '拓展', J: '3500', B: '基础' };
+            const list   = lexWords.filter(w => Array.isArray(w) && Number(w[1]) > 0)
+                                   .slice().sort((a, b) => a[1] - b[1]);
+            const used   = new Set();
+            const head   = [];
+            list.forEach(w => {
+                const k = String(w[0] || '').trim().toLowerCase();
+                if (!k || used.has(k)) return;
+                used.add(k);
+                const cur = have.get(k);
+                if (cur) {
+                    if (!cur.phonetic && w[2]) { cur.phonetic = w[2]; res.filled++; }
+                    head.push(cur);
+                    return;
+                }
+                if (tombs[k] != null) return;
+                const e = {
+                    word    : String(w[0]).trim(),
+                    meaning : String(w[3] || '').replace(/\s+/g, ' ').trim(),
+                    level   : LV[w[4]] || '3500',
+                    source  : '默写本 #' + w[1],
+                    addedAt : T0
+                };
+                if (w[2]) e.phonetic = w[2];
+                if (w[5]) e.collo    = w[5];
+                // 迁移斩的词不带 cutAt / learnAt (每条省 50 字节, 1500 条): 学习
+                // 戳记为 0, 孩子以后在任何一台设备上取消斩 (打 learnAt) 都胜出
+                if (w[4] === 'B') { e.nextReview = T0 + this.CUT_MS; res.cut++; }
+                head.push(e);
+                res.added++;
+            });
+            const tail = nb.filter(e => { const k = _nbWord(e); return !k || !used.has(k); });
+            const out  = head.concat(tail);
+            res.moved  = out.length !== nb.length || out.some((e, i) => e !== nb[i]);
+            res.total  = out.length;
+            if (res.added || res.filled || res.moved) this.saveNotebook(out);
+            return res;
         },
 
         // --- Writing History ---

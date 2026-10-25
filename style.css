@@ -4528,3 +4528,23 @@ html {
         grid-template-columns : repeat(auto-fit, minmax(280px, 1fr));
     }
 }
+
+/* v149 — 斩 (太简单的词移出复习) */
+.mw-cut-btn       { color: var(--text-secondary); }
+.mw-cut-btn:hover { color: var(--accent); border-color: var(--accent); }
+.mw-cut-on {
+    background   : var(--accent-bg);
+    border-color : var(--accent-light);
+    color        : var(--accent-text);
+}
+.mw-quiz-card .mw-card-bottom .mw-card-actions { margin-left: auto; }
+
+/* v149: 筛选多了「✂️ 熟词」, 窄屏等分九个格子会让计数互相压住。改为
+   按内容宽度排开 (有余量时仍然撑满), 放不下就横向滑动。 */
+@media (max-width: 640px) {
+    .mw-filter-pill {
+        flex    : 1 0 auto;
+        padding : 6px 7px;
+    }
+    .mw-filter-pill .mw-fpill-count { font-size: 11px; }
+}

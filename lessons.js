@@ -726,14 +726,18 @@ window.Lessons = (function () {
             const del = isUserLesson(l.id)
                 ? `<button class="ls-card-del" data-del="${esc(l.id)}" title="\u5220\u9664\u8FD9\u8BFE">\u00d7</button>`
                 : '';
+            // v149: \u5361\u7247\u538B\u6210\u4E24\u884C \u2014\u2014 \u6807\u9898 (AI \u77ED\u6587\u53F3\u4FA7\u5E26\u7BC7\u53F7), \u4E0B\u4E00\u884C\u4E2D\u6587\u9898\u76EE
+            // + \u4F53\u88C1 + \u8BCD\u6570 + \u8FDB\u5EA6\u5FBD\u6807\u3002
             const sub = ai
-                ? `${esc(l.id)} \u00b7 ${esc(genreZh(l.genre))} \u00b7 ${wordN} \u4E2A\u76EE\u6807\u8BCD`
+                ? `${esc(l.titleZh || '')} \u00b7 ${esc(genreZh(l.genre))} \u00b7 ${wordN} \u8BCD`
                 : `${esc(l.titleZh || '')} \u00b7 ${wordN} \u8BCD`;
             return `${head}
             <div class="ls-card${ai ? ' ls-card-ai' : ''}" data-lesson="${esc(l.id)}">
                 ${del}
-                <div class="ls-card-title">${esc(l.title)}</div>
-                ${ai && l.titleZh ? `<div class="ls-card-zh">${esc(l.titleZh)}</div>` : ''}
+                <div class="ls-card-row">
+                    <span class="ls-card-title">${esc(l.title)}</span>
+                    ${ai ? `<span class="ls-card-id">${esc(l.id)}</span>` : ''}
+                </div>
                 <div class="ls-card-meta">
                     <span class="ls-card-sub">${sub}</span>
                     ${badges.join('') || '<span class="ls-badge ls-badge-empty">\u672A\u5F00\u59CB</span>'}
@@ -753,57 +757,58 @@ window.Lessons = (function () {
         const trainerBtn = trainerN > 0
             ? `<button class="ls-trainer-btn" id="ls-trainer-go">\u{1F3AF} \u4ECA\u65E5\u7279\u8BAD<span class="ls-trainer-n">${trainerN > 99 ? '99+' : trainerN}</span></button>`
             : '';
+        // v149: \u539F\u6765\u7684\u300C\u5927\u6807\u9898 + \u8BF4\u660E + \u65F6\u957F\u5361 + \u7EFC\u5408\u7EC3\u4E60\u5361\u300D\u56DB\u5757\u5408\u6210\u4E24\u884C:
+        //   \u7B2C\u4E00\u884C \u6765\u6E90\u5207\u6362 + \u53F3\u4FA7\u5C0F\u6309\u94AE; \u7B2C\u4E8C\u884C\u4E00\u6761\u7EC3\u4E60\u6761 (\u65F6\u957F\u3001\u7EFC\u5408\u7EC3\u4E60
+        //   \u8FDB\u5EA6\u3001\u7EFC\u5408\u586B\u7A7A / \u7EFC\u5408\u77ED\u8BED / \u4ECA\u65E5\u7279\u8BAD), \u8BFE\u7A0B\u5217\u8868\u7D27\u63A5\u7740\u51FA\u73B0\u3002
         const timeTxt = (ts.todaySec > 0 || ts.weekSec > 0)
             ? `\u23F1 ${ts.todaySec > 0
-                  ? '\u4ECA\u5929\u5DF2\u5B66 <b>' + Math.ceil(ts.todaySec / 60) + ' \u5206\u949F</b> \u00b7 \u672C\u5468\u5171 <b>' + Math.ceil(ts.weekSec / 60) + ' \u5206\u949F</b>'
-                  : '\u672C\u5468\u5DF2\u5B66 <b>' + Math.ceil(ts.weekSec / 60) + ' \u5206\u949F</b>'}`
+                  ? '\u4ECA\u5929 <b>' + Math.ceil(ts.todaySec / 60) + '</b> \u5206\u949F \u00b7 \u672C\u5468 <b>' + Math.ceil(ts.weekSec / 60) + '</b> \u5206\u949F'
+                  : '\u672C\u5468\u5DF2\u5B66 <b>' + Math.ceil(ts.weekSec / 60) + '</b> \u5206\u949F'}`
             : '';
-        const timeCard = (timeTxt || trainerBtn)
-            ? `<div class="ls-time-card"><span>${timeTxt}</span>${trainerBtn}</div>`
+        const wrongTxt = (n) => n ? `<span class="ls-dash-wrong">\u5F85\u5F3A\u5316 ${n}</span>` : '';
+        const hasMixed = !!(ms.w.total || ms.p.total);
+        const mixedTxt = hasMixed
+            ? `<span class="ls-dash-pool" title="${ai ? '\u4ECE\u5168\u90E8 AI \u77ED\u6587\u62BD\u9898' : '\u4ECE\u5168\u90E8\u8BFE\u7A0B\u62BD\u9898'}">\u{1F4CA} \u7EFC\u5408\u7EC3\u4E60</span>`
+            + ` \u8BCD\u6C47 ${ms.w.seen}/${ms.w.total}${wrongTxt(ms.w.wrong)}`
+            + ` \u00b7 \u77ED\u8BED ${ms.p.seen}/${ms.p.total}${wrongTxt(ms.p.wrong)}`
             : '';
-        const mixed = (ms.w.total || ms.p.total) ? `
-            <div class="ls-mixed-card">
-                <div class="ls-mixed-title">\u{1F4CA} \u7EFC\u5408\u7EC3\u4E60<span class="ls-mixed-tag">${ai ? '\u5168\u90E8 AI \u77ED\u6587' : '\u5168\u90E8\u8BFE\u7A0B'}</span></div>
-                <div class="ls-mixed-stat">\u8BCD\u6C47 \u5DF2\u7EC3 ${ms.w.seen}/${ms.w.total}\uFF0C\u5F85\u5F3A\u5316 ${ms.w.wrong}
-                    \u00b7 \u77ED\u8BED \u5DF2\u7EC3 ${ms.p.seen}/${ms.p.total}\uFF0C\u5F85\u5F3A\u5316 ${ms.p.wrong}</div>
-                <div class="ls-mixed-btns">
-                    <button class="wl-btn-primary"   id="ls-mixed-cloze">\u270F\uFE0F \u7EFC\u5408\u586B\u7A7A</button>
-                    <button class="wl-btn-secondary" id="ls-mixed-match">\u{1F517} \u7EFC\u5408\u77ED\u8BED</button>
-                </div>
-            </div>` : '';
-        const nBook = bookLessons().length;
-        const nAi   = storyLessons().length;
-        const seg   = `
-                <div class="ls-src-seg" role="tablist">
-                    <button class="ls-src-btn${ai ? '' : ' on'}" data-src="book" role="tab" aria-selected="${!ai}">\u{1F4D8} \u6559\u6750\u8BFE\u6587 <span class="ls-src-n">${nBook}</span></button>
-                    <button class="ls-src-btn${ai ? ' on' : ''}" data-src="ai" role="tab" aria-selected="${ai}">\u2728 AI \u77ED\u6587 <span class="ls-src-n">${nAi}</span></button>
-                </div>`;
+        const dashStat = [timeTxt, mixedTxt].filter(Boolean).join('<span class="ls-dash-sep"></span>');
+        // \u4ECA\u65E5\u7279\u8BAD\u5728\u573A\u65F6\u5B83\u662F\u552F\u4E00\u7684\u5B9E\u5FC3\u6309\u94AE, \u7EFC\u5408\u586B\u7A7A\u9000\u4E3A\u63CF\u8FB9
+        const dashBtns = (hasMixed ? `
+                        <button class="ls-dash-btn${trainerBtn ? '' : ' ls-dash-main'}" id="ls-mixed-cloze">\u270F\uFE0F \u7EFC\u5408\u586B\u7A7A</button>
+                        <button class="ls-dash-btn" id="ls-mixed-match">\u{1F517} \u7EFC\u5408\u77ED\u8BED</button>` : '')
+            + trainerBtn;
+        const dash = (dashStat || dashBtns) ? `
+                <div class="ls-dash${hasMixed ? ' ls-mixed-card' : ''}">
+                    <div class="ls-dash-stat">${dashStat}</div>
+                    <div class="ls-dash-btns">${dashBtns}</div>
+                </div>` : '';
+        const nBook  = bookLessons().length;
+        const nAi    = storyLessons().length;
         const aiRead = ai ? list.filter(l => (prog[l.id] || {}).listened).length : 0;
-        const head = ai ? `
-                <div class="ls-home-head">
-                    <div>
-                        <div class="ls-home-title">AI \u77ED\u6587</div>
-                        <div class="ls-home-sub">\u6309 3500 \u8BCD\u9ED8\u5199\u672C\u7684\u5B57\u6BCD\u987A\u5E8F\u7F16\u5199\uFF0C\u6BCF\u7BC7 20 \u4E2A\u4EE5\u4E0A\u76EE\u6807\u8BCD\u3002\u70B9\u4EFB\u610F\u8BCD\u67E5\u8BCD\uFF0C\u4E00\u7BC7\u4E00\u4E2A\u6717\u8BFB\u8005\u3002${nAi ? '\u5DF2\u542C\u8BFB ' + aiRead + '/' + nAi + ' \u7BC7\u3002' : ''}</div>
+        const action = ai
+            ? `<button class="ls-top-btn" id="ls-stories-check" title="\u68C0\u67E5\u65B0\u77ED\u6587">\u21BB<span class="ls-top-btn-label"> \u68C0\u67E5\u66F4\u65B0</span></button>`
+            : `<button class="ls-top-btn" id="ls-import-open" title="\u5BFC\u5165\u8BFE\u6587">\uFF0B<span class="ls-top-btn-label"> \u5BFC\u5165\u8BFE\u6587</span></button>`;
+        const subTxt = ai
+            ? `\u6309 3500 \u8BCD\u9ED8\u5199\u672C\u5B57\u6BCD\u987A\u5E8F \u00b7 \u70B9\u4EFB\u610F\u8BCD\u67E5\u8BCD${nAi ? ' \u00b7 \u5DF2\u542C\u8BFB ' + aiRead + '/' + nAi : ''}`
+            : '\u542C\u8BFB \u2192 \u70B9\u8BCD \u2192 \u586B\u7A7A \u2192 \u77ED\u8BED';
+        const top = `
+                <div class="ls-home-top">
+                    <div class="ls-src-seg" role="tablist">
+                        <button class="ls-src-btn${ai ? '' : ' on'}" data-src="book" role="tab" aria-selected="${!ai}">\u{1F4D8} \u6559\u6750\u8BFE\u6587 <span class="ls-src-n">${nBook}</span></button>
+                        <button class="ls-src-btn${ai ? ' on' : ''}" data-src="ai" role="tab" aria-selected="${ai}">\u2728 AI \u77ED\u6587 <span class="ls-src-n">${nAi}</span></button>
                     </div>
-                    <button class="wl-btn-secondary ls-import-btn" id="ls-stories-check">\u21BB \u68C0\u67E5\u65B0\u77ED\u6587</button>
-                </div>` : `
-                <div class="ls-home-head">
-                    <div>
-                        <div class="ls-home-title">\u8BFE\u6587\u7CBE\u8BFB</div>
-                        <div class="ls-home-sub">\u542C\u8BFB \u2192 \u70B9\u8BCD \u2192 \u586B\u7A7A \u2192 \u77ED\u8BED\uFF0C\u4E00\u8BFE\u56DB\u6B65\u5403\u900F\u8BFE\u6587\u8BCD\u6C47\u3002</div>
-                    </div>
-                    <button class="wl-btn-secondary ls-import-btn" id="ls-import-open">\uFF0B \u5BFC\u5165\u8BFE\u6587</button>
+                    <span class="ls-home-sub">${subTxt}</span>
+                    ${action}
                 </div>`;
         const empty = ai
-            ? '<div class="ls-empty">\u8FD8\u6CA1\u6709 AI \u77ED\u6587\u3002\u8054\u7F51\u540E\u4F1A\u81EA\u52A8\u83B7\u53D6\uFF0C\u4E5F\u53EF\u4EE5\u70B9\u53F3\u4E0A\u89D2\u300C\u68C0\u67E5\u65B0\u77ED\u6587\u300D\u3002</div>'
+            ? '<div class="ls-empty">\u8FD8\u6CA1\u6709 AI \u77ED\u6587\u3002\u8054\u7F51\u540E\u4F1A\u81EA\u52A8\u83B7\u53D6\uFF0C\u4E5F\u53EF\u4EE5\u70B9\u53F3\u4E0A\u89D2\u300C\u21BB\u300D\u68C0\u67E5\u66F4\u65B0\u3002</div>'
             : '<div class="ls-empty">\u6682\u65E0\u8BFE\u6587\u3002</div>';
         root.innerHTML = `
             <div class="ls-home">
-                ${seg}
-                ${head}
-                ${timeCard}
-                ${mixed}
-                <div class="ls-card-list">${cards || empty}</div>
+                ${top}
+                ${dash}
+                <div class="ls-card-list${ai ? ' ls-card-list-ai' : ''}">${cards || empty}</div>
             </div>
             <div class="ls-sheet-overlay" id="ls-import-overlay">
                 <div class="ls-sheet ls-import-sheet" id="ls-import-sheet"></div>
@@ -822,25 +827,28 @@ window.Lessons = (function () {
         matchState = null;
         mixedKind  = null;
         try { window.DB?.setPref?.('lesson_last', id); } catch (e) {}
+        // v149: \u9875\u5934\u4E0E\u4E09\u6B65\u5207\u6362\u5E76\u6210\u4E00\u884C (\u5BBD\u5C4F), \u7A84\u5C4F\u4E24\u884C\u4F46\u90FD\u538B\u4F4E\u3002
         root.innerHTML = `
             <div class="ls-lesson">
-                <div class="ls-head">
-                    <button class="ls-back" id="ls-back" title="${isStory(l) ? '\u5168\u90E8\u77ED\u6587' : '\u5168\u90E8\u8BFE\u6587'}">${ICON_BACK}</button>
-                    <div class="ls-head-text">
-                        <button class="ls-head-switch" id="ls-lesson-switch" title="${isStory(l) ? '\u5207\u6362\u77ED\u6587' : '\u5207\u6362\u8BFE\u6587'}">
-                            <span class="ls-head-title">${esc(l.title)}</span>
-                            <span class="ls-switch-caret">\u25BE</span>
-                        </button>
-                        <div class="ls-head-sub">${isStory(l) ? esc(l.id) + ' \u00b7 ' + esc(genreZh(l.genre)) + ' \u00b7 ' : ''}${esc(l.titleZh || '')}</div>
+                <div class="ls-top">
+                    <div class="ls-head">
+                        <button class="ls-back" id="ls-back" title="${isStory(l) ? '\u5168\u90E8\u77ED\u6587' : '\u5168\u90E8\u8BFE\u6587'}">${ICON_BACK}</button>
+                        <div class="ls-head-text">
+                            <button class="ls-head-switch" id="ls-lesson-switch" title="${isStory(l) ? '\u5207\u6362\u77ED\u6587' : '\u5207\u6362\u8BFE\u6587'}">
+                                <span class="ls-head-title">${esc(l.title)}</span>
+                                <span class="ls-switch-caret">\u25BE</span>
+                            </button>
+                            <div class="ls-head-sub">${isStory(l) ? esc(l.id) + ' \u00b7 ' + esc(genreZh(l.genre)) + ' \u00b7 ' : ''}${esc(l.titleZh || '')}</div>
+                        </div>
+                        <div class="ls-head-prog" id="ls-head-prog"></div>
                     </div>
-                    <div class="ls-head-prog" id="ls-head-prog"></div>
+                    <div class="ls-tabs">
+                        <button class="ls-tab" data-lstab="read">\u{1F4D6} ${isStory(l) ? '\u77ED\u6587' : '\u8BFE\u6587'}</button>
+                        <button class="ls-tab" data-lstab="cloze">\u270F\uFE0F \u586B\u7A7A</button>
+                        <button class="ls-tab" data-lstab="phrases">\u{1F517} \u77ED\u8BED</button>
+                    </div>
                 </div>
                 <div class="ls-switch-menu" id="ls-switch-menu">${switchMenuHtml(l.id)}</div>
-                <div class="ls-tabs">
-                    <button class="ls-tab" data-lstab="read">\u{1F4D6} ${isStory(l) ? '\u77ED\u6587' : '\u8BFE\u6587'}</button>
-                    <button class="ls-tab" data-lstab="cloze">\u270F\uFE0F \u586B\u7A7A</button>
-                    <button class="ls-tab" data-lstab="phrases">\u{1F517} \u77ED\u8BED</button>
-                </div>
                 <div class="ls-panel" id="ls-panel"></div>
             </div>`;
         renderHeaderProgress();
@@ -1008,8 +1016,7 @@ window.Lessons = (function () {
             btn.classList.toggle('on', v === 'lookup');
             btn.textContent = v === 'lookup' ? '\u{1F50D} \u70B9\u8BCD\u67E5\u8BCD' : '\u{1F442} \u70B9\u53E5\u542C\u53E5';
         }
-        const hint = root.querySelector('.ls-read-hint');
-        if (hint) hint.textContent = readHint(v);
+        root.querySelectorAll('.ls-read-hint').forEach(h => { h.textContent = readHint(v); });
     }
     function readHint(mode) {
         const hasZh = (curLesson.paras || []).some(p => p.zh);
@@ -1044,9 +1051,10 @@ window.Lessons = (function () {
                     ${hasZh ? '<button class="ls-tool-btn" id="ls-read-zh-all" title="\u663E\u793A/\u9690\u85CF\u5168\u90E8\u8BD1\u6587">\u8BD1\u6587</button>' : ''}
                     ${needZhFix ? '<button class="ls-tool-btn ls-zhfix-open" id="ls-zh-fix" title="\u7ED9\u672C\u8BFE\u8865\u5168\u53E5\u7EA7\u4E2D\u6587\u8BD1\u6587">\u{1F310} \u8865\u53E5\u8BD1</button>' : ''}
                     <button class="ls-tool-btn${mode === 'lookup' ? ' on' : ''}" id="ls-tapmode" title="\u5207\u6362: \u70B9\u8BCD\u67E5\u8BCD / \u70B9\u53E5\u542C\u53E5">${mode === 'lookup' ? '\u{1F50D} \u70B9\u8BCD\u67E5\u8BCD' : '\u{1F442} \u70B9\u53E5\u542C\u53E5'}</button>
-                    <span class="ls-read-hint">${esc(readHint(mode))}</span>
+                    <span class="ls-read-hint ls-read-hint-bar">${esc(readHint(mode))}</span>
                 </div>
                 <div class="ls-text${mode === 'lookup' ? ' ls-tap-lookup' : ''}">${paras}</div>
+                <div class="ls-read-hint ls-read-hint-foot">${esc(readHint(mode))}</div>
             </div>
             <div class="ls-sheet-overlay" id="ls-sheet-overlay">
                 <div class="ls-sheet" id="ls-sheet"></div>
@@ -1153,11 +1161,24 @@ window.Lessons = (function () {
             : `<div class="ls-sheet-zh ls-sheet-miss">${isName
                 ? '\u4E13\u6709\u540D\u8BCD (\u4EBA\u540D\u3001\u5730\u540D\u7B49)\uFF0C\u8BCD\u5E93\u4E0D\u6536\u5F55\u3002'
                 : '\u7EDF\u4E00\u8BCD\u5E93\u548C\u79BB\u7EBF\u8BCD\u5178\u90FD\u6CA1\u6709\u8FD9\u4E2A\u8BCD\u3002'}</div>`;
+        // v149: 3500 \u8BCD\u5DF2\u6574\u672C\u5E76\u5165\u5355\u8BCD\u672C, \u6309\u8BCD\u6761\u73B0\u72B6\u7ED9\u6309\u94AE: \u5DF2\u5728\u672C\u91CC \u2192 \u8BB0\u4E0B
+        // \u8FD9\u53E5\u4F8B\u53E5 (\u53EA\u8865\u7A7A\u5B57\u6BB5); \u5DF2\u65A9\u7684\u719F\u8BCD \u2192 \u53D6\u6D88\u65A9\u5E76\u52A0\u5165\u590D\u4E60; \u4E0D\u5728\u672C\u91CC\u7684
+        // \u975E\u57FA\u7840\u8BCD \u2192 \u52A0\u5165\u5355\u8BCD\u672C\u3002
         const canAdd = hit && hit.level !== 'B';
+        let   nbE    = null;
+        try {
+            const hk = String(hit ? hit.head : '').trim().toLowerCase();
+            nbE = hk ? (window.DB?.loadNotebook?.() || []).find(w => String(w.word || '').trim().toLowerCase() === hk) : null;
+        } catch (e) { nbE = null; }
+        if (_lookup) _lookup.cut = !!(nbE && window.DB?.isCut?.(nbE));
         const foot   = !hit ? ''
+            : nbE && _lookup.cut
+                ? `<button class="wl-btn-secondary ls-sheet-add" id="ls-lookup-add">\u21A9\uFE0E \u719F\u8BCD\uFF1A\u53D6\u6D88\u65A9\uFF0C\u52A0\u5165\u590D\u4E60</button>`
+            : nbE
+                ? `<button class="wl-btn-secondary ls-sheet-add" id="ls-lookup-add">\u{1F4CC} \u5DF2\u5728\u5355\u8BCD\u672C \u00B7 \u8BB0\u4E0B\u8FD9\u53E5\u4F8B\u53E5</button>`
             : canAdd
-                ? `<button class="wl-btn-primary ls-sheet-add" id="ls-lookup-add">\u2795 \u52A0\u5165\u751F\u8BCD\u672C</button>`
-                : `<div class="ls-sheet-note">\u57FA\u7840\u8BCD\uFF0C\u4E0D\u8FDB\u751F\u8BCD\u672C\u3002</div>`;
+                ? `<button class="wl-btn-primary ls-sheet-add" id="ls-lookup-add">\u2795 \u52A0\u5165\u5355\u8BCD\u672C</button>`
+                : `<div class="ls-sheet-note">\u57FA\u7840\u8BCD\uFF0C\u4E0D\u8FDB\u5355\u8BCD\u672C\u3002</div>`;
         sheet.innerHTML = `
             <div class="ls-sheet-head">
                 <div class="ls-sheet-word">${esc(head)}
@@ -1192,8 +1213,12 @@ window.Lessons = (function () {
             source  : lesson ? ((isStory(lesson) ? 'AI \u77ED\u6587 ' : '\u8BFE\u6587 ') + lesson.id + ' ' + lesson.title) : '',
             tags    : [isStory(lesson) ? 'AI\u77ED\u6587' : '\u8BFE\u6587'].concat(lesson ? [lesson.id] : [])
         }, { fillOnly: true });
+        // v149: \u719F\u8BCD (\u5DF2\u65A9) \u53D6\u6D88\u65A9, \u56DE\u5230\u590D\u4E60
+        if (x.cut) { try { window.DB.setCut?.(x.head, false); } catch (e) {} }
         window.App?.updateNotebookBadge?.();
-        toast('\u{1F4D6} \u5DF2\u52A0\u5165\u751F\u8BCD\u672C: ' + x.head);
+        toast(x.cut ? '\u21A9\uFE0E \u5DF2\u53D6\u6D88\u65A9, \u52A0\u5165\u590D\u4E60: ' + x.head
+                    : '\u{1F4D6} \u5DF2\u8BB0\u5165\u5355\u8BCD\u672C: ' + x.head);
+        x.cut = false;
     }
 
     function addWordToNotebook(w, silent) {
