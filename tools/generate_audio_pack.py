@@ -29,6 +29,16 @@ passage's target words, their text forms and phrases are synthesised like
 word-list entries (every voice for a short entry). Passages need no export
 from the app: committing stories/ is enough.
 
+DICTATION BOOK (v150)
+---------------------
+Every headword of the 3500-word dictation book (lexicon-3500.js, entries
+with a book number) that neither the word list nor a passage already covers
+is synthesised ONCE, in the first configured voice, into its own "k-<letter>"
+shards. That is mostly the ~1500 "very easy" words, which are never passage
+targets but are dictated when the child practises a whole book page. Own
+shards keep the existing w-/s- shards byte-identical, so a device only
+downloads the new ones (about 10 MB). No export from the app is needed.
+
 SLIMMING (v148)
 ---------------
 OpenAI returns 128 kbps MP3 with about 1.5 s of trailing silence on a single
@@ -202,6 +212,8 @@ SCRIPT_DIR  = os.path.dirname(os.path.abspath(__file__)) if "__file__" in global
 ROOT_DIR    = os.path.abspath(os.path.join(SCRIPT_DIR, ".."))
 WORDLIST    = os.environ.get("PACK_WORDLIST") or os.path.join(SCRIPT_DIR, "wordlist.txt")
 STORIES_DIR = os.environ.get("PACK_STORIES_DIR") or os.path.join(ROOT_DIR, "stories")
+# "none" switches the dictation book off (tests); unset reads the repo copy
+LEXICON     = os.environ.get("PACK_LEXICON") or os.path.join(ROOT_DIR, "lexicon-3500.js")
 DIST_DIR    = os.environ.get("PACK_DIST_DIR") or os.path.join(SCRIPT_DIR, "dist")
 PREV_DIR    = os.environ.get("PACK_PREV_DIR", "").strip()
 FAKE_TTS    = os.environ.get("PACK_FAKE_TTS", "") == "1"
@@ -414,6 +426,31 @@ def read_stories(stories_dir):
     return out
 
 
+# --- Dictation book (v150) ------------------------------------------------
+
+def read_lexicon(path):
+    """Headwords of the dictation book, in book order (lexicon-3500.js).
+
+    Only entries with a book number (> 0) count; the high-school extras
+    without one are covered by the word list. Returns normalised texts.
+    """
+    if not path or path == "none" or not os.path.exists(path):
+        return []
+    txt = open(path, encoding="utf-8").read()
+    m   = re.search(r"HSV_LEXICON\s*=\s*(\{.*\})\s*;\s*$", txt, re.S)
+    if not m:
+        print("[lexicon] ! %s: no HSV_LEXICON object found; skipped" % path)
+        return []
+    words = json.loads(m.group(1)).get("words", [])
+    out, seen = [], set()
+    for w in sorted((x for x in words if len(x) > 1 and (x[1] or 0) > 0), key=lambda x: x[1]):
+        e = _norm_entry(w[0])
+        if e and e not in seen:
+            seen.add(e)
+            out.append(e)
+    return out
+
+
 # --- Shard assignment ------------------------------------------------------
 
 def shard_for_block(label, entry):
@@ -423,6 +460,12 @@ def shard_for_block(label, entry):
         return "l-%d" % (zlib.crc32(entry.encode("utf-8")) % LESSON_BUCKETS)
     c = (label or entry)[:1]
     return "w-" + (c if "a" <= c <= "z" else "0")
+
+
+def shard_for_lexicon(entry):
+    """Dictation-book words not covered elsewhere: k-a ... k-z, k-0."""
+    c = entry[:1]
+    return "k-" + (c if "a" <= c <= "z" else "0")
 
 
 def shard_for_story(story_id):
@@ -451,13 +494,14 @@ def voices_for(entry, voices):
     return voices[:max(1, LONG_ENTRY_VOICES)]
 
 
-def plan_clips(blocks, stories, voices):
+def plan_clips(blocks, stories, voices, lexicon=None):
     """Every clip the pack should hold.
 
     Returns {(text, voice): {"shard", "kind", "block"}} in a stable order.
     "kind" picks the TTS instructions ("word" or "story"); "block" is the
-    word-list index (None for passages), which --range filters on. A text
-    claimed twice keeps its first assignment: word list before passages.
+    word-list index (None for passages and the dictation book), which
+    --range filters on. A text claimed twice keeps its first assignment:
+    word list, then passages, then the dictation book.
     """
     plan = {}
     for b in blocks:
@@ -479,6 +523,13 @@ def plan_clips(blocks, stories, voices):
             if any((t, v) in plan for v in voices + [narrator]):
                 continue
             plan.setdefault((t, narrator), {"shard": shard, "kind": "word", "block": None})
+    # v150: dictation-book words nobody else covers, once, in the first voice
+    planned = {t for t, _ in plan}
+    for t in (lexicon or []):
+        if t in planned:
+            continue
+        planned.add(t)
+        plan.setdefault((t, voices[0]), {"shard": shard_for_lexicon(t), "kind": "word", "block": None})
     return plan
 
 
@@ -1023,7 +1074,8 @@ def run_build(dry_run=False, limit=0, cli_range=None):
     cfg     = read_pack_config(WORDLIST)
     voices  = cfg.get("voices") or VOICES
     stories = read_stories(STORIES_DIR)
-    plan    = plan_clips(blocks, stories, voices)
+    lexicon = read_lexicon(LEXICON)
+    plan    = plan_clips(blocks, stories, voices, lexicon)
     # The index lists every voice a clip can be in, narrators included, so
     # the app's per-word voice lookup finds passage audio too.
     all_voices = list(voices) + sorted({v for _, v in plan} - set(voices))
@@ -1034,6 +1086,9 @@ def run_build(dry_run=False, limit=0, cli_range=None):
           % (len(blocks), idx_lo, idx_hi, sum(len(b["entries"]) for b in blocks), WORDLIST))
     print("[stories] %d passage(s), %d sentence(s) in %s"
           % (len(stories), sum(len(s["sentences"]) for s in stories), STORIES_DIR))
+    n_lex = sum(1 for p in plan.values() if p["shard"].startswith("k-"))
+    print("[lexicon] %d dictation-book word(s), %d not covered elsewhere (1 voice) in %s"
+          % (len(lexicon), n_lex, LEXICON))
     print("[voices] %s  (%s)" % (", ".join(voices),
           "from word list" if cfg.get("voices") else "default"))
     print("[plan] %d clip(s) wanted in %d shard(s)"
@@ -1218,6 +1273,12 @@ def run_selftest():
     assert shard_for_block(LESSON_LABEL, "according to").startswith("l-")
     assert shard_for_story("S0001") == "s-0001" and shard_for_story("S0010") == "s-0001"
     assert shard_for_story("S0011") == "s-0011"
+    assert shard_for_lexicon("advertisement") == "k-a" and shard_for_lexicon("3d") == "k-0"
+    _p = plan_clips([{"label": "apple", "index": 1, "entries": ["apple"]}], [], ["ash", "nova"],
+                    ["apple", "lemonade", "lemonade"])
+    assert ("apple", "ash") in _p and _p[("apple", "ash")]["shard"] == "w-a"      # word list wins
+    assert ("lemonade", "ash") in _p and ("lemonade", "nova") not in _p          # one voice only
+    assert _p[("lemonade", "ash")]["shard"] == "k-l"
     plan = plan_clips([{"index": 1, "label": "abandon",
                         "entries": ["abandon", "they had to abandon the car in the snow and walk home."]}],
                       [{"id": "S0001", "narrator": "coral",

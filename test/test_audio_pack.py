@@ -88,7 +88,8 @@ open(os.path.join(prev, 'vocabpeak-audio-pack.empack'), 'wb').write(legacy_pack(
 
 def run(dist, prev_dir, extra=None, env_extra=None):
     env = dict(os.environ, PACK_WORDLIST=wl, PACK_STORIES_DIR=sto, PACK_DIST_DIR=dist,
-               PACK_PREV_DIR=prev_dir, PACK_FAKE_TTS='1', GITHUB_REPOSITORY='', **(env_extra or {}))
+               PACK_PREV_DIR=prev_dir, PACK_FAKE_TTS='1', GITHUB_REPOSITORY='', PACK_LEXICON='none')
+    env.update(env_extra or {})
     env.pop('OPENAI_API_KEY', None)
     r = subprocess.run([sys.executable, '-I', GEN] + (extra or []), env=env, capture_output=True, text=True)
     return r
@@ -216,6 +217,37 @@ check(r.returncode != 0 and '[guard]' in (r.stdout + r.stderr) and not os.path.e
       '一次删掉大半片段: 中止, 不写发布目录')
 r = run(d9, d5, env_extra={'PACK_ALLOW_DROP': '1', 'PACK_DROP_GUARD_MIN': '0'})
 check(r.returncode == 0, 'PACK_ALLOW_DROP=1 时允许')
+
+# %% v150 默写本: 单词表和短文都没覆盖的默写本词, 单音色进自己的 k- 分片
+print('默写本 (v150)')
+open(wl, 'w').write(WORDLIST_1)
+lex = os.path.join(tmp, 'lexicon-3500.js')
+open(lex, 'w', encoding='utf-8').write('// test\nwindow.HSV_LEXICON = ' + json.dumps({'words': [
+    ['abandon', 2, '', '放弃', 'H', ''],          # 单词表里有
+    ['accept', 30, '', '接受', 'H', ''],          # 短文目标词
+    ['lemonade', 1973, '', '柠檬水', 'B', ''],    # 新: 熟词
+    ['Lost and Found', 2101, '', '失物招领', 'B', ''],
+    ['lemonade', 1974, '', '重复条目', 'B', ''],
+    ['blockchain', 0, '', '不在默写本', 'X', '']]}, ensure_ascii=False) + ';\n')
+d10 = os.path.join(tmp, 'd10')
+r   = run(d10, d1, env_extra={'PACK_LEXICON': lex})
+check(r.returncode == 0 and '2 not covered elsewhere' in r.stdout, '只补单词表和短文都没覆盖的 2 个词', r.stdout[-500:])
+idx10, clips10 = read_shards(d10)
+check(clips10.get(('lemonade', 'ash'), {}).get('shard') == 'k-l' and ('lemonade', 'nova') not in clips10,
+      '熟词只合成第一个音色, 进 k-l 分片')
+check(('lost and found', 'ash') in clips10, '词组规范化后入包')
+check(clips10[('abandon', 'ash')]['shard'] == 'w-a' and not any(k[0] == 'accept' and v['shard'].startswith('k-') for k, v in clips10.items()),
+      '已覆盖的词不重复合成')
+check(not any(k[0] == 'blockchain' for k in clips10), '没有默写本序号的词不进')
+f1  = {sh['id']: sh['file'] for sh in json.load(open(os.path.join(d1, 'vocabpeak-audio-pack.index.json')))['shards']}
+f10 = {sh['id']: sh['file'] for sh in idx10['shards']}
+check(all(f10.get(k) == v for k, v in f1.items()) and set(f10) - set(f1) == {'k-l'},
+      '原有分片逐字不变, 只多出 k-l (设备只需下载新分片)', sorted(set(f10) - set(f1)))
+d11 = os.path.join(tmp, 'd11')
+r   = run(d11, d10, env_extra={'PACK_LEXICON': lex})
+check(r.returncode == 0 and '0 to synthesise' in r.stdout, '再跑一次: 不重复合成')
+r   = run(os.path.join(tmp, 'd12'), d10)
+check(r.returncode == 0, '关掉默写本 (PACK_LEXICON=none) 时少掉的 2 个片段在删减保护线内')
 
 shutil.rmtree(tmp, ignore_errors=True)
 print('\n通过 %d 项, 失败 %d 项' % (ok, bad))

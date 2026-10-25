@@ -34,7 +34,8 @@ fs.writeFileSync(path.join(STO, 'stories-manifest.json'),
 function build(dist, prev, extra) {
     const env = Object.assign({}, process.env, {
         PACK_WORDLIST: WL, PACK_STORIES_DIR: STO, PACK_DIST_DIR: dist,
-        PACK_PREV_DIR: prev || path.join(TMP, 'none'), PACK_FAKE_TTS: '1', GITHUB_REPOSITORY: '' }, extra || {});
+        PACK_PREV_DIR: prev || path.join(TMP, 'none'), PACK_FAKE_TTS: '1', GITHUB_REPOSITORY: '',
+        PACK_LEXICON: 'none' }, extra || {});   // v150: 默写本补词另有 test_audio_pack 覆盖
     const r = spawnSync('python3', ['-I', GEN], { env, encoding: 'utf8' });
     if (r.status !== 0) throw new Error('generator failed: ' + r.stdout + r.stderr);
     return JSON.parse(fs.readFileSync(path.join(dist, 'vocabpeak-audio-pack.index.json'), 'utf8'));

@@ -2,7 +2,10 @@
 # Build audio pack — 增量合成发音包, 分片发布到 Release (audio-pack)
 #
 # 触发: 手动 (Actions -> Build audio pack -> Run workflow),
-#       或 push 改动了词表 / AI 短文 / 生成器。
+#       或 push 改动了词表 / AI 短文 / 统一词库 / 生成器。
+# 内容: 单词表 (App 导出) 全部音色; AI 短文句子 (朗读者) 与目标词;
+#       v150 起默写本 3500 词里前两者都没覆盖的 (约 1200 个熟词),
+#       单音色放进 k-* 分片, 不用导出单词表。
 # 前置: 仓库 Secret OPENAI_API_KEY (Settings -> Secrets and
 #       variables -> Actions); Workflow permissions 为
 #       Read and write (本文件的 permissions 也声明了写权限)。
@@ -39,6 +42,7 @@ on:
       - 'tools/wordlist.txt'
       - 'tools/generate_audio_pack.py'
       - 'stories/**'
+      - 'lexicon-3500.js'          # v150: 默写本词 (单词表和短文都没覆盖的, 单音色)
 
 permissions:
   contents: write
