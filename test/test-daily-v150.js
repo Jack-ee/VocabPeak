@@ -69,6 +69,7 @@ async function fresh(browser, base, seed, vp) {
     return { ctx, page, errors, info };
 }
 const stage = (page) => page.locator('#dl-stage').innerText();
+const curWord = (page) => page.evaluate(() => (document.querySelector('.dl-word')?.childNodes[0]?.textContent || '').trim());
 const nbOf  = (page, w) => page.evaluate((x) => DB.loadNotebook().find(e => e.word === x), w);
 
 srv.listen(0, async () => {
@@ -154,11 +155,11 @@ srv.listen(0, async () => {
             const w0  = await page.locator('.dl-word').innerText();
             const b0  = await nbOf(page, plan.rev[0]);
             await page.click('.dl-opt[data-ok="0"]');
-            await page.waitForSelector('#dl-next');
+            await page.waitForSelector('#dl-fwd.main');
             const a0 = await nbOf(page, plan.rev[0]);
             ok(w0.indexOf(plan.rev[0]) === 0 && a0.srsLevel === 0 && a0.reviewCount === (b0.reviewCount || 0) + 1 && a0.wrongCount === 1
                && a0.focus.includes('weak'), '答错: SRS 归零、记一次错、打薄弱', JSON.stringify({ l: a0.srsLevel, rc: a0.reviewCount, wc: a0.wrongCount }));
-            await page.click('#dl-next');
+            await page.click('#dl-fwd');
             // 其余答对, 直到「再考一次」
             let again = false;
             for (let k = 0; k < 30 && (await stage(page)) === '复习'; k++) {
@@ -178,13 +179,13 @@ srv.listen(0, async () => {
             await page.click('#dl-cut');
             ok(await page.evaluate((w) => DB.isCut(DB.loadNotebook().find(e => e.word === w)), firstNew), '「太简单，斩」进熟词');
             let cards = 0;
-            while (await page.locator('#dl-got').count()) { await page.click('#dl-got'); cards++; await page.waitForTimeout(40); }
+            while ((await stage(page)) === '新词' && cards < 20) { await page.click('#dl-fwd'); cards++; await page.waitForTimeout(40); }
             ok(cards === 10, '斩掉一个补一个: 还是 10 张卡', cards);
             ok(await stage(page) === '自测', '看完卡片进入自测');
             let n = 0;
             while ((await stage(page)) === '自测' && n < 20) {
                 await page.click(n === 0 ? '.dl-opt[data-ok="0"]' : '.dl-opt[data-ok="1"]');
-                if (n === 0) { await page.waitForSelector('#dl-next'); await page.click('#dl-next'); }
+                if (n === 0) { await page.waitForSelector('#dl-fwd.main'); await page.click('#dl-fwd'); }
                 else await page.waitForTimeout(700);
                 n++;
             }
@@ -248,6 +249,105 @@ srv.listen(0, async () => {
             await ctx.close();
         }
 
+        sec('上一个 / 下一个 / 返回 (v150b)');
+        {
+            const { ctx, page, errors } = await fresh(browser, base, seedKid);
+            await page.click('#dl-start');
+            ok(/返回/.test(await page.locator('#dl-close').innerText()), '左上角「‹ 返回」');
+            ok(await page.locator('#dl-prev').isDisabled() && /跳过/.test(await page.locator('#dl-fwd').innerText()),
+               '第一题: 「上一个」不可用, 「下一个」是跳过');
+            const w1 = (await curWord(page));
+            await page.click('.dl-opt[data-ok="1"]');
+            await page.waitForTimeout(800);
+            const w2 = (await curWord(page));
+            ok(w2 !== w1 && !(await page.locator('#dl-prev').isDisabled()), '答对进下一题, 「上一个」可用');
+            await page.click('#dl-prev');
+            const rv = await page.evaluate(() => ({
+                tag : document.querySelector('.dl-tag-review')?.textContent || '',
+                cnt : document.getElementById('dl-count').textContent,
+                dis : [...document.querySelectorAll('#dl-body .dl-opt')].every(b => b.disabled),
+                ok  : document.querySelectorAll('#dl-body .dl-opt.ok').length,
+                fwd : document.getElementById('dl-fwd').textContent,
+                word: document.querySelector('.dl-word').childNodes[0].textContent.trim() }));
+            ok(/回看/.test(rv.tag) && /答对/.test(rv.tag) && rv.cnt === '回看 1/1' && rv.dis && rv.ok === 1 && rv.word === w1 && /回到当前/.test(rv.fwd),
+               '回看上一题: 只看不改, 标出正确选项', JSON.stringify(rv));
+            await page.click('#dl-fwd');
+            ok((await curWord(page)) === w2 && (await page.locator('#dl-count').innerText()) === '2/20',
+               '「回到当前」回到没做的那题');
+            // 跳过: 挪到最后, 不记账
+            const lr = (await nbOf(page, w2)).lastReview;
+            await page.click('#dl-fwd');
+            const w3 = (await curWord(page));
+            ok(w3 !== w2 && (await nbOf(page, w2)).lastReview === lr && (await page.locator('#dl-count').innerText()) === '2/20',
+               '跳过: 换下一题, 跳过的词不记账、挪到本轮最后');
+            // 答错后回看再回来, 不会把答过的题再答一遍
+            await page.click('.dl-opt[data-ok="0"]');
+            await page.waitForSelector('#dl-fwd.main');
+            await page.keyboard.press('ArrowLeft');
+            ok(/答错/.test(await page.locator('.dl-tag-review').innerText()), '← 键回看 (刚答错的这题)');
+            await page.keyboard.press('ArrowRight');
+            await page.keyboard.press('ArrowRight');
+            const w4 = (await curWord(page));
+            ok(w4 !== w3 && !(await page.locator('.dl-tag-review').count()) && (await page.locator('#dl-count').innerText()) === '3/21',
+               '→ 回到当前时已经是下一题 (答过的不会再答)', w4);
+            // 新词卡: 「下一个」= 记住了, 「上一个」回看卡片
+            await page.evaluate(() => { localStorage.setItem('hsv_kid_pref_plan_size', 'light'); });
+            for (let k = 0; k < 40 && (await stage(page)) === '复习'; k++) {
+                if (await page.locator('#dl-fwd.main').count()) { await page.click('#dl-fwd'); continue; }
+                await page.click('.dl-opt[data-ok="1"]');
+                await page.waitForTimeout(700);
+            }
+            ok(await stage(page) === '新词', '复习做完进新词');
+            const n1 = (await curWord(page));
+            await page.click('#dl-fwd');
+            ok((await curWord(page)) !== n1, '新词卡上「下一个」= 记住了');
+            await page.click('#dl-prev');
+            ok(/新词/.test(await page.locator('.dl-tag-review').innerText()) && (await curWord(page)) === n1,
+               '回看上一张新词卡');
+            await page.click('#dl-close');
+            ok(!(await page.locator('#dl-overlay.open').count()) && /继续/.test(await page.locator('#daily-card').innerText()),
+               '「返回」回到单词页, 卡片显示「继续」');
+            ok(!errors.length, '无页面错误', errors.join(' | '));
+            await ctx.close();
+        }
+
+        sec('课文 / 短文页尾: 上一篇 / 下一篇');
+        {
+            const { ctx, page } = await fresh(browser, base, () => null);
+            await page.click('.nav-tab[data-nav="lessons"]');
+            await page.click('.ls-src-btn[data-src="ai"]');
+            await page.locator('.ls-card[data-lesson="S0002"]').click();
+            await page.waitForSelector('.ls-read-nav');
+            ok(/S0001/.test(await page.locator('#ls-prev-lesson').innerText()) && /S0003/.test(await page.locator('#ls-next-lesson').innerText()),
+               '页尾显示上一篇 S0001、下一篇 S0003');
+            await page.click('#ls-next-lesson');
+            ok(/S0003/.test(await page.locator('.ls-head-sub').innerText()) && (await page.locator('.ls-tab.active').getAttribute('data-lstab')) === 'read',
+               '点下一篇直接打开 S0003 的短文');
+            await page.click('#ls-list-lesson');
+            ok(await page.locator('.ls-card-ai').count() === 107, '「全部」回到列表');
+            await page.locator('.ls-card[data-lesson="S0001"]').click();
+            ok(await page.locator('#ls-prev-lesson').isDisabled(), '第一篇没有上一篇');
+            await ctx.close();
+        }
+
+        sec('训练页: 返回 / 跳过');
+        {
+            const { ctx, page } = await fresh(browser, base, () => null);
+            await page.click('.nav-tab[data-nav="vocab-drill"]');
+            await page.click('#vd-start-synonym');
+            await page.waitForSelector('.vd-question-card');
+            const lb = await page.evaluate(() => ({ p: document.querySelector('.vd-nav-prev').textContent,
+                                                    n: document.querySelector('.vd-nav-next').textContent,
+                                                    dis: document.querySelector('.vd-nav-next').disabled }));
+            ok(/上一题/.test(lb.p) && /跳过/.test(lb.n) && !lb.dis, '中文的上一题 / 跳过, 没作答也能往后翻', JSON.stringify(lb));
+            const p1 = await page.locator('.vd-nav-progress').innerText();
+            await page.keyboard.press('ArrowRight');
+            ok((await page.locator('.vd-nav-progress').innerText()) !== p1, '→ 键翻到下一题');
+            await page.click('#vd-back');
+            ok(!(await page.locator('.vd-question-card').count()) && await page.locator('#vd-header').isVisible(), '「返回」回到训练选择');
+            await ctx.close();
+        }
+
         sec('默写一页 (含熟词)');
         {
             const { ctx, page } = await fresh(browser, base, seedKid);
@@ -286,7 +386,7 @@ srv.listen(0, async () => {
             const okIdx = await page.evaluate(() => [...document.querySelectorAll('#dl-body .dl-opt')].findIndex(b => b.dataset.ok === '1'));
             await page.keyboard.press(String(okIdx + 1));         // 数字键选对的那个选项
             await page.waitForTimeout(900);
-            if (await page.locator('#dl-next').count()) await page.click('#dl-next');
+            if (await page.locator('#dl-fwd.main').count()) await page.click('#dl-fwd');
             const after = await page.evaluate(() => localStorage.getItem('hsv_kid_notebook'));
             ok(before === after && (await page.locator('#dl-count').innerText()) === '2/20',
                '测试设备: 会话照走, 单词本不写; 快捷键不穿透到单词页', await page.locator('#dl-count').innerText());

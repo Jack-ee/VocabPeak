@@ -180,6 +180,19 @@ window.Lessons = (function () {
         renderHome();
         if (q) setTimeout(() => { try { root.querySelector('.ls-card-list')?.scrollIntoView({ block: 'nearest' }); } catch (e) {} }, 0);
     }
+    // v150b: 课文 / 短文读完, 页尾直接去上一篇 / 下一篇 (同一来源的列表顺序)
+    function lessonNavHtml(l) {
+        const list = lessons();
+        const i    = list.findIndex(x => x.id === l.id);
+        if (i < 0 || list.length < 2) return '';
+        const pv = list[i - 1], nx = list[i + 1];
+        const lab = (x) => esc(isStory(x) ? x.id : (x.titleZh || x.title || x.id));
+        return `<div class="ls-read-nav">
+                    <button class="ls-read-navb" id="ls-prev-lesson"${pv ? ` data-go="${esc(pv.id)}"` : ' disabled'}>\u25C0 \u4E0A\u4E00\u7BC7${pv ? ' <span class="ls-read-navt">' + lab(pv) + '</span>' : ''}</button>
+                    <button class="ls-read-navb" id="ls-list-lesson">\u2630 \u5168\u90E8</button>
+                    <button class="ls-read-navb" id="ls-next-lesson"${nx ? ` data-go="${esc(nx.id)}"` : ' disabled'}>\u4E0B\u4E00\u7BC7${nx ? ' <span class="ls-read-navt">' + lab(nx) + '</span>' : ''} \u25B6</button>
+                </div>`;
+    }
     function pageTxt(n) {
         const pg = window.HSVLex && window.HSVLex.pageOf ? window.HSVLex.pageOf(n) : 0;
         return pg ? ' \u00b7 \u7B2C ' + pg + ' \u9875' : '';
@@ -1120,6 +1133,7 @@ window.Lessons = (function () {
                 </div>
                 <div class="ls-text${mode === 'lookup' ? ' ls-tap-lookup' : ''}">${paras}</div>
                 <div class="ls-read-hint ls-read-hint-foot">${esc(readHint(mode))}</div>
+                ${lessonNavHtml(l)}
             </div>
             <div class="ls-sheet-overlay" id="ls-sheet-overlay">
                 <div class="ls-sheet" id="ls-sheet"></div>
@@ -2876,6 +2890,9 @@ window.Lessons = (function () {
         const srcBtn = t.closest('.ls-src-btn');
         if (srcBtn) { setSource(srcBtn.dataset.src); renderHome(); return; }
         if (t.closest('#ls-page-x')) { e.preventDefault(); setPageQ(''); return; }
+        const goL = t.closest('#ls-prev-lesson, #ls-next-lesson');
+        if (goL && goL.dataset.go) { openLesson(goL.dataset.go, 'read'); try { window.scrollTo(0, 0); } catch (e2) {} return; }
+        if (t.closest('#ls-list-lesson')) { renderHome(); return; }
         if (t.closest('#ls-page-q')) return;
         if (t.closest('#ls-stories-check')) {
             const b = t.closest('#ls-stories-check');

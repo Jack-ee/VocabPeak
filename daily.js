@@ -262,7 +262,11 @@ window.Daily = (function () {
             q       : 0,
             qs      : 0,
             busy    : false,
-            page    : 0
+            page    : 0,
+            hist    : [],              // v150b: 做过的题, 「上一个」回看用
+            view    : null,            // 正在回看 hist[view]; null = 当前题
+            liveDone: false,           // 当前题已作答 (等待进下一个)
+            timer   : 0                // 答对后自动进下一个的定时器
         };
         if (pageMode) {
             // 默写一页: 只有默写这一步, 这一页的全部词 (含熟词) 按顺序来
@@ -313,7 +317,9 @@ window.Daily = (function () {
     }
     function advance() {
         if (!S) return;
-        S.busy = false;
+        if (S.timer) { clearTimeout(S.timer); S.timer = 0; }
+        S.busy     = false;
+        S.liveDone = false;
         S.i++;
         if (S.i >= queue().length) nextStage();
         else render();
@@ -361,13 +367,17 @@ window.Daily = (function () {
         ov.innerHTML = `
             <div class="dl-sheet" role="dialog" aria-label="今日任务">
                 <div class="dl-top">
+                    <button class="dl-back" id="dl-close" title="回到单词页 (进度已保存)">‹ 返回</button>
                     <span class="dl-stage" id="dl-stage"></span>
                     <span class="dl-count" id="dl-count"></span>
                     <span class="dl-bar"><i id="dl-bar"></i></span>
                     <button class="dl-mute" id="dl-mute" title="自动发音开关">${muted() ? '\u{1F507}' : '\u{1F50A}'}</button>
-                    <button class="dl-close" id="dl-close" title="先到这里 (进度已保存)">×</button>
                 </div>
                 <div class="dl-body" id="dl-body"></div>
+                <div class="dl-foot">
+                    <button class="dl-navb" id="dl-prev" title="回看上一个 (←)">◀ 上一个</button>
+                    <button class="dl-navb" id="dl-fwd" title="下一个 (→)">下一个 ▶</button>
+                </div>
             </div>`;
         ov.classList.add('open');
         document.body.classList.add('dl-open');
@@ -390,7 +400,8 @@ window.Daily = (function () {
         const ct    = document.getElementById('dl-count');
         const bar   = document.getElementById('dl-bar');
         if (st) st.textContent = S.page && S.stage === 'dic' ? '默写第 ' + S.page + ' 页' : STAGES[S.stage];
-        if (ct) ct.textContent = S.stage === 'done' ? '' : (Math.min(S.i + 1, q.length) + '/' + q.length);
+        if (ct) ct.textContent = S.view != null ? '回看 ' + (S.view + 1) + '/' + S.hist.length
+                               : S.stage === 'done' ? '' : (Math.min(S.i + 1, q.length) + '/' + q.length);
         if (bar) {
             const k   = ORDER.indexOf(S.stage);
             const pct = S.stage === 'done' ? 100
@@ -405,14 +416,115 @@ window.Daily = (function () {
         const body = document.getElementById('dl-body');
         if (!body) return;
         setHead();
-        S.shownAt = Date.now();
-        S.busy    = false;
-        if (S.stage === 'done') return renderDone(body);
+        if (S.view != null) { renderReview(body, S.hist[S.view]); setNav(); return; }
+        S.shownAt  = Date.now();
+        S.busy     = false;
+        S.liveDone = false;
+        if (S.stage === 'done') { renderDone(body); setNav(); return; }
         const item = queue()[S.i];
         if (!item) return nextStage();
-        if (S.stage === 'learn') return renderLearn(body, item);
-        if (S.stage === 'dic')   return renderDic(body, item);
-        return renderMCQ(body, item);
+        if (S.stage === 'learn')    renderLearn(body, item);
+        else if (S.stage === 'dic') renderDic(body, item);
+        else                        renderMCQ(body, item);
+        setNav();
+    }
+
+    // ─── 上一个 / 下一个 (v150b) ────────────────────────────
+    // 「上一个」回看做过的题 (只看不改); 回看时「下一个」往后翻, 翻到头
+    // 回到当前题。当前题上「下一个」: 卡片 = 记住了; 已作答 = 进下一个;
+    // 没作答 = 跳过 (挪到本轮最后, 不记账)。
+    function liveSkippable() {
+        const q = queue();
+        return S.stage !== 'learn' && S.stage !== 'done' && !S.liveDone && S.i < q.length - 1;
+    }
+    function setNav() {
+        const pv = document.getElementById('dl-prev');
+        const fw = document.getElementById('dl-fwd');
+        if (!pv || !fw || !S) return;
+        pv.disabled = S.view != null ? S.view <= 0 : !S.hist.length;
+        fw.classList.remove('main');
+        if (S.view != null) {
+            fw.disabled    = false;
+            fw.textContent = S.view < S.hist.length - 1 ? '下一个 ▶' : '回到当前 ▶';
+            fw.style.visibility = '';
+            return;
+        }
+        if (S.stage === 'done') { fw.style.visibility = 'hidden'; return; }
+        fw.style.visibility = '';
+        const item = queue()[S.i] || {};
+        if (S.stage === 'learn') {
+            fw.disabled = false; fw.textContent = '记住了 ▶'; fw.classList.add('main');
+        } else if (S.liveDone) {
+            fw.disabled = false; fw.textContent = '下一个 ▶'; fw.classList.add('main');
+        } else if (item.copy) {
+            fw.disabled = false; fw.textContent = '下一个 ▶';      // 照写可以不写完
+        } else {
+            fw.disabled = !liveSkippable(); fw.textContent = '跳过 ▶';
+        }
+    }
+    function goPrev() {
+        if (!S) return;
+        try { window.App?.stopSpeak?.(); } catch (e) {}
+        if (S.view == null) {
+            if (!S.hist.length) return;
+            S.view = S.hist.length - 1;
+            // 当前题已经答完 (在等「下一个」): 先把当前位置推到下一题,
+            // 回看完回来接着做新的, 不会把答过的题再答一遍
+            const cur = queue()[S.i] || {};
+            if (S.liveDone || cur.copy) { advance(); return; }
+        } else if (S.view > 0) S.view--;
+        else return;
+        render();
+    }
+    function goFwd() {
+        if (!S) return;
+        if (S.view != null) {
+            S.view = S.view < S.hist.length - 1 ? S.view + 1 : null;
+            render();
+            return;
+        }
+        if (S.stage === 'done') return;
+        const q    = queue();
+        const item = q[S.i];
+        if (!item) return;
+        if (S.stage === 'learn') { gotCurrent(); return; }
+        if (S.liveDone || item.copy) { advance(); return; }
+        if (!liveSkippable()) return;
+        q.splice(S.i, 1);                         // 跳过: 挪到本轮最后, 不记账
+        q.push(item);
+        tick(false);
+        render();
+    }
+    function gotCurrent() {
+        if (!S || S.busy) return;
+        tick(false);
+        S.hist.push({ stage: 'learn', w: queue()[S.i].w });
+        advance();
+    }
+
+    // 回看一道做过的题
+    function renderReview(body, h) {
+        const w   = h.w;
+        const res = h.stage === 'learn' ? (h.cut ? '已斩' : '看过')
+                  : h.ok ? '✔ 答对' : (h.giveUp ? '不会' : '✘ 答错');
+        const tag = `<div class="dl-tag dl-tag-review">回看 · ${STAGES[h.stage] || ''}${h.again ? '（再考）' : ''} · ${res}</div>`;
+        const head = `
+                <div class="dl-word">${esc(w.word)} <button class="dl-say" data-say="${esc(w.word)}" title="发音">\u{1F50A}</button></div>
+                ${w.phonetic ? `<div class="dl-ipa">${esc(w.phonetic)}</div>` : ''}`;
+        let main = '';
+        if (h.stage === 'rev' || h.stage === 'check') {
+            main = `<div class="dl-opts">${(h.opts || []).map((o, i) => `
+                    <button class="dl-opt${o.ok ? ' ok' : ''}${i === h.chosen && !o.ok ? ' bad' : ''}" disabled>
+                        <span class="dl-k">${i + 1}</span><span>${esc(o.t)}</span></button>`).join('')}</div>
+                    ${exampleHtml(w)}`;
+        } else if (h.stage === 'learn') {
+            main = `<div class="dl-zh">${esc(w.meaning || '')}</div>${exampleHtml(w)}`;
+        } else {
+            main = `<div class="dl-zh dl-dic-zh">${esc(w.meaning || '')}</div>
+                    <div class="dl-answer">${esc(w.word)}</div>
+                    ${h.typed ? `<div class="${h.ok ? 'dl-good' : 'dl-bad'}">你写的：${esc(h.typed)}</div>` : ''}`;
+        }
+        body.innerHTML = `<div class="dl-review">${tag}${head}${main}</div>`;
     }
 
     // 看词选义 (复习 / 自测)
@@ -453,6 +565,7 @@ window.Daily = (function () {
     function renderMCQ(body, item) {
         const w    = item.w;
         const opts = optionsFor(w);
+        S.curOpts  = opts;
         const tag  = S.stage === 'check' ? '刚学的词' : (focusOf(w).includes('weak') ? '薄弱词' : '');
         body.innerHTML = `
             <div class="dl-q">
@@ -478,6 +591,9 @@ window.Daily = (function () {
             if (b.dataset.ok === '1') b.classList.add('ok');
         });
         if (!ok) btn.classList.add('bad');
+        const btns = [...document.querySelectorAll('#dl-body .dl-opt')];
+        S.hist.push({ stage: S.stage, w: w, opts: S.curOpts || [], chosen: btns.indexOf(btn), ok: ok, again: !!item.again });
+        S.liveDone = true;
         if (!item.again) {
             if (S.stage === 'rev') {
                 DB().planReview(w.word, ok);
@@ -489,9 +605,10 @@ window.Daily = (function () {
             }
             if (!ok) queue().push({ w: w, again: true });     // 本轮最后再考一次
         }
-        if (ok) { setTimeout(advance, 650); return; }
+        setNav();
+        if (ok) { S.timer = setTimeout(advance, 650); return; }
         const fb = document.getElementById('dl-fb');
-        if (fb) fb.innerHTML = `${exampleHtml(w)}<button class="dl-primary dl-next" id="dl-next">下一个 →</button>`;
+        if (fb) fb.innerHTML = exampleHtml(w);       // 「下一个」在底栏 (高亮)
     }
 
     // 新词卡片
@@ -510,9 +627,8 @@ window.Daily = (function () {
                 ${col ? `<div class="dl-col"><span class="dl-col-k">搭配</span> ${esc(col.en)}${col.zh ? ` <span class="dl-dim">${esc(col.zh)}</span>` : ''}
                     <button class="dl-say-s" data-say="${esc(col.en)}" title="听搭配">\u{1F50A}</button></div>` : ''}
                 ${exampleHtml(w)}
-                <div class="dl-btns">
+                <div class="dl-btns dl-btns-left">
                     <button class="dl-ghost" id="dl-cut" title="太简单: 不学了, 放进熟词">✂️ 太简单，斩</button>
-                    <button class="dl-primary" id="dl-got">记住了 →</button>
                 </div>
             </div>`;
         say(w.word);
@@ -523,6 +639,7 @@ window.Daily = (function () {
         tick(false);
         const w = queue()[S.i].w;
         DB().setCut(w.word, true);
+        S.hist.push({ stage: 'learn', w: w, cut: true });
         S.cut.add(key(w));
         S.stat.cut++;
         // 斩掉的词不占名额: 补下一个新词
@@ -580,7 +697,7 @@ window.Daily = (function () {
         const variant = !exact && val && us(val) === us(tgt);
         const fb      = document.getElementById('dl-fb');
         if (item.copy) {
-            if (exact || variant) { S.busy = true; tick(false); setTimeout(advance, 300); return; }
+            if (exact || variant) { S.busy = true; tick(false); S.timer = setTimeout(advance, 300); return; }
             if (fb) fb.innerHTML = '<div class="dl-bad">还不对，照上面再写一遍</div>';
             if (inp) { inp.classList.add('bad'); inp.select(); }
             return;
@@ -594,13 +711,16 @@ window.Daily = (function () {
             if (!ok && DB().isCut(w)) { try { DB().setCut(w.word, false); } catch (e) {} }
         }
         S.spelled.add(key(w));
+        S.hist.push({ stage: 'dic', w: w, typed: val, ok: ok, giveUp: !!giveUp });
         S.stat.dic++; if (ok) S.stat.dicOk++;
         if (ok) {
             if (fb) fb.innerHTML = variant
                 ? `<div class="dl-good">✔ 也对；默写本写作 <b>${esc(w.word)}</b></div>`
                 : '<div class="dl-good">✔ 对了</div>';
             if (inp) inp.classList.add('ok');
-            setTimeout(advance, variant ? 1400 : 600);
+            S.liveDone = true;
+            setNav();
+            S.timer = setTimeout(advance, variant ? 1400 : 600);
             return;
         }
         // 写错 / 不会: 看答案, 照着写一遍才往下走
@@ -608,6 +728,7 @@ window.Daily = (function () {
         S.busy    = false;
         say(w.word, true);
         renderDic(document.getElementById('dl-body'), item);
+        setNav();
         const fb2 = document.getElementById('dl-fb');
         if (fb2 && val) fb2.innerHTML = `<div class="dl-bad">你写的是 ${esc(val)}</div>`;
     }
@@ -656,8 +777,9 @@ window.Daily = (function () {
         if (sayEl) { say(sayEl.dataset.say, true); if (S && S.stage === 'dic') document.getElementById('dl-input')?.focus(); return; }
         const opt = t.closest('.dl-opt');
         if (opt) { answerMCQ(opt); return; }
-        if (t.closest('#dl-next'))   { advance(); return; }
-        if (t.closest('#dl-got'))    { tick(false); advance(); return; }
+        if (t.closest('#dl-prev'))   { goPrev(); return; }
+        if (t.closest('#dl-fwd'))    { goFwd(); return; }
+
         if (t.closest('#dl-cut'))    { cutCurrent(); return; }
         if (t.closest('#dl-submit')) { submitDic(false); return; }
         if (t.closest('#dl-giveup')) { submitDic(true); return; }
@@ -665,13 +787,20 @@ window.Daily = (function () {
     function onKey(e) {
         if (!S || e.isComposing) return;          // 输入法组字时的回车不算提交
         if (e.key === 'Escape') { close(); return; }
+        const typing = e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA');
+        if (!typing && e.key === 'ArrowLeft')  { e.preventDefault(); goPrev(); return; }
+        if (!typing && e.key === 'ArrowRight') { e.preventDefault(); goFwd(); return; }
+        if (S.view != null) {
+            if (e.key === 'Enter') { e.preventDefault(); goFwd(); }
+            return;
+        }
         if (S.stage === 'dic') {
             if (e.key === 'Enter') { e.preventDefault(); submitDic(false); }
             return;
         }
         if (e.key === 'Enter') {
-            const nx = document.getElementById('dl-next') || document.getElementById('dl-got') || document.getElementById('dl-finish');
-            if (nx) { e.preventDefault(); nx.click(); }
+            if (S.stage === 'done') { e.preventDefault(); close(); return; }
+            if (S.stage === 'learn' || S.liveDone) { e.preventDefault(); goFwd(); }
             return;
         }
         if (/^[1-4]$/.test(e.key)) {

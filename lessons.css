@@ -1261,3 +1261,29 @@
     .ls-top-btn            { padding: 5px 10px; }
     .ls-top-btn-label      { display: none; }
 }
+
+/* ---- v150b: 读完去上一篇 / 下一篇 ---- */
+.ls-read-nav {
+    display : flex;
+    gap     : 8px;
+    margin  : 12px 0 4px;
+}
+.ls-read-navb {
+    flex          : 1;
+    min-width     : 0;
+    font          : inherit;
+    font-size     : 13.5px;
+    color         : var(--text-secondary);
+    background    : var(--bg-card);
+    border        : 1px solid var(--bg-accent);
+    border-radius : 10px;
+    padding       : 9px 10px;
+    min-height    : 42px;
+    cursor        : pointer;
+    white-space   : nowrap;
+    overflow      : hidden;
+    text-overflow : ellipsis;
+}
+#ls-list-lesson { flex: 0 0 auto; }
+.ls-read-navb:disabled { opacity: 0.4; cursor: default; }
+.ls-read-navt { color: var(--text-tertiary); font-size: 12px; }

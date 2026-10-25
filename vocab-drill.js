@@ -179,6 +179,15 @@ window.VocabDrill = (function() {
         document.getElementById('vd-start-collocation')?.addEventListener('click', () => startCollocationDrill());
         document.getElementById('vd-start-ai-drill')?.addEventListener('click', () => startAIDrill());
         document.getElementById('vd-results')?.addEventListener('click', handleResultClick);
+        // v150b: ← → 翻题 (训练页开着、正在做题、没在输入框里时)
+        document.addEventListener('keydown', (e) => {
+            const view = document.getElementById('view-vocab-drill');
+            if (!view || !view.classList.contains('active') || !drillQueue.length) return;
+            if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+            if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+            const b = document.querySelector(e.key === 'ArrowLeft' ? '#vd-results .vd-nav-prev' : '#vd-results .vd-nav-next');
+            if (b && !b.disabled) { e.preventDefault(); b.click(); }
+        });
     }
 
     // =====================================================
@@ -403,15 +412,17 @@ window.VocabDrill = (function() {
         // Navigation row. Prev is enabled if there's an earlier question;
         // Next is enabled once the user has answered (or is reviewing an
         // already-answered question). The last question's Next reads "Finish".
+        // v150b: 没作答也能往后翻 (跳过, 不计分); 左上「返回」回到训练选择页。
         const isLast       = drillIndex === drillQueue.length - 1;
         const prevDisabled = drillIndex === 0          ? 'disabled' : '';
-        const nextDisabled = !answered                  ? 'disabled' : '';
+        const nextLabel    = isLast ? '\u5B8C\u6210 \u2192' : (answered ? '\u4E0B\u4E00\u9898 \u2192' : '\u8DF3\u8FC7 \u2192');
         const navHtml = `
             <div class="vd-nav-row">
-                <button class="vd-nav-btn vd-nav-prev" ${prevDisabled}>\u2190 Previous</button>
+                <button class="vd-nav-btn vd-nav-prev" ${prevDisabled}>\u2190 \u4E0A\u4E00\u9898</button>
                 <span class="vd-nav-progress">${progress}</span>
-                <button class="vd-nav-btn vd-nav-next" ${nextDisabled}>${isLast ? 'Finish \u2192' : 'Next \u2192'}</button>
+                <button class="vd-nav-btn vd-nav-next">${nextLabel}</button>
             </div>`;
+        const backHtml = `<div class="vd-back-row"><button class="vd-back-btn" id="vd-back">\u2039 \u8FD4\u56DE</button></div>`;
 
         let questionHtml = '';
 
@@ -479,11 +490,22 @@ window.VocabDrill = (function() {
                 </div>`;
         }
 
-        container.innerHTML = questionHtml;
+        container.innerHTML = backHtml + questionHtml;
         container.classList.add('visible');
     }
 
+    // v150b: 「‹ 返回」—— 中途回到训练选择页 (已答的题不计入成绩)
+    function exitDrill() {
+        const container = document.getElementById('vd-results');
+        const header    = document.getElementById('vd-header');
+        drillQueue = [];
+        drillIndex = 0;
+        if (header) header.style.display = '';
+        if (container) { container.innerHTML = ''; container.classList.remove('visible'); }
+    }
+
     function handleResultClick(e) {
+        if (e.target.closest('#vd-back')) { exitDrill(); return; }
         // Save-to-notebook button (rendered after wrong answers).
         // Replaces the previous inline onclick="..." which was harder to
         // sanitize and conflicted with the new review-mode re-renders.

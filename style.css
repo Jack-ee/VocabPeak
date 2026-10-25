@@ -4548,3 +4548,17 @@ html {
     }
     .mw-filter-pill .mw-fpill-count { font-size: 11px; }
 }
+
+/* v150b — 训练页做题时的「返回」 */
+.vd-back-row  { margin: 0 0 8px; }
+.vd-back-btn {
+    font          : inherit;
+    font-size     : 14px;
+    font-weight   : 600;
+    color         : var(--accent-text);
+    background    : var(--bg-card);
+    border        : 1px solid var(--border);
+    border-radius : 10px;
+    padding       : 6px 14px;
+    cursor        : pointer;
+}

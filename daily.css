@@ -287,3 +287,49 @@ body.dl-open { overflow: hidden; }
     .dl-side .dl-go, .dl-side .dl-more { flex: 1; }
     .dl-word   { font-size: 30px; }
 }
+
+/* ---- v150b: 返回 + 上一个 / 下一个 ---- */
+.dl-back {
+    font          : inherit;
+    font-size     : 15px;
+    font-weight   : 600;
+    color         : var(--accent-text);
+    background    : var(--bg-card);
+    border        : 1px solid var(--border);
+    border-radius : 10px;
+    padding       : 0 12px;
+    height        : 38px;
+    flex-shrink   : 0;
+    cursor        : pointer;
+    white-space   : nowrap;
+}
+.dl-foot {
+    position        : sticky;
+    bottom          : 0;
+    display         : flex;
+    justify-content : space-between;
+    gap             : 12px;
+    margin-top      : 22px;
+    padding         : 10px 0 calc(env(safe-area-inset-bottom, 0px) + 10px);
+    background      : var(--bg-page);
+    border-top      : 1px solid var(--border);
+}
+.dl-navb {
+    flex          : 1;
+    max-width     : 220px;
+    font          : inherit;
+    font-size     : 15px;
+    color         : var(--text-secondary);
+    background    : var(--bg-card);
+    border        : 1.5px solid var(--border);
+    border-radius : 12px;
+    padding       : 10px 12px;
+    min-height    : 46px;
+    cursor        : pointer;
+}
+.dl-navb:disabled { opacity: 0.4; cursor: default; }
+#dl-fwd { margin-left: auto; }
+.dl-tag-review { background: var(--bg-accent); color: var(--text-secondary); }
+.dl-review .dl-opt { cursor: default; }
+.dl-navb.main { color: #fff; background: var(--accent); border-color: var(--accent); font-weight: 700; }
+.dl-btns-left > * { flex: 0 0 auto; }
