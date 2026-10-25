@@ -1940,6 +1940,7 @@
             // Initialize feature modules. Wrap each in try/catch so one
             // broken module cannot prevent the others from loading.
             safeCall('MyWords',         () => window.MyWords?.init?.());
+            safeCall('Daily',           () => window.Daily?.init?.());   // v150: 今日任务 (在 3500 并入之后)
             safeCall('WritingLab',      () => window.WritingLab?.init?.());
             safeCall('VocabDrill',      () => window.VocabDrill?.init?.());
             safeCall('Reader',          () => window.Reader?.init?.());

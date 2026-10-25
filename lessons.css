@@ -1219,3 +1219,45 @@
     .ls-top-btn,
     .ls-tab { min-height: 36px; }
 }
+
+/* ---- v150: 按默写本页码找短文 ---- */
+.ls-page-q {
+    display       : inline-flex;
+    align-items   : center;
+    gap           : 2px;
+    flex-shrink   : 0;
+    font-size     : 13px;
+    background    : var(--bg-card);
+    border        : 1px solid var(--bg-accent);
+    border-radius : 999px;
+    padding       : 2px 4px 2px 9px;
+}
+.ls-page-q.on { border-color: var(--accent); background: var(--accent-bg); }
+.ls-page-q input {
+    width      : 4.6em;
+    font       : inherit;
+    font-size  : 13px;
+    border     : none;
+    background : transparent;
+    color      : var(--text-primary);
+    padding    : 3px 2px;
+    outline    : none;
+}
+.ls-page-x {
+    border      : none;
+    background  : none;
+    color       : var(--text-tertiary);
+    font-size   : 16px;
+    line-height : 1;
+    padding     : 2px 6px;
+    cursor      : pointer;
+}
+.ls-badge-page { background: var(--accent-bg); color: var(--accent-text); font-weight: 600; }
+.ls-pq-note    { color: var(--accent-text); font-size: 12.5px; letter-spacing: 0; }
+@media (max-width: 640px) {
+    .ls-home-top           { flex-wrap: wrap; gap: 6px; }
+    .ls-home-top .ls-src-btn { padding: 6px 10px; }
+    .ls-page-q input       { width: 3.2em; }
+    .ls-top-btn            { padding: 5px 10px; }
+    .ls-top-btn-label      { display: none; }
+}

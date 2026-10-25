@@ -1,5 +1,20 @@
 // sw.js — VocabPeak Service Worker
 
+// hsv-v53 (?v=150) — 今日任务 + 默写本页码:
+//   • 今日任务 (daily.js / daily.css): 单词页顶部一张卡, 一个按钮做完
+//     复习 (看词选义, 答错本轮再考) → 新词 (卡片: 释义、AI 短文原句、搭配,
+//     可当场斩; 看完一起自测) → 默写 (听音看中文写英文, 写错照写一遍)。
+//     三档题量 轻量 5 / 标准 10 / 加量 15 个新词, 约 4 / 7 / 10 分钟。任务
+//     从单词本现状推导 (learnedAt / spellAt / nextReview), 中途关掉进度不丢;
+//     到期按「今天结束前」算。新词按默写本顺序, 可设「从第 N 页起」;
+//     「默写第 N 页」整页听写 (含熟词, 写错的熟词取消斩)。记账 DB.planReview /
+//     planLearn / planSpell 一题一次写盘; 时长记 lesson_time 的 daily 桶;
+//     当天完成情况写进 day_ 日志 plan 字段, 家长后台近 14 天一列。
+//   • 默写本页码: 词库新增 pages (每页首个序号, 共 120 页, 第 1 页 = #1–#32),
+//     HSVLex.pageOf / storySpan。短文卡片、分组标题、阅读页头、查词弹层标出
+//     第几页; AI 短文列表「📖 按页」输入 3 或 3-5, 只列含这几页单词的篇目,
+//     按含词数排序。
+//
 // hsv-v52 (?v=149) — 课文页紧凑排版 + 3500 词整本并入单词本 + 斩:
 //   • 课文/AI 短文列表: 来源切换、说明、检查更新并成一行; 时长、综合练习、
 //     今日特训并成一条练习条; 卡片两行。修正宽屏两栏网格: 分组标题占了
@@ -731,7 +746,7 @@
 
 // 缓存名与 EMPro 隔离：Cache Storage 也是按 origin 共享的，两个应用
 // 的 CACHE_NAME 必须不同，否则会互相删除对方的缓存。
-const CACHE_NAME = 'hsv-v52';
+const CACHE_NAME = 'hsv-v53';
 const ASSETS = [
     './',
     './index.html',
@@ -749,6 +764,8 @@ const ASSETS = [
     './db.js',
     './ai-engine.js',
     './my-words.js',
+    './daily.js',
+    './daily.css',
     './cloze.js',
     './writing-lab.js',
     './vocab-drill.js',

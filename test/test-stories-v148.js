@@ -217,7 +217,10 @@ srv.listen(0, async () => {
         await page.click('#ls-back');
         ok(await page.locator('.ls-card.ls-card-ai').count() === MAN.stories.length, '断网时短文仍从本机读出');
         await page.click('.ls-src-btn[data-src="book"]');
-        ok(await page.locator('.ls-card').count() === nBookCards, '切回教材课文, 列表不受影响');
+        await page.waitForSelector('.ls-src-btn[data-src="book"].on');
+        await page.waitForFunction((n) => document.querySelectorAll('.ls-card').length === n, nBookCards, { timeout: 5000 }).catch(() => {});
+        ok(await page.locator('.ls-card').count() === nBookCards, '切回教材课文, 列表不受影响',
+           (await page.locator('.ls-card').count()) + ' / ' + nBookCards);
         storiesOffline = false;
 
         sec('v149: 3500 词启动时整本并入, 不动原有学习记录');

@@ -120,7 +120,36 @@ window.HSVLex = (function () {
 
     function levelName(lv) { return LEVEL_NAME[lv] || ''; }
 
-    return { lemmas: lemmas, lookup: lookup, levelName: levelName, _candidates: candidates };
+    // v150: 默写本序号 → 第几页 (老师按页布置背诵; 每页 14–33 词不等)
+    function pageOf(n) {
+        const P = (window.HSV_LEXICON && window.HSV_LEXICON.pages) || [];
+        n = Number(n) || 0;
+        if (!n || !P.length || n < P[0]) return 0;
+        let lo = 0, hi = P.length - 1;
+        while (lo < hi) {                      // 最后一个 P[i] <= n
+            const mid = (lo + hi + 1) >> 1;
+            if (P[mid] <= n) lo = mid; else hi = mid - 1;
+        }
+        return lo + 1;
+    }
+    function pageCount() { return ((window.HSV_LEXICON && window.HSV_LEXICON.pages) || []).length; }
+    // 一页的序号区间 [起, 止]
+    function pageSpan(pg) {
+        const P = (window.HSV_LEXICON && window.HSV_LEXICON.pages) || [];
+        if (pg < 1 || pg > P.length) return null;
+        return [P[pg - 1], pg < P.length ? P[pg] - 1 : Infinity];
+    }
+    // 一篇短文目标词的序号与页码范围, 以及每页几个词
+    function storySpan(story) {
+        const ns = ((story && story.words) || []).map(w => Number(w.n3500) || 0).filter(Boolean).sort((a, b) => a - b);
+        if (!ns.length) return null;
+        const per = {};
+        ns.forEach(n => { const p = pageOf(n); if (p) per[p] = (per[p] || 0) + 1; });
+        return { n0: ns[0], n1: ns[ns.length - 1], p0: pageOf(ns[0]), p1: pageOf(ns[ns.length - 1]), per: per };
+    }
+
+    return { lemmas: lemmas, lookup: lookup, levelName: levelName, pageOf: pageOf, pageCount: pageCount,
+             pageSpan: pageSpan, storySpan: storySpan, _candidates: candidates };
 })();
 
 window.Stories = (function () {

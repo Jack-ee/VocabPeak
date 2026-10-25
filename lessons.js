@@ -163,6 +163,34 @@ window.Lessons = (function () {
     // 综合练习的题池名 (界面文案): 从全部课程 / 从全部 AI 短文
     function poolName() { return curSource === 'ai' ? '\u4ECE\u5168\u90E8 AI \u77ED\u6587' : '\u4ECE\u5168\u90E8\u8BFE\u7A0B'; }
     function genreZh(g) { return GENRE_ZH[String(g || '').toLowerCase()] || String(g || ''); }
+
+    // v150: 默写本页码。「3」「3-5」「3–5」「3 5」都认, 超出范围的夹到 1–总页数
+    function parsePageQ(q) {
+        const m = String(q || '').match(/(\d+)(?:\s*[-\u2013~\u81F3\u5230 ]\s*(\d+))?/);
+        if (!m) return null;
+        const max = (window.HSVLex && window.HSVLex.pageCount && window.HSVLex.pageCount()) || 120;
+        let a = Math.max(1, Math.min(max, Number(m[1])));
+        let b = m[2] ? Math.max(1, Math.min(max, Number(m[2]))) : a;
+        if (b < a) { const t = a; a = b; b = t; }
+        return [a, b];
+    }
+    function setPageQ(v) {
+        const q = parsePageQ(v);
+        try { window.DB?.setPref?.('story_page_q', q ? (q[0] === q[1] ? String(q[0]) : q[0] + '-' + q[1]) : ''); } catch (e) {}
+        renderHome();
+        if (q) setTimeout(() => { try { root.querySelector('.ls-card-list')?.scrollIntoView({ block: 'nearest' }); } catch (e) {} }, 0);
+    }
+    function pageTxt(n) {
+        const pg = window.HSVLex && window.HSVLex.pageOf ? window.HSVLex.pageOf(n) : 0;
+        return pg ? ' \u00b7 \u7B2C ' + pg + ' \u9875' : '';
+    }
+    // 阅读页页头: 「默写本 #3–#136（第 1–5 页）」
+    function storySpanTxt(l) {
+        const sp = window.HSVLex && window.HSVLex.storySpan ? window.HSVLex.storySpan(l) : null;
+        if (!sp) return '';
+        const pg = sp.p0 === sp.p1 ? '\u7B2C ' + sp.p0 + ' \u9875' : '\u7B2C ' + sp.p0 + '\u2013' + sp.p1 + ' \u9875';
+        return ' \u00b7 \u9ED8\u5199\u672C #' + sp.n0 + '\u2013#' + sp.n1 + '\uFF08' + pg + '\uFF09';
+    }
     function setSource(src) {
         curSource = src === 'ai' ? 'ai' : 'book';
         try { window.DB?.setPref?.('lesson_source', curSource); } catch (e) {}
@@ -692,13 +720,35 @@ window.Lessons = (function () {
             return { w: wp, p: pp };
         };
         const ai    = curSource === 'ai';
-        const list  = lessons();
+        const all   = lessons();
+        // v150: 按页找短文 —— 老师按默写本页码布置背诵 (每周 2–4 页)。
+        // 每 10 篇短文是从同一段约 220 个词里分着写的, 单篇会跨好几页;
+        // 输入页码后只列含这几页单词的篇目, 按含词数从多到少排。
+        const pqRaw = ai ? String(window.DB?.getPref?.('story_page_q', '') || '') : '';
+        const pq    = ai ? parsePageQ(pqRaw) : null;
+        const pgOf  = (n) => (window.HSVLex && window.HSVLex.pageOf) ? window.HSVLex.pageOf(n) : 0;
+        const hitOf = (l) => (l.words || []).filter(w => { const pg = pgOf(w.n3500); return pg >= pq[0] && pg <= pq[1]; }).length;
+        const hits  = {};
+        let   list  = all;
+        let   pqNote = '';
+        if (pq) {
+            all.forEach(l => { hits[l.id] = hitOf(l); });
+            list = all.filter(l => hits[l.id] > 0)
+                      .sort((a, b) => (hits[b.id] - hits[a.id]) || (a.id < b.id ? -1 : 1));
+            const lem = new Set();
+            list.forEach(l => (l.words || []).forEach(w => {
+                const pg = pgOf(w.n3500);
+                if (pg >= pq[0] && pg <= pq[1]) lem.add(String(w.lemma || '').toLowerCase());
+            }));
+            const pgTxt = pq[0] === pq[1] ? '\u7B2C ' + pq[0] + ' \u9875' : '\u7B2C ' + pq[0] + '\u2013' + pq[1] + ' \u9875';
+            pqNote = `<div class="ls-group-head ls-pq-note">${pgTxt}\uFF1A${lem.size} \u4E2A\u8BCD\u5206\u5E03\u5728\u4E0B\u9762 ${list.length} \u7BC7\u91CC\uFF08\u542B\u8BCD\u591A\u7684\u6392\u5728\u524D\u9762\uFF1B\u975E\u5E38\u7B80\u5355\u7684\u8BCD\u4E0D\u5728\u77ED\u6587\u91CC\uFF09</div>`;
+        }
         let   group = '';
         const cards = list.map((l, li) => {
             // v148: AI 短文每 10 篇一个分组标题 (与发音包分片一致),
             // 标出这一组目标词覆盖的字母区间, 便于按默写本进度找篇目。
             let head = '';
-            if (ai) {
+            if (ai && !pq) {
                 const g = Math.floor(li / 10);
                 if (String(g) !== group) {
                     group = String(g);
@@ -706,8 +756,17 @@ window.Lessons = (function () {
                     const lem   = [];
                     chunk.forEach(x => (x.words || []).forEach(w => lem.push(String(w.lemma || '').toLowerCase())));
                     lem.sort();
+                    // v150: 加上这一组覆盖的默写本页码
+                    let g0 = 0, g1 = 0;
+                    chunk.forEach(x => (x.words || []).forEach(w => {
+                        const pg = pgOf(w.n3500);
+                        if (!pg) return;
+                        if (!g0 || pg < g0) g0 = pg;
+                        if (pg > g1) g1 = pg;
+                    }));
                     head = `<div class="ls-group-head">${esc(chunk[0].id)}\u2013${esc(chunk[chunk.length - 1].id)}`
-                         + (lem.length ? ` \u00b7 ${esc(lem[0])} \u2192 ${esc(lem[lem.length - 1])}` : '') + '</div>';
+                         + (lem.length ? ` \u00b7 ${esc(lem[0])} \u2192 ${esc(lem[lem.length - 1])}` : '')
+                         + (g0 ? ` \u00b7 \u9ED8\u5199\u672C\u7B2C ${g0}\u2013${g1} \u9875` : '') + '</div>';
                 }
             }
             const p      = prog[l.id] || {};
@@ -726,11 +785,14 @@ window.Lessons = (function () {
             const del = isUserLesson(l.id)
                 ? `<button class="ls-card-del" data-del="${esc(l.id)}" title="\u5220\u9664\u8FD9\u8BFE">\u00d7</button>`
                 : '';
-            // v149: \u5361\u7247\u538B\u6210\u4E24\u884C \u2014\u2014 \u6807\u9898 (AI \u77ED\u6587\u53F3\u4FA7\u5E26\u7BC7\u53F7), \u4E0B\u4E00\u884C\u4E2D\u6587\u9898\u76EE
-            // + \u4F53\u88C1 + \u8BCD\u6570 + \u8FDB\u5EA6\u5FBD\u6807\u3002
+            // v149: 卡片压成两行 —— 标题 (AI 短文右侧带篇号), 下一行中文题目
+            // + 体裁 + 词数 + 进度徽标; v150 加默写本页码。
+            const sp  = ai && window.HSVLex?.storySpan ? window.HSVLex.storySpan(l) : null;
             const sub = ai
                 ? `${esc(l.titleZh || '')} \u00b7 ${esc(genreZh(l.genre))} \u00b7 ${wordN} \u8BCD`
+                  + (sp && sp.p0 ? ` \u00b7 \u7B2C ${sp.p0 === sp.p1 ? sp.p0 : sp.p0 + '\u2013' + sp.p1} \u9875` : '')
                 : `${esc(l.titleZh || '')} \u00b7 ${wordN} \u8BCD`;
+            if (pq) badges.unshift(`<span class="ls-badge ls-badge-page">\u542B\u672C\u8303\u56F4 ${hits[l.id]} \u8BCD</span>`);
             return `${head}
             <div class="ls-card${ai ? ' ls-card-ai' : ''}" data-lesson="${esc(l.id)}">
                 ${del}
@@ -798,6 +860,9 @@ window.Lessons = (function () {
                         <button class="ls-src-btn${ai ? '' : ' on'}" data-src="book" role="tab" aria-selected="${!ai}">\u{1F4D8} \u6559\u6750\u8BFE\u6587 <span class="ls-src-n">${nBook}</span></button>
                         <button class="ls-src-btn${ai ? ' on' : ''}" data-src="ai" role="tab" aria-selected="${ai}">\u2728 AI \u77ED\u6587 <span class="ls-src-n">${nAi}</span></button>
                     </div>
+                    ${ai ? `<label class="ls-page-q${pq ? ' on' : ''}" title="\u6309\u9ED8\u5199\u672C\u9875\u7801\u627E\u77ED\u6587\uFF0C\u5982 3 \u6216 3-5">\u{1F4D6}
+                        <input id="ls-page-q" type="text" inputmode="numeric" maxlength="7" placeholder="\u6309\u9875" value="${esc(pqRaw)}">
+                        ${pq ? '<button class="ls-page-x" id="ls-page-x" title="\u6E05\u9664">\u00d7</button>' : ''}</label>` : ''}
                     <span class="ls-home-sub">${subTxt}</span>
                     ${action}
                 </div>`;
@@ -808,7 +873,7 @@ window.Lessons = (function () {
             <div class="ls-home">
                 ${top}
                 ${dash}
-                <div class="ls-card-list${ai ? ' ls-card-list-ai' : ''}">${cards || empty}</div>
+                <div class="ls-card-list${ai ? ' ls-card-list-ai' : ''}">${pqNote}${cards || (pq ? '' : empty)}</div>
             </div>
             <div class="ls-sheet-overlay" id="ls-import-overlay">
                 <div class="ls-sheet ls-import-sheet" id="ls-import-sheet"></div>
@@ -838,7 +903,7 @@ window.Lessons = (function () {
                                 <span class="ls-head-title">${esc(l.title)}</span>
                                 <span class="ls-switch-caret">\u25BE</span>
                             </button>
-                            <div class="ls-head-sub">${isStory(l) ? esc(l.id) + ' \u00b7 ' + esc(genreZh(l.genre)) + ' \u00b7 ' : ''}${esc(l.titleZh || '')}</div>
+                            <div class="ls-head-sub">${isStory(l) ? esc(l.id) + ' \u00b7 ' + esc(genreZh(l.genre)) + ' \u00b7 ' : ''}${esc(l.titleZh || '')}${isStory(l) ? storySpanTxt(l) : ''}</div>
                         </div>
                         <div class="ls-head-prog" id="ls-head-prog"></div>
                     </div>
@@ -1108,7 +1173,7 @@ window.Lessons = (function () {
                 <button class="ls-sheet-close" id="ls-sheet-close">\u00d7</button>
             </div>
             ${lemmaLn}
-            <div class="ls-sheet-pos">${esc(w.pos)}${w.level && window.HSVLex ? ' \u00b7 ' + esc(window.HSVLex.levelName(w.level)) : ''}${w.n3500 ? ' \u00b7 \u9ED8\u5199\u672C #' + esc(w.n3500) : ''}</div>
+            <div class="ls-sheet-pos">${esc(w.pos)}${w.level && window.HSVLex ? ' \u00b7 ' + esc(window.HSVLex.levelName(w.level)) : ''}${w.n3500 ? ' \u00b7 \u9ED8\u5199\u672C #' + esc(w.n3500) + pageTxt(w.n3500) : ''}</div>
             <div class="ls-sheet-zh">${esc(w.zh)}</div>
             ${s ? `<div class="ls-sheet-sent">
                 <button class="ls-mini-speak" data-say="${esc(s.text)}">\u{1F50A}</button>
@@ -1146,7 +1211,7 @@ window.Lessons = (function () {
             ? `<div class="ls-sheet-lemma">\u539F\u578B: <b>${esc(hit.head)}</b>\uFF08\u6587\u4E2D: ${esc(surface)}\uFF09</div>` : '';
         const meta = [];
         if (hit && hit.level) meta.push(esc(window.HSVLex.levelName(hit.level)));
-        if (hit && hit.n)     meta.push('\u9ED8\u5199\u672C #' + esc(hit.n));
+        if (hit && hit.n)     meta.push('\u9ED8\u5199\u672C #' + esc(hit.n) + pageTxt(hit.n));
         if (hit && hit.src === 'gloss') meta.push('\u672C\u7BC7\u6CE8\u91CA');
         if (hit && hit.src === 'dict')  meta.push('\u79BB\u7EBF\u8BCD\u5178');
         const collo = hit && hit.collo
@@ -2810,6 +2875,8 @@ window.Lessons = (function () {
         // v148: 来源切换 (教材课文 / AI 短文) 与检查新短文
         const srcBtn = t.closest('.ls-src-btn');
         if (srcBtn) { setSource(srcBtn.dataset.src); renderHome(); return; }
+        if (t.closest('#ls-page-x')) { e.preventDefault(); setPageQ(''); return; }
+        if (t.closest('#ls-page-q')) return;
         if (t.closest('#ls-stories-check')) {
             const b = t.closest('#ls-stories-check');
             b.disabled = true;
@@ -3022,6 +3089,11 @@ window.Lessons = (function () {
         if (!root) return;
         root.addEventListener('click', onClick);
         document.addEventListener('keydown', onKeyDown);
+        // v150: 按页找短文 —— 回车或离开输入框时生效
+        root.addEventListener('change', (e) => { if (e.target && e.target.id === 'ls-page-q') setPageQ(e.target.value); });
+        root.addEventListener('keydown', (e) => {
+            if (e.target && e.target.id === 'ls-page-q' && e.key === 'Enter') { e.preventDefault(); e.target.blur(); }
+        });
         // v130: 云端数据到达时刷新课程列表。v128 起 sync 派发
         // hsv:datachanged (课程有更新时 detail.courses=true), 但本模块
         // 此前没有监听者 —— 另一台设备导入的课同步下来后, 列表不更新,

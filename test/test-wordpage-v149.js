@@ -136,6 +136,14 @@ srv.listen(0, async () => {
             const lim = vp.width < 700 ? 170 : 120;      // 窄屏练习条折成两行
             ok(lay.gap < lim && lay.topH < 48 && !lay.over,
                vp.width + 'px: 导航下方 ' + lim + 'px 内出现第一张课程卡, 无横向滚动', JSON.stringify(lay));
+            // v150: AI 短文来源多了「按页」输入框, 窄屏也不能横向溢出
+            await page.evaluate(() => window.Stories && Stories.check(true));
+            await page.click('.ls-src-btn[data-src="ai"]');
+            await page.waitForTimeout(600);
+            const overAi = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth
+                || [...document.querySelectorAll('.ls-home-top > *')].some(el => el.getBoundingClientRect().right > window.innerWidth + 1));
+            ok(!overAi, vp.width + 'px: AI 短文页头 (来源切换 + 按页 + 检查更新) 不溢出');
+            await page.click('.ls-src-btn[data-src="book"]');
             await page.locator('.ls-card').first().click();
             await page.waitForSelector('.ls-text');
             const rd = await page.evaluate(() => {

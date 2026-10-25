@@ -659,7 +659,8 @@ window.SyncManager = (function() {
     // v149: cutAt (斩) 跟 nextReview 同组 —— 斩/取消斩都打 learnAt, 新的一侧整组胜出
     const NB_LEARN_FIELDS = ['srsLevel', 'nextReview', 'lastReview', 'reviewCount',
                              'mistakeCount', 'wrongCount', 'correctStreak', 'streakDays',
-                             'lastResultAt', 'learnAt', 'strength', 'reviewedAt', 'cutAt'];
+                             'lastResultAt', 'learnAt', 'strength', 'reviewedAt', 'cutAt',
+                             'spellAt'];                   // v150: 今日任务默写时间
     const NB_FOCUS_FIELDS = ['focus', 'focusAt'];
     const NB_TOMB_KEEP_MS = 400 * 86400000;
     function _num(v) { const n = Number(v); return isFinite(n) ? n : 0; }

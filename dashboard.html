@@ -488,7 +488,7 @@ function render(model){
     <div class="stat">
       <div class="k">今日</div>
       <div class="v">${dayTotal(s.today)}<small>次</small></div>
-      <div class="sub">新词 <b>${s.today.newWords||0}</b> · 复习 <b>${s.today.reviewed||0}</b> · 测验 <b>${s.today.quizTotal||0}</b>（${accTxt(s.today.acc)}）</div>
+      <div class="sub">新词 <b>${s.today.newWords||0}</b> · 复习 <b>${s.today.reviewed||0}</b> · 测验 <b>${s.today.quizTotal||0}</b>（${accTxt(s.today.acc)}）${s.today.plan ? (s.today.plan.done ? ' · 今日任务 <b style="color:var(--green)">✓</b>' : ' · 今日任务未完') : ''}</div>
     </div>
     <div class="stat">
       <div class="k">近 7 天</div>
@@ -598,6 +598,14 @@ function renderLessonTime(model){
 
   // 近 14 天：按天聚合全部活动
   const recent = dayKeys.slice(-14).reverse();
+  /* v150: 今日任务 (单词页) 当天完成情况, 来自 day_ 日志的 plan 字段 */
+  const planOf = {}; (model.days||[]).forEach(d=>{ if(d && d.plan) planOf[d.date] = d.plan; });
+  const planTxt = (day)=>{
+    const p = planOf[day];
+    if(!p) return '<span class="dim">—</span>';
+    const bits = `复 ${p.rev||0} · 新 ${p.neu||0} · 默 ${p.dic||0}`;
+    return p.done ? `<b style="color:var(--green)">✓</b> ${bits}` : `<span class="dim">未完</span> ${bits}`;
+  };
   const dayRows = recent.map(day=>{
     const acts = lt[day] || {};
     const agg = { r:0, e:0, q:0, qs:0 };
@@ -612,11 +620,12 @@ function renderLessonTime(model){
       <td>${fmtMin(agg.e)}</td>
       <td>${agg.q||'<span class="dim">—</span>'}</td>
       <td>${avg}</td>
+      <td>${planTxt(day)}</td>
       <td>${timeFlags(agg)}</td>
     </tr>`;
   }).join("");
   dayBody.innerHTML =
-    `<tr><th>日期</th><th>精读</th><th>练习</th><th>答题</th><th>秒/题</th><th>信号</th></tr>` + dayRows;
+    `<tr><th>日期</th><th>精读</th><th>练习</th><th>答题</th><th>秒/题</th><th>今日任务</th><th>信号</th></tr>` + dayRows;
 
   // 按课累计（最近学过的 10 门，按最近学习日期倒序）
   // v141 碎屑过滤: 应用启动会自动恢复上次打开的课, 停留几十秒就给旧课
@@ -645,7 +654,7 @@ function renderLessonTime(model){
     .sort((a,b)=> a.last<b.last?1:a.last>b.last?-1:0)
     .slice(0,10)
     .map(p=>{
-      const name = p.id==="mixed" ? "综合练习" : (titles[p.id] || p.id);
+      const name = p.id==="mixed" ? "综合练习" : p.id==="daily" ? "今日任务（单词）" : (titles[p.id] || p.id);
       const today = (p.tr+p.te) > 0
         ? `${fmtMin(p.tr)} / ${fmtMin(p.te)}`
         : '<span class="dim">—</span>';
@@ -655,7 +664,7 @@ function renderLessonTime(model){
         <td>${fmtMin(p.r)}</td>
         <td>${fmtMin(p.e)}</td>
         <td class="date">${p.last}</td>
-        <td>${p.id==="mixed" ? "" : timeFlags(p)}</td>
+        <td>${(p.id==="mixed" || p.id==="daily") ? "" : timeFlags(p)}</td>
       </tr>`;
     }).join("");
   lsBody.innerHTML =

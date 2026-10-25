@@ -16,6 +16,7 @@ build_lexicon.py - 生成统一词库 lexicon-3500.js (v148)
   级别: H 高中核心 / E 高中拓展 / J 初中·值得学 / B 非常简单 (不做目标词, 不进生词本)
         X 常用词·词表外 (extra-common.txt; 不做目标词, 校验不算超纲, 可手动入生词本)
   序号是纸质默写本上的编号 (重复条目取第一个), 不在 3500 表里的高中词为 0。
+  pages: 默写本每页第一个序号 (v150), 第 k 页 = pages[k-1] 起, 共 120 页。
 
 用法: python tools/lexicon/build_lexicon.py
 """
@@ -157,6 +158,17 @@ for ln in rd(HERE, 'irregular.txt').splitlines():
     for f in parts[1:]:
         irregular.setdefault(f.lower(), parts[0].lower())
 
+# v150: 默写本分页 —— 每页第一个序号 (PDF 第 1 页是封面, 第 2 页起为正文
+# 第 1 页)。老师按页布置背诵, 应用里由序号换算「第几页」(每页 14–33 词不等)
+rows3500 = json.loads(rd(HERE, 'list3500-rows.json'))
+first_n  = {}
+for r in rows3500:
+    pg = int(r['page']) - 1
+    if pg >= 1 and (pg not in first_n or r['n'] < first_n[pg]):
+        first_n[pg] = r['n']
+pages = [first_n[k] for k in sorted(first_n)]
+assert pages == sorted(pages) and len(pages) == max(first_n), 'pages must be contiguous and ascending'
+
 payload = {
     'v'     : 1,
     'built' : time.strftime('%Y-%m-%d'),
@@ -165,6 +177,7 @@ payload = {
     'levels': levels,
     'words' : out,
     'irregular': irregular,
+    'pages' : pages,
 }
 js = ('// lexicon-3500.js — 统一词库 (由 tools/lexicon/build_lexicon.py 生成, 勿手改)\n'
       '// 每项: [词, 默写本序号, 音标, 释义, 级别, 搭配]; 级别 H 高中核心 / E 高中拓展 /\n'

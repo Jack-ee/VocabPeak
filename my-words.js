@@ -370,6 +370,7 @@ window.MyWords = (function() {
         document.addEventListener('keydown', (e) => {
             const view = document.getElementById('view-my-words');
             if (!view || !view.classList.contains('active')) return;
+            if (window.Daily?.isActive?.()) return;   // v150: 今日任务弹层开着时, 快捷键不能动到底下的单词页
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
             if (e.key === 'ArrowLeft')  { e.preventDefault(); stopAutoplay(); navigate(-1); }
             if (e.key === 'ArrowRight') { e.preventDefault(); stopAutoplay(); navigate(1); }

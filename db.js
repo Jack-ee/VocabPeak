@@ -935,13 +935,15 @@
             const wLow = String(word || '').toLowerCase();
             const idx  = nb.findIndex(w => String(w.word || '').toLowerCase() === wLow);
             if (idx < 0) return null;              // 不在生词本: 不记账 (课文答对的常见情形)
-            const e     = nb[idx];
-            const today = _today || (() => {
-                const d = new Date();
-                return d.getFullYear() + '-' +
-                       String(d.getMonth() + 1).padStart(2, '0') + '-' +
-                       String(d.getDate()).padStart(2, '0');
-            })();
+            const e = nb[idx];
+            this._applyWordResult(e, isCorrect, source, _today);
+            nb[idx] = e;
+            this.saveNotebook(nb);
+            return e;
+        },
+        // v150: 记账本体抽出来, 今日任务的复习题在同一次写盘里顺带用
+        _applyWordResult: function(e, isCorrect, source, _today) {
+            const today = _today || _localYMD();
             const focus = Array.isArray(e.focus) ? [...e.focus] : [];
             e.lastResultAt = Date.now();           // 后台"多久没练"用
             if (isCorrect) {
@@ -972,8 +974,68 @@
                     e.focus = focus;
                 }
             }
-            nb[idx] = e;
-            this.saveNotebook(nb);
+            return e;
+        },
+
+        // ─── 今日任务记账 (v150, daily.js) ──────────────────
+        // 每道题只写一次盘 (单词本近 4000 词, 平板上序列化一次十几毫秒)。
+        // 测试设备一律不写, 会话在内存里照常往下走。
+        //   planReview: 复习题 (看词选义) —— SRS 按 good / wrong 排期,
+        //               同时走薄弱词记账 (与单词测验同口径: quiz)
+        //   planLearn : 新词学完后的自测 —— 首次学习, 记 learnedAt; 对的
+        //               SRS 1 级、错的 0 级, 都是明天复习
+        //   planSpell : 听音默写 —— 记 spellAt; 写错打「拼写」标记
+        _planEntry: function(word) {
+            if (this.isTestDevice()) return null;
+            const nb   = this.loadNotebook();
+            const wLow = String(word || '').trim().toLowerCase();
+            const idx  = nb.findIndex(w => String(w.word || '').trim().toLowerCase() === wLow);
+            return idx < 0 ? null : { nb: nb, idx: idx, e: nb[idx] };
+        },
+        planReview: function(word, ok) {
+            const x = this._planEntry(word);
+            if (!x) return null;
+            const e     = x.e;
+            const now   = Date.now();
+            const sched = this.scheduleReview(e.srsLevel, ok ? 'good' : 'wrong');
+            e.srsLevel    = sched.newLevel;
+            e.lastReview  = now;
+            e.nextReview  = now + sched.daysToAdd * 86400000;
+            e.reviewCount = (e.reviewCount || 0) + 1;
+            this._applyWordResult(e, !!ok, 'quiz');
+            this.saveNotebook(x.nb);
+            this.bumpDaily({ reviewed: 1, quizTotal: 1, quizCorrect: ok ? 1 : 0 });
+            return e;
+        },
+        planLearn: function(word, ok) {
+            const x = this._planEntry(word);
+            if (!x) return null;
+            const e   = x.e;
+            const now = Date.now();
+            const first = !e.learnedAt;
+            if (first) e.learnedAt = now;
+            e.srsLevel    = ok ? Math.max(1, Number(e.srsLevel) || 0) : 0;
+            e.lastReview  = now;
+            e.nextReview  = now + 86400000;
+            e.reviewCount = (e.reviewCount || 0) + 1;
+            e.learnAt     = now;
+            this.saveNotebook(x.nb);
+            this.bumpDaily({ newWords: first ? 1 : 0, quizTotal: 1, quizCorrect: ok ? 1 : 0 });
+            return e;
+        },
+        planSpell: function(word, ok) {
+            const x = this._planEntry(word);
+            if (!x) return null;
+            const e   = x.e;
+            const now = Date.now();
+            e.spellAt = now;
+            e.learnAt = now;
+            if (!ok) {
+                const focus = Array.isArray(e.focus) ? [...e.focus] : [];
+                if (!focus.includes('spelling')) { focus.push('spelling'); e.focus = focus; e.focusAt = now; }
+            }
+            this.saveNotebook(x.nb);
+            this.bumpDaily({ quizTotal: 1, quizCorrect: ok ? 1 : 0 });
             return e;
         },
 
@@ -1264,6 +1326,8 @@
             rec.reviewed    += (delta.reviewed    || 0);
             rec.quizTotal   += (delta.quizTotal   || 0);
             rec.quizCorrect += (delta.quizCorrect || 0);
+            // v150: 今日任务当天的完成情况 (家长后台用), 整条覆盖为最新
+            if (delta.plan && typeof delta.plan === 'object') rec.plan = delta.plan;
             rec.updatedAt    = Date.now();
             lsSet(k, JSON.stringify(rec));
             this.markActiveDay();          // keep the streak in step with activity
