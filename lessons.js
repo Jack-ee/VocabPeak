@@ -25,6 +25,7 @@ window.Lessons = (function () {
     let clozeState  = null;   // 进行中的填空测验 (kind: lesson | mixed)
     let matchState  = null;   // 进行中的短语匹配 (kind: lesson | mixed)
     let mixedKind   = null;   // 综合练习页当前类型: cloze | match
+    let curSource   = 'book'; // v148: 课文来源 book (教材课文) | ai (AI 短文)
 
     // ─── 学习时长采集 (v132) ────────────────────────────────
     // 记到 DB pref 'lesson_time':
@@ -78,7 +79,7 @@ window.Lessons = (function () {
     function _tCtx() {
         if (curLesson) return { act: curLesson.id,
                                 kind: curTab === 'read' ? 'r' : 'e' };
-        if (clozeState || matchState || mixedKind) return { act: 'mixed', kind: 'e' };
+        if (clozeState || matchState || mixedKind) return { act: curSource === 'ai' ? 'mixed-ai' : 'mixed', kind: 'e' };
         return null;               // 课程列表页不计时
     }
     function _tBucket(day, act) {
@@ -96,7 +97,7 @@ window.Lessons = (function () {
     }
     function _tNoteAnswer(sec) {
         if (window.DB?.isTestDevice?.()) return;   // v141: 测试设备不计时
-        const c = _tCtx() || { act: 'mixed' };
+        const c = _tCtx() || { act: curSource === 'ai' ? 'mixed-ai' : 'mixed' };
         const b = _tBucket(_tYmd(), c.act);
         b.q  += 1;
         b.qs += Math.max(1, Math.min(120, Math.round(sec)));
@@ -141,9 +142,31 @@ window.Lessons = (function () {
     // 几十 KB 的 JSON.parse 在交互路径上开销可忽略。
     function builtinLessons() { return Array.isArray(window.HSV_LESSONS) ? window.HSV_LESSONS : []; }
     function userLessons()    { return window.DB?.loadUserLessons?.() || []; }
-    function lessons()        { return builtinLessons().concat(userLessons()); }
+    // v148: 第二个来源 AI 短文 (stories.js, ID 前缀 S, 只读发布物)。
+    // lessons() = 当前来源的列表 (主页卡片、综合练习题池、切课菜单);
+    // 按 id 查课跨来源 (恢复上次打开的课、练习档案还原)。
+    function bookLessons()    { return builtinLessons().concat(userLessons()); }
+    function storyLessons()   { return window.Stories?.list?.() || []; }
+    function isStory(l)       { return !!l && l.kind === 'ai'; }
+    function lessons()        { return curSource === 'ai' ? storyLessons() : bookLessons(); }
     function isUserLesson(id) { return /^U\d+$/.test(String(id || '')); }
-    function lessonById(id)   { return lessons().find(l => l.id === id) || null; }
+    function lessonById(id)   {
+        return bookLessons().find(l => l.id === id)
+            || storyLessons().find(l => l.id === id) || null;
+    }
+    const GENRE_ZH = {
+        'narrative': '\u8BB0\u53D9\u6587', 'popular science': '\u79D1\u666E\u8BF4\u660E\u6587', 'news feature': '\u65B0\u95FB\u7279\u5199',
+        'argumentative': '\u8BAE\u8BBA\u6587', 'letter': '\u4E66\u4FE1', 'speech': '\u6F14\u8BB2\u7A3F', 'interview': '\u8BBF\u8C08',
+        'diary': '\u65E5\u8BB0', 'biography': '\u4EBA\u7269\u4F20\u8BB0', 'travel': '\u6E38\u8BB0', 'dialogue': '\u5BF9\u8BDD',
+        'report': '\u62A5\u544A', 'review': '\u8BC4\u8BBA', 'blog': '\u535A\u5BA2', 'fable': '\u5BD3\u8A00'
+    };
+    // 综合练习的题池名 (界面文案): 从全部课程 / 从全部 AI 短文
+    function poolName() { return curSource === 'ai' ? '\u4ECE\u5168\u90E8 AI \u77ED\u6587' : '\u4ECE\u5168\u90E8\u8BFE\u7A0B'; }
+    function genreZh(g) { return GENRE_ZH[String(g || '').toLowerCase()] || String(g || ''); }
+    function setSource(src) {
+        curSource = src === 'ai' ? 'ai' : 'book';
+        try { window.DB?.setPref?.('lesson_source', curSource); } catch (e) {}
+    }
 
     // Fisher-Yates —— 全模块唯一的洗牌实现，禁止 sort(random) 偏差写法。
     function shuffle(arr) {
@@ -401,7 +424,7 @@ window.Lessons = (function () {
     //   填空: { mode, hint, g:[[词条ID..]..], gi, idx, o:选项序, a:{id:[对,细节]}, ts }
     //   匹配: { g:[[短语key..]..], gi, done:[key..], miss:{key:n}, missKeys:[..], ts }
     // 整卷/全部完成时清除; 词条按 ID 还原, 课被删则条目自动失效。
-    function sessKey() { return curLesson ? curLesson.id : '__mixed'; }
+    function sessKey() { return curLesson ? curLesson.id : (curSource === 'ai' ? '__mixed_ai' : '__mixed'); }
     function loadSessStore() {
         try { return JSON.parse(window.DB?.getPref?.('lesson_sess', '{}') || '{}') || {}; }
         catch (e) { return {}; }
@@ -500,7 +523,9 @@ window.Lessons = (function () {
     // 短语、以及每个句子的全文。app.js 会做规范化与去重。
     function speechEntries() {
         const out = [];
-        lessons().forEach(l => {
+        // v148: 只含教材课文 —— AI 短文的朗读由生成器直接读 stories/
+        // 合成 (整篇固定一个朗读者), 不走导出的单词表。
+        bookLessons().forEach(l => {
             (l.words || []).forEach(w => {
                 out.push(w.lemma);
                 out.push(w.surface);
@@ -610,7 +635,10 @@ window.Lessons = (function () {
                 if (pIdx !== -1 && pIdx !== curPara) {
                     curPara = pIdx;
                     try {
-                        const v = window.TTSPack?.beginVoiceSession?.(window.App?.getPackVoices?.());
+                        // v148: AI 短文整篇固定一个朗读者 (发音包里句子只有这个音色)
+                        const pool = isStory(curLesson) && curLesson.narrator
+                            ? [curLesson.narrator] : window.App?.getPackVoices?.();
+                        const v = window.TTSPack?.beginVoiceSession?.(pool);
                         console.log('[Lessons] 第 ' + (pIdx + 1) + ' 段 → 朗读者 ' + (v || '(设备语音)'));
                     } catch (e) {}
                 }
@@ -663,7 +691,25 @@ window.Lessons = (function () {
             const pp = Object.keys(rec.p).filter(k => k.indexOf(l.id + '-W') === 0).length;
             return { w: wp, p: pp };
         };
-        const cards = lessons().map(l => {
+        const ai    = curSource === 'ai';
+        const list  = lessons();
+        let   group = '';
+        const cards = list.map((l, li) => {
+            // v148: AI 短文每 10 篇一个分组标题 (与发音包分片一致),
+            // 标出这一组目标词覆盖的字母区间, 便于按默写本进度找篇目。
+            let head = '';
+            if (ai) {
+                const g = Math.floor(li / 10);
+                if (String(g) !== group) {
+                    group = String(g);
+                    const chunk = list.slice(g * 10, g * 10 + 10);
+                    const lem   = [];
+                    chunk.forEach(x => (x.words || []).forEach(w => lem.push(String(w.lemma || '').toLowerCase())));
+                    lem.sort();
+                    head = `<div class="ls-group-head">${esc(chunk[0].id)}\u2013${esc(chunk[chunk.length - 1].id)}`
+                         + (lem.length ? ` \u00b7 ${esc(lem[0])} \u2192 ${esc(lem[lem.length - 1])}` : '') + '</div>';
+                }
+            }
             const p      = prog[l.id] || {};
             const wordN  = (l.words || []).length;
             const phrN   = lessonPhrasesCore(l).length;   // 分母按精选口径
@@ -680,12 +726,16 @@ window.Lessons = (function () {
             const del = isUserLesson(l.id)
                 ? `<button class="ls-card-del" data-del="${esc(l.id)}" title="\u5220\u9664\u8FD9\u8BFE">\u00d7</button>`
                 : '';
-            return `
-            <div class="ls-card" data-lesson="${esc(l.id)}">
+            const sub = ai
+                ? `${esc(l.id)} \u00b7 ${esc(genreZh(l.genre))} \u00b7 ${wordN} \u4E2A\u76EE\u6807\u8BCD`
+                : `${esc(l.titleZh || '')} \u00b7 ${wordN} \u8BCD`;
+            return `${head}
+            <div class="ls-card${ai ? ' ls-card-ai' : ''}" data-lesson="${esc(l.id)}">
                 ${del}
                 <div class="ls-card-title">${esc(l.title)}</div>
+                ${ai && l.titleZh ? `<div class="ls-card-zh">${esc(l.titleZh)}</div>` : ''}
                 <div class="ls-card-meta">
-                    <span class="ls-card-sub">${esc(l.titleZh || '')} \u00b7 ${wordN} \u8BCD</span>
+                    <span class="ls-card-sub">${sub}</span>
                     ${badges.join('') || '<span class="ls-badge ls-badge-empty">\u672A\u5F00\u59CB</span>'}
                 </div>
             </div>`;
@@ -713,7 +763,7 @@ window.Lessons = (function () {
             : '';
         const mixed = (ms.w.total || ms.p.total) ? `
             <div class="ls-mixed-card">
-                <div class="ls-mixed-title">\u{1F4CA} \u7EFC\u5408\u7EC3\u4E60<span class="ls-mixed-tag">\u5168\u90E8\u8BFE\u7A0B</span></div>
+                <div class="ls-mixed-title">\u{1F4CA} \u7EFC\u5408\u7EC3\u4E60<span class="ls-mixed-tag">${ai ? '\u5168\u90E8 AI \u77ED\u6587' : '\u5168\u90E8\u8BFE\u7A0B'}</span></div>
                 <div class="ls-mixed-stat">\u8BCD\u6C47 \u5DF2\u7EC3 ${ms.w.seen}/${ms.w.total}\uFF0C\u5F85\u5F3A\u5316 ${ms.w.wrong}
                     \u00b7 \u77ED\u8BED \u5DF2\u7EC3 ${ms.p.seen}/${ms.p.total}\uFF0C\u5F85\u5F3A\u5316 ${ms.p.wrong}</div>
                 <div class="ls-mixed-btns">
@@ -721,18 +771,39 @@ window.Lessons = (function () {
                     <button class="wl-btn-secondary" id="ls-mixed-match">\u{1F517} \u7EFC\u5408\u77ED\u8BED</button>
                 </div>
             </div>` : '';
-        root.innerHTML = `
-            <div class="ls-home">
+        const nBook = bookLessons().length;
+        const nAi   = storyLessons().length;
+        const seg   = `
+                <div class="ls-src-seg" role="tablist">
+                    <button class="ls-src-btn${ai ? '' : ' on'}" data-src="book" role="tab" aria-selected="${!ai}">\u{1F4D8} \u6559\u6750\u8BFE\u6587 <span class="ls-src-n">${nBook}</span></button>
+                    <button class="ls-src-btn${ai ? ' on' : ''}" data-src="ai" role="tab" aria-selected="${ai}">\u2728 AI \u77ED\u6587 <span class="ls-src-n">${nAi}</span></button>
+                </div>`;
+        const aiRead = ai ? list.filter(l => (prog[l.id] || {}).listened).length : 0;
+        const head = ai ? `
+                <div class="ls-home-head">
+                    <div>
+                        <div class="ls-home-title">AI \u77ED\u6587</div>
+                        <div class="ls-home-sub">\u6309 3500 \u8BCD\u9ED8\u5199\u672C\u7684\u5B57\u6BCD\u987A\u5E8F\u7F16\u5199\uFF0C\u6BCF\u7BC7 20 \u4E2A\u4EE5\u4E0A\u76EE\u6807\u8BCD\u3002\u70B9\u4EFB\u610F\u8BCD\u67E5\u8BCD\uFF0C\u4E00\u7BC7\u4E00\u4E2A\u6717\u8BFB\u8005\u3002${nAi ? '\u5DF2\u542C\u8BFB ' + aiRead + '/' + nAi + ' \u7BC7\u3002' : ''}</div>
+                    </div>
+                    <button class="wl-btn-secondary ls-import-btn" id="ls-stories-check">\u21BB \u68C0\u67E5\u65B0\u77ED\u6587</button>
+                </div>` : `
                 <div class="ls-home-head">
                     <div>
                         <div class="ls-home-title">\u8BFE\u6587\u7CBE\u8BFB</div>
                         <div class="ls-home-sub">\u542C\u8BFB \u2192 \u70B9\u8BCD \u2192 \u586B\u7A7A \u2192 \u77ED\u8BED\uFF0C\u4E00\u8BFE\u56DB\u6B65\u5403\u900F\u8BFE\u6587\u8BCD\u6C47\u3002</div>
                     </div>
                     <button class="wl-btn-secondary ls-import-btn" id="ls-import-open">\uFF0B \u5BFC\u5165\u8BFE\u6587</button>
-                </div>
+                </div>`;
+        const empty = ai
+            ? '<div class="ls-empty">\u8FD8\u6CA1\u6709 AI \u77ED\u6587\u3002\u8054\u7F51\u540E\u4F1A\u81EA\u52A8\u83B7\u53D6\uFF0C\u4E5F\u53EF\u4EE5\u70B9\u53F3\u4E0A\u89D2\u300C\u68C0\u67E5\u65B0\u77ED\u6587\u300D\u3002</div>'
+            : '<div class="ls-empty">\u6682\u65E0\u8BFE\u6587\u3002</div>';
+        root.innerHTML = `
+            <div class="ls-home">
+                ${seg}
+                ${head}
                 ${timeCard}
                 ${mixed}
-                <div class="ls-card-list">${cards || '<div class="ls-empty">\u6682\u65E0\u8BFE\u6587\u3002</div>'}</div>
+                <div class="ls-card-list">${cards || empty}</div>
             </div>
             <div class="ls-sheet-overlay" id="ls-import-overlay">
                 <div class="ls-sheet ls-import-sheet" id="ls-import-sheet"></div>
@@ -744,6 +815,7 @@ window.Lessons = (function () {
         const l = lessonById(id);
         if (!l) { renderHome(); return; }
         stopPlay();
+        if ((curSource === 'ai') !== isStory(l)) setSource(isStory(l) ? 'ai' : 'book');
         curLesson  = l;
         curTab     = tab || 'read';
         clozeState = null;
@@ -753,19 +825,19 @@ window.Lessons = (function () {
         root.innerHTML = `
             <div class="ls-lesson">
                 <div class="ls-head">
-                    <button class="ls-back" id="ls-back" title="\u5168\u90E8\u8BFE\u6587">${ICON_BACK}</button>
+                    <button class="ls-back" id="ls-back" title="${isStory(l) ? '\u5168\u90E8\u77ED\u6587' : '\u5168\u90E8\u8BFE\u6587'}">${ICON_BACK}</button>
                     <div class="ls-head-text">
-                        <button class="ls-head-switch" id="ls-lesson-switch" title="\u5207\u6362\u8BFE\u6587">
+                        <button class="ls-head-switch" id="ls-lesson-switch" title="${isStory(l) ? '\u5207\u6362\u77ED\u6587' : '\u5207\u6362\u8BFE\u6587'}">
                             <span class="ls-head-title">${esc(l.title)}</span>
                             <span class="ls-switch-caret">\u25BE</span>
                         </button>
-                        <div class="ls-head-sub">${esc(l.titleZh || '')}</div>
+                        <div class="ls-head-sub">${isStory(l) ? esc(l.id) + ' \u00b7 ' + esc(genreZh(l.genre)) + ' \u00b7 ' : ''}${esc(l.titleZh || '')}</div>
                     </div>
                     <div class="ls-head-prog" id="ls-head-prog"></div>
                 </div>
                 <div class="ls-switch-menu" id="ls-switch-menu">${switchMenuHtml(l.id)}</div>
                 <div class="ls-tabs">
-                    <button class="ls-tab" data-lstab="read">\u{1F4D6} \u8BFE\u6587</button>
+                    <button class="ls-tab" data-lstab="read">\u{1F4D6} ${isStory(l) ? '\u77ED\u6587' : '\u8BFE\u6587'}</button>
                     <button class="ls-tab" data-lstab="cloze">\u270F\uFE0F \u586B\u7A7A</button>
                     <button class="ls-tab" data-lstab="phrases">\u{1F517} \u77ED\u8BED</button>
                 </div>
@@ -792,7 +864,7 @@ window.Lessons = (function () {
                     <button class="ls-back" id="ls-back" title="\u5168\u90E8\u8BFE\u6587">${ICON_BACK}</button>
                     <div class="ls-head-text">
                         <div class="ls-head-title">\u{1F4CA} ${title}</div>
-                        <div class="ls-head-sub">\u4ECE\u5168\u90E8\u8BFE\u7A0B\u62BD\u9898 \u00b7 \u9519\u8FC7\u7684\u4F18\u5148\u91CD\u73B0</div>
+                        <div class="ls-head-sub">${poolName()}\u62BD\u9898 \u00b7 \u9519\u8FC7\u7684\u4F18\u5148\u91CD\u73B0</div>
                     </div>
                     <div class="ls-head-prog"></div>
                 </div>
@@ -813,7 +885,7 @@ window.Lessons = (function () {
             panel.innerHTML = `
                 <div class="ls-cloze-setup">
                     ${matchResumeHtml()}
-                    <div class="ls-setup-title">\u4ECE\u5168\u90E8\u8BFE\u7A0B\u7684 ${s.total} \u5BF9\u77ED\u8BED\u91CC\u62BD ${Math.min(size, s.total)} \u5BF9\u7EC3\u4E00\u7EC4</div>
+                    <div class="ls-setup-title">${poolName()}\u7684 ${s.total} \u5BF9\u77ED\u8BED\u91CC\u62BD ${Math.min(size, s.total)} \u5BF9\u7EC3\u4E00\u7EC4</div>
                     <div class="ls-setup-sub">\u5DF2\u7EC3 ${s.seen} \u5BF9 \u00b7 \u5F85\u5F3A\u5316 ${s.wrong} \u5BF9 \u00b7 \u672A\u7EC3 ${s.total - s.seen} \u5BF9</div>
                     <div class="ls-setup-btns">
                         <button class="wl-btn-primary" id="ls-match-start">\u{1F3AE} \u5F00\u59CB\u5339\u914D</button>
@@ -825,7 +897,7 @@ window.Lessons = (function () {
             panel.innerHTML = `
                 <div class="ls-cloze-setup">
                     ${clozeResumeHtml()}
-                    <div class="ls-setup-title">\u4ECE\u5168\u90E8\u8BFE\u7A0B\u7684 ${s.total} \u4E2A\u8BCD\u91CC\u62BD ${Math.min(size, s.total)} \u9898\u7EC3\u4E00\u7EC4</div>
+                    <div class="ls-setup-title">${poolName()}\u7684 ${s.total} \u4E2A\u8BCD\u91CC\u62BD ${Math.min(size, s.total)} \u9898\u7EC3\u4E00\u7EC4</div>
                     <div class="ls-setup-sub">\u5DF2\u7EC3 ${s.seen} \u8BCD \u00b7 \u5F85\u5F3A\u5316 ${s.wrong} \u8BCD \u00b7 \u672A\u7EC3 ${s.total - s.seen} \u8BCD</div>
                     <div class="ls-setup-btns">
                         <button class="wl-btn-primary"   id="ls-cloze-choice">\u{1F520} \u9009\u62E9\u586B\u7A7A\uFF084 \u9009 1\uFF09</button>
@@ -890,6 +962,15 @@ window.Lessons = (function () {
     // 包成 <span class="ls-word">。先在原文上定位、再分段转义拼接:
     // 定位与转义解耦, 撇号等被 esc 改写的字符不影响边界判断,
     // "run" 也不会命中进 "runners"。
+    // v148: 词标注之外的每个英文词也包成 <span class="ls-tok">, 「查词」
+    // 模式下点它弹出统一词库释义 (stories.js 的 HSVLex)。「听句」模式
+    // 下 ls-tok 没有任何行为, 点击冒泡到句子 —— 与旧版一模一样。
+    const TOK_SPLIT = /([A-Za-z]+(?:['\u2019-][A-Za-z]+)*)/;
+    function tokHtml(text) {
+        return String(text || '').split(TOK_SPLIT)
+            .map((part, i) => (i % 2) ? `<span class="ls-tok">${esc(part)}</span>` : esc(part))
+            .join('');
+    }
     function sentenceHtml(lesson, s) {
         const hits = (lesson.words || [])
             .filter(w => w.sent === s.id)
@@ -900,19 +981,47 @@ window.Lessons = (function () {
         let pos  = 0;
         hits.forEach(x => {
             if (x.at < pos) return;                 // 与前一命中重叠, 保留靠前者
-            html += esc(s.text.slice(pos, x.at))
+            html += tokHtml(s.text.slice(pos, x.at))
                  + `<span class="ls-word" data-wid="${esc(x.w.id)}">${esc(x.w.surface)}</span>`;
             pos = x.at + x.w.surface.length;
         });
-        html += esc(s.text.slice(pos));
+        html += tokHtml(s.text.slice(pos));
         const hard = s.hard ? ' ls-hard' : '';
         const mark = s.hard ? '<span class="ls-hard-mark" title="\u96BE\u53E5">\u96BE</span>' : '';
         return `<span class="ls-sent${hard}" data-sid="${esc(s.id)}">${html}${mark}</span>`;
     }
 
+    // 点词模式: lookup = 点任意词查词, listen = 点句子听单句 (旧行为)。
+    // AI 短文默认查词, 教材课文默认听句; 各自记住上次的选择。
+    function tapMode() {
+        const kind = isStory(curLesson) ? 'ai' : 'book';
+        const v    = window.DB?.getPref?.('lesson_tap_' + kind, '') || '';
+        return v === 'lookup' || v === 'listen' ? v : (kind === 'ai' ? 'lookup' : 'listen');
+    }
+    function setTapMode(v) {
+        const kind = isStory(curLesson) ? 'ai' : 'book';
+        try { window.DB?.setPref?.('lesson_tap_' + kind, v); } catch (e) {}
+        const text = root.querySelector('.ls-text');
+        if (text) text.classList.toggle('ls-tap-lookup', v === 'lookup');
+        const btn  = root.querySelector('#ls-tapmode');
+        if (btn) {
+            btn.classList.toggle('on', v === 'lookup');
+            btn.textContent = v === 'lookup' ? '\u{1F50D} \u70B9\u8BCD\u67E5\u8BCD' : '\u{1F442} \u70B9\u53E5\u542C\u53E5';
+        }
+        const hint = root.querySelector('.ls-read-hint');
+        if (hint) hint.textContent = readHint(v);
+    }
+    function readHint(mode) {
+        const hasZh = (curLesson.paras || []).some(p => p.zh);
+        return (mode === 'lookup'
+                ? '\u70B9\u4EFB\u610F\u8BCD\u67E5\u8BCD \u00b7 \u5212\u7EBF\u8BCD\u662F\u76EE\u6807\u8BCD \u00b7 \u25B6 \u542C\u6574\u6BB5'
+                : '\u70B9\u53E5\u5B50\u542C\u5355\u53E5 \u00b7 \u70B9\u84DD\u8272\u8BCD\u770B\u8BE6\u89E3')
+             + (hasZh ? ' \u00b7 \u70B9 \u8BD1 \u770B\u6BB5\u8BD1' : '');
+    }
     function renderRead(panel) {
         const l     = curLesson;
         const hasZh = (l.paras || []).some(p => p.zh);
+        const mode  = tapMode();
         const paras = (l.paras || []).map(p => {
             const inner = (p.sentences || []).map(s => sentenceHtml(l, s)).join(' ');
             const trBtn = p.zh
@@ -934,9 +1043,10 @@ window.Lessons = (function () {
                     <button class="wl-btn-primary" id="ls-play-all">\u25B6 \u64AD\u653E\u5168\u6587</button>
                     ${hasZh ? '<button class="ls-tool-btn" id="ls-read-zh-all" title="\u663E\u793A/\u9690\u85CF\u5168\u90E8\u8BD1\u6587">\u8BD1\u6587</button>' : ''}
                     ${needZhFix ? '<button class="ls-tool-btn ls-zhfix-open" id="ls-zh-fix" title="\u7ED9\u672C\u8BFE\u8865\u5168\u53E5\u7EA7\u4E2D\u6587\u8BD1\u6587">\u{1F310} \u8865\u53E5\u8BD1</button>' : ''}
-                    <span class="ls-read-hint">\u70B9\u53E5\u5B50\u542C\u5355\u53E5 \u00b7 \u70B9\u84DD\u8272\u8BCD\u770B\u8BE6\u89E3${hasZh ? ' \u00b7 \u70B9 \u8BD1 \u770B\u6BB5\u8BD1' : ''}</span>
+                    <button class="ls-tool-btn${mode === 'lookup' ? ' on' : ''}" id="ls-tapmode" title="\u5207\u6362: \u70B9\u8BCD\u67E5\u8BCD / \u70B9\u53E5\u542C\u53E5">${mode === 'lookup' ? '\u{1F50D} \u70B9\u8BCD\u67E5\u8BCD' : '\u{1F442} \u70B9\u53E5\u542C\u53E5'}</button>
+                    <span class="ls-read-hint">${esc(readHint(mode))}</span>
                 </div>
-                <div class="ls-text">${paras}</div>
+                <div class="ls-text${mode === 'lookup' ? ' ls-tap-lookup' : ''}">${paras}</div>
             </div>
             <div class="ls-sheet-overlay" id="ls-sheet-overlay">
                 <div class="ls-sheet" id="ls-sheet"></div>
@@ -990,7 +1100,7 @@ window.Lessons = (function () {
                 <button class="ls-sheet-close" id="ls-sheet-close">\u00d7</button>
             </div>
             ${lemmaLn}
-            <div class="ls-sheet-pos">${esc(w.pos)}</div>
+            <div class="ls-sheet-pos">${esc(w.pos)}${w.level && window.HSVLex ? ' \u00b7 ' + esc(window.HSVLex.levelName(w.level)) : ''}${w.n3500 ? ' \u00b7 \u9ED8\u5199\u672C #' + esc(w.n3500) : ''}</div>
             <div class="ls-sheet-zh">${esc(w.zh)}</div>
             ${s ? `<div class="ls-sheet-sent">
                 <button class="ls-mini-speak" data-say="${esc(s.text)}">\u{1F50A}</button>
@@ -1003,6 +1113,87 @@ window.Lessons = (function () {
 
     function closeWordSheet() {
         root.querySelector('#ls-sheet-overlay')?.classList.remove('open');
+        root.querySelectorAll('.ls-tok.looking').forEach(x => x.classList.remove('looking'));
+    }
+
+    // v148: 点任意词查词 —— 统一词库 (3500 + 内置高中词) → 本篇 gloss
+    // → 离线词典, 逐级回退。基础词 (B 级) 只查不收, 其余可一键入生词本
+    // (原型、音标、释义、本句作例句)。专有名词词库里没有, 如实说明。
+    let _lookup = null;     // 当前弹层的查词结果, 供「加入生词本」使用
+    function openLookupSheet(tokEl) {
+        const overlay = root.querySelector('#ls-sheet-overlay');
+        const sheet   = root.querySelector('#ls-sheet');
+        if (!overlay || !sheet || !curLesson) return;
+        const surface = tokEl.textContent;
+        const sentEl  = tokEl.closest('.ls-sent');
+        const s       = sentEl ? sentenceById(curLesson, sentEl.dataset.sid) : null;
+        const hit     = window.HSVLex?.lookup?.(surface, curLesson.gloss) || null;
+        const isName  = !hit && /^[A-Z]/.test(surface) && sentEl
+                        && sentEl.textContent.trim().indexOf(surface) > 0;
+        _lookup = hit ? Object.assign({ surface: surface, sent: s }, hit) : null;
+        root.querySelectorAll('.ls-tok.looking').forEach(x => x.classList.remove('looking'));
+        tokEl.classList.add('looking');
+        const head    = hit ? hit.head : surface;
+        const lemmaLn = hit && hit.head.toLowerCase() !== surface.toLowerCase()
+            ? `<div class="ls-sheet-lemma">\u539F\u578B: <b>${esc(hit.head)}</b>\uFF08\u6587\u4E2D: ${esc(surface)}\uFF09</div>` : '';
+        const meta = [];
+        if (hit && hit.level) meta.push(esc(window.HSVLex.levelName(hit.level)));
+        if (hit && hit.n)     meta.push('\u9ED8\u5199\u672C #' + esc(hit.n));
+        if (hit && hit.src === 'gloss') meta.push('\u672C\u7BC7\u6CE8\u91CA');
+        if (hit && hit.src === 'dict')  meta.push('\u79BB\u7EBF\u8BCD\u5178');
+        const collo = hit && hit.collo
+            ? hit.collo.split(/\s*[·;,，]\s*/).filter(Boolean).slice(0, 3).map(c => `
+            <div class="ls-phrase-row">
+                <button class="ls-mini-speak" data-say="${esc(c)}">\u{1F50A}</button>
+                <span class="ls-phrase-en">${esc(c)}</span>
+            </div>`).join('') : '';
+        const body = hit
+            ? `${hit.ipa ? `<div class="ls-sheet-ipa">${esc(hit.ipa)}</div>` : ''}
+               <div class="ls-sheet-zh">${esc(hit.zh || '\uFF08\u8BCD\u5E93\u91CC\u6CA1\u6709\u91CA\u4E49\uFF09')}</div>`
+            : `<div class="ls-sheet-zh ls-sheet-miss">${isName
+                ? '\u4E13\u6709\u540D\u8BCD (\u4EBA\u540D\u3001\u5730\u540D\u7B49)\uFF0C\u8BCD\u5E93\u4E0D\u6536\u5F55\u3002'
+                : '\u7EDF\u4E00\u8BCD\u5E93\u548C\u79BB\u7EBF\u8BCD\u5178\u90FD\u6CA1\u6709\u8FD9\u4E2A\u8BCD\u3002'}</div>`;
+        const canAdd = hit && hit.level !== 'B';
+        const foot   = !hit ? ''
+            : canAdd
+                ? `<button class="wl-btn-primary ls-sheet-add" id="ls-lookup-add">\u2795 \u52A0\u5165\u751F\u8BCD\u672C</button>`
+                : `<div class="ls-sheet-note">\u57FA\u7840\u8BCD\uFF0C\u4E0D\u8FDB\u751F\u8BCD\u672C\u3002</div>`;
+        sheet.innerHTML = `
+            <div class="ls-sheet-head">
+                <div class="ls-sheet-word">${esc(head)}
+                    <button class="ls-mini-speak" data-say="${esc(hit ? hit.head : surface)}">\u{1F50A}</button>
+                </div>
+                <button class="ls-sheet-close" id="ls-sheet-close">\u00d7</button>
+            </div>
+            ${lemmaLn}
+            ${meta.length ? `<div class="ls-sheet-pos">${meta.join(' \u00b7 ')}</div>` : ''}
+            ${body}
+            ${s ? `<div class="ls-sheet-sent">
+                <button class="ls-mini-speak" data-say="${esc(s.text)}">\u{1F50A}</button>
+                <span>${esc(s.text)}</span>
+            </div>` : ''}
+            ${collo ? `<div class="ls-sheet-phrases-title">\u5E38\u7528\u642D\u914D</div>${collo}` : ''}
+            ${foot}`;
+        overlay.classList.add('open');
+    }
+
+    function addLookupToNotebook() {
+        const x = _lookup;
+        if (!x || !window.DB?.upsertNotebookWord) return;
+        const lesson = curLesson;
+        const zh     = String(x.zh || '').replace(/\s+/g, ' ').trim();
+        window.DB.upsertNotebookWord({
+            word    : x.head,
+            meaning : zh,
+            phonetic: x.ipa || '',
+            collo   : x.collo ? x.collo.split(/\s*[·;,，]\s*/).filter(Boolean).slice(0, 3).join(' \u00b7 ') : '',
+            context : x.sent ? x.sent.text : '',
+            contextCn: x.sent ? (x.sent.zh || '') : '',
+            source  : lesson ? ((isStory(lesson) ? 'AI \u77ED\u6587 ' : '\u8BFE\u6587 ') + lesson.id + ' ' + lesson.title) : '',
+            tags    : [isStory(lesson) ? 'AI\u77ED\u6587' : '\u8BFE\u6587'].concat(lesson ? [lesson.id] : [])
+        }, { fillOnly: true });
+        window.App?.updateNotebookBadge?.();
+        toast('\u{1F4D6} \u5DF2\u52A0\u5165\u751F\u8BCD\u672C: ' + x.head);
     }
 
     function addWordToNotebook(w, silent) {
@@ -1017,9 +1208,10 @@ window.Lessons = (function () {
             collo   : en,
             colloCn : cn,
             context : s ? s.text : '',
-            source  : lesson ? ('\u8BFE\u6587 ' + lesson.id + ' ' + lesson.title) : '\u8BFE\u6587',
-            tags    : ['\u8BFE\u6587'].concat(lesson ? [lesson.id] : [])
-        });
+            source  : lesson ? ((isStory(lesson) ? 'AI \u77ED\u6587 ' : '\u8BFE\u6587 ') + lesson.id + ' ' + lesson.title)
+                             : '\u8BFE\u6587',
+            tags    : [isStory(lesson) ? 'AI\u77ED\u6587' : '\u8BFE\u6587'].concat(lesson ? [lesson.id] : [])
+        }, { fillOnly: true });    // v148: 已有的词只补空字段, 不盖整理过的释义
         window.App?.updateNotebookBadge?.();
         if (!silent) toast('\u{1F4D6} \u5DF2\u52A0\u5165\u751F\u8BCD\u672C: ' + w.lemma);
     }
@@ -2590,6 +2782,18 @@ window.Lessons = (function () {
         const impOverlay = t.closest('#ls-import-overlay');
         if (impOverlay && t === impOverlay) { closeImport(); return; }
 
+        // v148: 来源切换 (教材课文 / AI 短文) 与检查新短文
+        const srcBtn = t.closest('.ls-src-btn');
+        if (srcBtn) { setSource(srcBtn.dataset.src); renderHome(); return; }
+        if (t.closest('#ls-stories-check')) {
+            const b = t.closest('#ls-stories-check');
+            b.disabled = true;
+            Promise.resolve(window.Stories?.check?.(true)).finally(() => {
+                if (!curLesson && curSource === 'ai') renderHome();
+            });
+            return;
+        }
+
         // 课程列表
         const card = t.closest('.ls-card');
         if (card) { openLesson(card.dataset.lesson); return; }
@@ -2606,6 +2810,15 @@ window.Lessons = (function () {
             stopPlay();   // 中断整篇播放链，防止与词卡发音重叠
             const w = wordById(curLesson, wordEl.dataset.wid);
             if (w) { speak(w.surface); openWordSheet(w); }
+            return;
+        }
+        if (t.closest('#ls-tapmode')) { setTapMode(tapMode() === 'lookup' ? 'listen' : 'lookup'); return; }
+        const tokEl = t.closest('.ls-tok');
+        if (tokEl && tokEl.closest('.ls-tap-lookup')) {
+            e.stopPropagation();
+            stopPlay();
+            openLookupSheet(tokEl);
+            speak(tokEl.textContent);      // 读文中的词形; 弹层里的喇叭读原型
             return;
         }
         const sentEl = t.closest('.ls-sent');
@@ -2625,6 +2838,7 @@ window.Lessons = (function () {
             return;
         }
         if (t.closest('#ls-sheet-close')) { closeWordSheet(); return; }
+        if (t.closest('#ls-lookup-add'))  { addLookupToNotebook(); closeWordSheet(); return; }
         const addBtn = t.closest('[data-addword]');
         if (addBtn) {
             const w = wordById(curLesson, addBtn.dataset.addword);
@@ -2804,6 +3018,7 @@ window.Lessons = (function () {
         ['pointerdown', 'keydown', 'touchstart'].forEach(ev =>
             document.addEventListener(ev, tMarkActivity, { passive: true }));
         // 记住上次打开的课 —— 同步重载/刷新后回到原处
+        curSource = window.DB?.getPref?.('lesson_source', 'book') === 'ai' ? 'ai' : 'book';
         const last = window.DB?.getPref?.('lesson_last', '');
         if (last && lessonById(last)) openLesson(last);
         else renderHome();

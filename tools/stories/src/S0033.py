@@ -1,0 +1,80 @@
+# S0033 — 人物传记: Helen Keller (3500 · ABC 窗口 3, 第 10 组)
+# 事实核对: 1880 年生于亚拉巴马州; 19 个月大时因病失明失聪; 经贝尔建议联系
+# 波士顿帕金斯盲校校长, 1887 年安妮·莎莉文 (时年 20 岁) 到来; "water" 水泵情节;
+# 1904 年拉德克利夫学院优等毕业, 按 AFB/Perkins 表述写"首位获得大学学位的盲聋人";
+# The Story of My Life 为在校期间所写 (1902 连载, 1903 成书), 不写"第一本书";
+# 1924 年起为美国盲人基金会工作四十余年; 1946–1957 年出访 35 国、五大洲; 安妮 1936 年去世; 凯勒 1968 年去世。
+STORY = {
+ 'id': 'S0033', 'title': 'Helen Keller: A Hand That Opened the World', 'titleZh': '海伦·凯勒：掌心里打开的世界', 'genre': 'biography',
+ 'paras': [
+  [
+   ("In 1880, Helen Keller was born in a small town in Alabama, in the south of the United States.",
+    "1880年，海伦·凯勒出生在美国南部亚拉巴马州的一个小镇。", False),
+   ("When she was nineteen months old, a serious illness left her blind and deaf.",
+    "她十九个月大时，一场重病使她失明又失聪。", False),
+   ("She grew into a curious child who wanted to explore everything, but because she had no way to communicate, she often screamed and kicked in anger.",
+    "她渐渐长成一个对什么都好奇、什么都想摸索的孩子，可由于无法与人交流，她常常气得又喊又踢。", True),
+   ("Desperate for help, her parents followed the advice of Alexander Graham Bell, the inventor of the telephone, and wrote to the director of a school for the blind.",
+    "父母急切地想找人帮忙，于是听从电话发明者亚历山大·格雷厄姆·贝尔的建议，给一所盲人学校的校长写了信。", True),
+  ],
+  [
+   ("In 1887 the school sent a twenty-year-old teacher, Anne Sullivan, who began spelling words into Helen's hand with her fingers.",
+    "1887年，这所学校派来了一位二十岁的老师安妮·莎莉文，她开始用手指在海伦的手心里拼写单词。", False),
+   ("At first, Helen copied the movements without knowing what they meant.",
+    "起初，海伦只是模仿这些动作，却不明白它们是什么意思。", False),
+   ("Then one day, as cool water ran over one of her hands, Anne spelled the word \"water\" into the other.",
+    "后来有一天，清凉的水从她的一只手上流过，安妮在她的另一只手心里拼出了“水”这个词。", False),
+   ("Suddenly she grasped the concept that everything has a name, and by the end of that day she had learned many new words.",
+    "她一下子明白了“万物皆有名字”这个概念，到那天结束时，她已经学会了许多新词。", True),
+  ],
+  [
+   ("Learning to read Braille and even to speak was a long struggle, but she faced every difficulty with great determination.",
+    "学习读盲文、甚至学习说话，都是一场漫长的奋斗，但她以顽强的决心面对每一个困难。", False),
+   ("Throughout these years, Anne stayed by her side as her teacher and companion, and at Radcliffe College she spelled the lectures into Helen's hand.",
+    "这些年里，安妮作为老师和伙伴一直陪在她身边；在拉德克利夫学院时，安妮把课堂讲授的内容拼写在海伦的手心里。", True),
+   ("In 1904 she graduated with honours, becoming the first deaf and blind person to earn a college degree.",
+    "1904年，她以优异的成绩毕业，成为第一位获得大学学位的盲聋人。", False),
+   ("While she was still a student, she wrote The Story of My Life, in which she described how her teacher had opened up the world for her.",
+    "还在读书时，她就写出了《我的人生故事》，书中描述了老师是如何为她打开世界之门的。", True),
+  ],
+  [
+   ("For the rest of her life, Keller devoted herself to helping people with disabilities.",
+    "在此后的一生中，凯勒一直致力于帮助残障人士。", False),
+   ("For more than forty years she gave speeches and raised money for the blind, visiting many countries on five continents.",
+    "四十多年里，她四处演讲，为盲人募集资金，足迹遍及五大洲的许多国家。", False),
+   ("She argued that disabled people deserved to be treated with dignity, not pity, and to have the same chances at school and at work as everyone else.",
+    "她主张，残疾人应当得到尊重而不是怜悯，并且在上学和工作上享有和其他人同等的机会。", True),
+   ("Mark Twain, one of her most famous contemporaries, was among the many people who admired her.",
+    "与她同时代的名人中，大作家马克·吐温也是众多钦佩她的人之一。", False),
+  ],
+  [
+   ("After Anne's death in 1936, Keller never forgot the debt she owed to her teacher.",
+    "1936年安妮去世后，凯勒始终没有忘记自己欠老师的那份恩情。", False),
+   ("When Keller herself died in 1968, people around the world remembered her courage and her lasting contribution to the lives of disabled people.",
+    "1968年凯勒本人去世时，世界各地的人们都缅怀她的勇气，以及她为改善残障人士的生活做出的不朽贡献。", True),
+  ],
+ ],
+ 'words': [
+  ('deaf', 'deaf', 'adj.', '聋的，失聪的', 2, 'go deaf', '变聋'),
+  ('curious', 'curious', 'adj.', '好奇的', 3, 'be curious about sth', '对某事好奇'),
+  ('communicate', 'communicate', 'v.', '交流，沟通', 3, 'communicate with sb', '与某人交流'),
+  ('desperate', 'Desperate', 'adj.', '极想的；绝望的', 4, 'be desperate for sth', '急需某物'),
+  ('director', 'director', 'n.', '（机构的）负责人；主任', 4, 'the director of a museum', '博物馆馆长'),
+  ('concept', 'concept', 'n.', '概念', 8, 'grasp the concept', '理解概念'),
+  ('difficulty', 'difficulty', 'n.', '困难', 9, 'have difficulty (in) doing sth', '做某事有困难'),
+  ('determination', 'determination', 'n.', '决心', 9, 'with great determination', '以极大的决心'),
+  ('companion', 'companion', 'n.', '同伴，伙伴', 10, 'a constant companion', '形影不离的伙伴'),
+  ('degree', 'degree', 'n.', '学位', 11, 'earn a degree', '获得学位'),
+  ('describe', 'described', 'v.', '描述，叙述', 12, 'describe sth as...', '把某事描述为……'),
+  ('devote', 'devoted', 'v.', '致力于，献身于', 13, 'devote oneself to sth', '致力于某事'),
+  ('disability', 'disabilities', 'n.', '残疾，残障', 13, 'people with disabilities', '残障人士'),
+  ('continent', 'continents', 'n.', '大洲；大陆', 14, 'on five continents', '在五大洲'),
+  ('disabled', 'disabled', 'adj.', '残疾的', 15, 'disabled people', '残疾人'),
+  ('dignity', 'dignity', 'n.', '尊严', 15, 'treat sb with dignity', '尊重某人'),
+  ('contemporary', 'contemporaries', 'n.', '同时代的人', 16, 'a contemporary of sb', '与某人同时代的人'),
+  ('death', 'death', 'n.', '死亡，去世', 17, 'after sb\'s death', '某人去世后'),
+  ('debt', 'debt', 'n.', '恩情；债务', 17, 'owe sb a debt of gratitude', '欠某人一份恩情'),
+  ('courage', 'courage', 'n.', '勇气', 18, 'have the courage to do sth', '有勇气做某事'),
+  ('contribution', 'contribution', 'n.', '贡献', 18, 'make a contribution to sth', '为……做出贡献'),
+ ],
+}

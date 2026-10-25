@@ -153,6 +153,8 @@
     *{transition:none!important}
     .cell.on:hover{transform:none}
   }
+  .stories-sum{ font-size:13px; color:var(--muted, #666); padding:8px 0 6px }
+  #d-stories table{ width:100% }
 </style>
 </head>
 <body>
@@ -230,6 +232,15 @@
         信号只是提示，具体情况请结合孩子当天安排判断。
         课表已过滤单课单日不足 1 分钟的碎屑（应用启动自动恢复旧课造成的误记）；天表保持全量。
         家长自己调试 APP 时，请在自己设备开启 设置 → 数据 → 开发者 → 本机为测试设备，测试动作不落账。
+      </div>
+    </div>
+
+    <div class="section">
+      <h3>AI 短文 <span class="note">3500 词 · 字母顺序系列 · 与教材课文分开统计</span></h3>
+      <div class="card" style="padding:6px 14px" id="d-stories"></div>
+      <div class="heat-detail" style="margin-top:8px">
+        AI 短文由 AI 按默写本字母顺序编写，每篇 20 个以上目标词。填空列显示最佳成绩，没做完整卷时显示练过的目标词数；
+        精读 / 练习为累计专注分钟，信号规则与教材课文相同。上面的课文天表包含 AI 短文的时长。
       </div>
     </div>
 
@@ -342,6 +353,17 @@ async function loadPayload(token, profile){
       });
     }
   } catch(e){ /* 课名映射尽力而为 */ }
+  // v148: AI 短文目录 (与本页同源的 stories/), 做 S 编号 → 标题映射与
+  // 篇数统计; 读不到不影响其余部分。
+  payload._stories = [];
+  try {
+    const sr = await fetch("stories/stories-manifest.json?t=" + Date.now(), { cache: "no-store" });
+    if(sr.ok){
+      const sm = await sr.json();
+      payload._stories = (sm && Array.isArray(sm.stories)) ? sm.stories : [];
+      payload._stories.forEach(x=>{ if(x && x.id) payload._courseTitles[x.id] = x.title || x.id; });
+    }
+  } catch(e){ /* 尽力而为 */ }
   return payload;
 }
 
@@ -350,7 +372,7 @@ function parseData(payload, profile){
   const data = payload.data || {};
   const base = `${PREFIX}${profile}_`;
   const days = [];
-  let notebook = [], stats = {}, lessonTime = {};
+  let notebook = [], stats = {}, lessonTime = {}, lessonProg = {}, lessonPrac = { w:{}, p:{} };
   for(const k in data){
     let val;
     if(k.startsWith(base+"day_")){
@@ -362,11 +384,16 @@ function parseData(payload, profile){
     } else if(k === base+"pref_lesson_time"){
       // v132: 学习时长 { 天: { 课ID|mixed: {r,e,q,qs} } } —— 秒/次
       try { lessonTime = JSON.parse(data[k]) || {}; } catch(e){}
+    } else if(k === base+"pref_lesson_progress"){
+      try { lessonProg = JSON.parse(data[k]) || {}; } catch(e){}
+    } else if(k === base+"pref_lesson_mixed"){
+      try { const x = JSON.parse(data[k]) || {}; lessonPrac = { w:x.w||{}, p:x.p||{} }; } catch(e){}
     }
   }
   days.sort((a,b)=> a.date < b.date ? -1 : a.date > b.date ? 1 : 0);
   return {
-    days, notebook, stats, lessonTime,
+    days, notebook, stats, lessonTime, lessonProg, lessonPrac,
+    stories: payload._stories || [],
     courseTitles: payload._courseTitles || {},
     meta:{ syncTime:payload._syncTime, device:payload._device, profile:payload._profile || profile }
   };
@@ -478,8 +505,65 @@ function render(model){
 
   renderHeatmap(model);
   renderLessonTime(model);
+  renderStories(model);
   renderTable(model);
   renderWeak(model);
+}
+
+/* ---- AI 短文（v148）: 与教材课文分开统计 ---- */
+const isStoryId = (id)=> /^S\d{4}$/.test(String(id||""));
+function renderStories(model){
+  const box = $("d-stories");
+  if(!box) return;
+  const list = model.stories || [];
+  const prog = model.lessonProg || {};
+  const lt   = model.lessonTime || {};
+  const rec  = (model.lessonPrac || {}).w || {};
+  const time = {};   // id → {r,e,last}
+  Object.keys(lt).forEach(day=>{
+    Object.keys(lt[day]||{}).forEach(id=>{
+      if(!isStoryId(id) && id !== "mixed-ai") return;
+      const x = lt[day][id]||{};
+      const t = time[id] || (time[id] = { r:0, e:0, last:"" });
+      t.r += x.r||0; t.e += x.e||0;
+      if(((x.r||0)+(x.e||0)) >= 60 && day > t.last) t.last = day;
+    });
+  });
+  const ids = new Set(list.map(x=>x.id));
+  Object.keys(prog).forEach(id=>{ if(isStoryId(id)) ids.add(id); });
+  Object.keys(time).forEach(id=>{ if(isStoryId(id)) ids.add(id); });
+  const meta = {}; list.forEach(x=>{ meta[x.id] = x; });
+  let listened = 0, wordsSeen = 0, wordsWrong = 0, wordsTotal = 0;
+  const rows = Array.from(ids).sort().map(id=>{
+    const p = prog[id] || {}, t = time[id] || { r:0, e:0, last:"" }, m = meta[id] || {};
+    const n = Number(m.targets)||0;
+    let seen = 0, wrong = 0;
+    Object.keys(rec).forEach(k=>{ if(k.indexOf(id+"-W")===0){ const e = rec[k]; if(e && e[0]){ seen++; if(!e[3]) wrong++; } } });
+    if(p.listened) listened++;
+    wordsSeen += seen; wordsWrong += wrong; wordsTotal += n;
+    return { id, title:m.title||id, p, t, n, seen, wrong };
+  });
+  const active = rows.filter(r=> r.p.listened || r.p.clozeBest!=null || r.p.matchDone || r.seen || (r.t.r+r.t.e)>=60);
+  const mix = time["mixed-ai"];
+  const head = `<div class="stories-sum">共 <b>${list.length}</b> 篇 · 已听读 <b>${listened}</b> 篇 · 目标词练过 <b>${wordsSeen}</b>${wordsTotal?"/"+wordsTotal:""}，待强化 <b>${wordsWrong}</b>`
+             + (mix && (mix.r+mix.e) ? ` · 综合练习累计 ${fmtMin(mix.e)}` : "") + `</div>`;
+  if(!active.length){
+    box.innerHTML = head + `<div class="empty-state" style="padding:10px 0">还没有 AI 短文的学习记录。孩子在 课文 页切到「AI 短文」学习后，这里会显示每篇的进度。</div>`;
+    return;
+  }
+  const tr = active
+    .sort((a,b)=> (a.t.last<b.t.last?1:a.t.last>b.t.last?-1:(a.id<b.id?-1:1)))
+    .slice(0, 15)
+    .map(r=>`<tr>
+      <td>${escapeHtml(r.id)} ${escapeHtml(r.title)}</td>
+      <td>${r.p.listened ? "✓" : '<span class="dim">—</span>'}</td>
+      <td>${r.p.clozeBest!=null ? r.p.clozeBest+"%" : (r.seen ? "练过 "+r.seen+"/"+(r.n||"?") : '<span class="dim">—</span>')}</td>
+      <td>${r.p.matchDone ? "✓" : '<span class="dim">—</span>'}</td>
+      <td>${fmtMin(r.t.r)} / ${fmtMin(r.t.e)}</td>
+      <td class="date">${r.t.last || '<span class="dim">—</span>'}</td>
+      <td>${timeFlags(r.t)}</td>
+    </tr>`).join("");
+  box.innerHTML = head + `<table><tbody><tr><th>短文</th><th>听读</th><th>填空</th><th>短语</th><th>精读 / 练习</th><th>最近学习</th><th>信号</th></tr>${tr}</tbody></table>`;
 }
 
 /* ---- 课文学习：时长与专注信号（v132）---- */
@@ -544,6 +628,7 @@ function renderLessonTime(model){
     const acts = lt[day] || {};
     Object.keys(acts).forEach(id=>{
       const x = acts[id]||{};
+      if(isStoryId(id) || id === "mixed-ai") return;   // v148: AI 短文单独成表
       if(((x.r||0)+(x.e||0)) < MIN_DAY_SEC) return;   // 碎屑: 跳过
       const p = perLesson[id] || (perLesson[id] = { r:0,e:0,q:0,qs:0,tr:0,te:0,last:"" });
       p.r+=x.r||0; p.e+=x.e||0; p.q+=x.q||0; p.qs+=x.qs||0;

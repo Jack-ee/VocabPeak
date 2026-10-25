@@ -1,0 +1,86 @@
+# S0072 — 游记: Under the Big Sky of Hulunbuir (3500 · ABC 窗口 7, 第 9 组)
+# 事实: 呼伦贝尔草原在内蒙古东北部, 地名来自呼伦湖和贝尔湖; 海拉尔是呼伦贝尔市的主城区, 有机场;
+# 草原多为起伏的缓丘, 河流蜿蜒 (如莫日格勒河); 勒勒车是蒙古族传统的木轮车, 过去多由牛拉;
+# 狼毒花有毒, 牲畜一般不吃; 内蒙古部分地区实行季节性禁牧, 让草场恢复; 敖包是石头堆成的,
+# 插有树枝、系着蓝色哈达, 路过的人顺时针绕行三圈、添一块石头, 祈求旅途平安 (Wikipedia "Ovoo");
+# 蒙古族咸奶茶; 奶皮子是把鲜奶在宽锅里慢火加热、表面凝结的奶皮; 马对牧民历来十分重要;
+# 草原夏季昼夜温差大, 夜里较凉。人物为虚构, 宗教习俗只作描述。
+# 审读 (Wikipedia "Ovoo"): 多数敖包插有树枝和哈达 (蓝色丝巾), 常在山顶等高处; 路人顺时针绕三圈、添石头, 求旅途平安。
+STORY = {
+ 'id': 'S0072', 'title': 'Under the Big Sky of Hulunbuir', 'titleZh': '在呼伦贝尔的辽阔天空下', 'genre': 'travel',
+ 'paras': [
+  [
+   ("If you want to see a sky that seems to go on for ever, head for the Hulunbuir prairie in the north-east of Inner Mongolia.",
+    "如果你想看一看仿佛无边无际的天空，就去内蒙古东北部的呼伦贝尔大草原吧。", False),
+   ("Its name has an interesting origin: it comes from two large lakes, Hulun Lake and Buir Lake.",
+    "它的名字有个有趣的由来：取自两个大湖——呼伦湖和贝尔湖。", False),
+   ("On the outward journey we flew to Hailar, the main city in the area, and then drove into the countryside.",
+    "去程我们先飞到当地的主城区海拉尔，然后驱车前往乡间。", False),
+  ],
+  [
+   ("The land is not a flat plain, as I had imagined, but a sea of gentle hills with rivers winding between them.",
+    "这里的土地并不是我想象中的一马平川，而是一片起伏的缓丘，河流在其间蜿蜒流淌。", True),
+   ("Sheep, horses and cattle are everywhere, and we passed some old wooden carts of the kind that oxen once pulled.",
+    "到处都是羊、马和牛，我们还经过了几辆老式木轮车，过去这种车都是用牛来拉的。", True),
+   ("Our guide pointed out a pretty flower that is poisonous to animals, so sheep and cattle usually leave it alone.",
+    "导游指给我们看一种漂亮的花，它对牲畜有毒，所以牛羊一般都不碰它。", False),
+   ("He added that the prairie needs protection, so in some areas animals are kept off the grass for part of the year to let it recover.",
+    "他还说，草原需要保护，所以在一些地方，一年中有一段时间不让牲畜上草场，好让草长回来。", True),
+  ],
+  [
+   ("One afternoon we stopped at an obo, a large pile of stones on top of a hill, decorated with branches and blue silk scarves.",
+    "一天下午，我们在一座敖包前停了下来——那是山顶上的一大堆石头，上面插着树枝，系着蓝色的哈达。", True),
+   ("Travellers usually walk around it clockwise three times, add a stone and pray for a safe journey.",
+    "路过的人通常会绕着它顺时针走三圈，添上一块石头，祈求旅途平安。", False),
+   ("Our driver said a quiet prayer before we drove on, and I added a stone of my own.",
+    "我们的司机在继续上路前默默祈祷了一番，我也添上了一块自己的石头。", False),
+  ],
+  [
+   ("That night we stayed with a local family, who served us lamb soup seasoned with just a little salt and pepper.",
+    "那天晚上，我们住在一户当地人家里，他们端上了只用一点盐和胡椒粉调味的羊肉汤。", False),
+   ("The next morning, the grandmother of the family poured salty milk tea from a big pot into our bowls.",
+    "第二天早上，这家的奶奶从一把大壶里给我们每人倒了一碗咸奶茶。", False),
+   ("She also heated fresh milk slowly in a wide pan until a thick, creamy skin formed on top.",
+    "她还把鲜奶倒进一口宽锅里慢慢加热，直到表面结出一层厚厚的奶皮。", False),
+   ("For centuries, horses were a family's most valuable possession here, and our hosts still keep several.",
+    "几百年来，马一直是这里每户人家最宝贵的财产，我们的房东家如今还养着好几匹。", False),
+   ("Like many local people, they are trying to preserve their traditions while welcoming more visitors.",
+    "和许多当地人一样，他们一边迎接越来越多的游客，一边努力保留自己的传统。", False),
+  ],
+  [
+   ("On our last day, the weather forecast predicted rain, but the sky stayed clear for our outing to the river.",
+    "最后一天，天气预报说会下雨，可我们去河边游玩时，天空一直很晴朗。", False),
+   ("A photographer from Shanghai told me he had come back every summer for ten years and still found plenty to photograph.",
+    "一位来自上海的摄影师告诉我，他十年来每年夏天都会回到这里，却总能发现很多值得拍的东西。", True),
+   ("Standing in that peaceful place, with nothing but grass and sky around me, I understood why.",
+    "站在那片宁静的土地上，四周只有青草和蓝天，我终于明白了其中的缘由。", False),
+   ("Travel tip: summer is the best time to visit, but bring a warm jacket, because the nights can be surprisingly cold.",
+    "旅行小贴士：夏天是去草原的最佳季节，但要带一件保暖外套，因为这里的夜晚可能冷得出人意料。", False),
+  ],
+ ],
+ 'words': [
+  ('prairie', 'prairie', 'n.', '大草原', 1, 'the open prairie', '开阔的大草原'),
+  ('origin', 'origin', 'n.', '起源，由来', 2, 'the origin of a name', '名字的由来'),
+  ('outward', 'outward', 'adj.', '外出的，去程的', 3, 'the outward journey', '去程'),
+  ('plain', 'plain', 'n.', '平原', 4, 'a flat plain', '平坦的平原'),
+  ('ox', 'oxen', 'n.', '牛；公牛（复数 oxen）', 5, 'a cart pulled by oxen', '牛拉的车'),
+  ('poisonous', 'poisonous', 'adj.', '有毒的', 6, 'poisonous plants', '有毒植物'),
+  ('protection', 'protection', 'n.', '保护', 7, 'need protection', '需要保护'),
+  ('pile', 'pile', 'n.', '堆', 8, 'a pile of stones', '一堆石头'),
+  ('pray', 'pray', 'v.', '祈祷，祈求', 9, 'pray for sth', '祈求某事'),
+  ('prayer', 'prayer', 'n.', '祈祷', 10, 'say a prayer', '祈祷'),
+  ('pepper', 'pepper', 'n.', '胡椒粉', 11, 'salt and pepper', '盐和胡椒粉'),
+  ('pour', 'poured', 'v.', '倒，灌', 12, 'pour tea into a cup', '把茶倒进杯子'),
+  ('pot', 'pot', 'n.', '壶', 12, 'a pot of tea', '一壶茶'),
+  ('pan', 'pan', 'n.', '锅，浅锅', 13, 'a frying pan', '煎锅'),
+  ('possession', 'possession', 'n.', '所有物，财产', 14, 'a valuable possession', '贵重的财物'),
+  ('preserve', 'preserve', 'v.', '保护，保存', 15, 'preserve traditions', '保留传统'),
+  ('predict', 'predicted', 'v.', '预报，预言', 16, 'predict rain', '预报有雨'),
+  ('outing', 'outing', 'n.', '郊游，短途出游', 16, 'go on an outing', '去郊游'),
+  ('photographer', 'photographer', 'n.', '摄影师', 17, 'a professional photographer', '职业摄影师'),
+  ('plenty', 'plenty', 'pron.', '大量，充足', 17, 'plenty of time', '充足的时间'),
+  ('peaceful', 'peaceful', 'adj.', '宁静的，安宁的', 18, 'a peaceful place', '宁静的地方'),
+ ],
+ 'gloss': {'obo': 'n. 敖包（蒙古族用石头堆成的祭祀堆）', 'clockwise': 'adv. 顺时针方向地',
+           'scarves': 'n. 围巾（scarf 的复数；此处指哈达）'},
+}

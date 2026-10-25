@@ -1,0 +1,83 @@
+# S0048 — 游记: Two Days in Old Beijing (3500 · ABC 窗口 5, 第 5 组)
+# 事实: 元明清皇帝在北京治理国家; 胡同两旁多为灰砖灰瓦; 故宫门票须提前网上实名预约, 入口凭身份证或护照核验;
+# 太和殿是故宫最大的殿, 举行最隆重的典礼; 珍宝馆陈列金器、玉器、首饰等皇家用品; 故宫一般周一闭馆 (法定节假日除外);
+# 天坛是明清皇帝祭天、春季祈谷 (祈求丰收) 之所, 旧时百姓不得入内, 今为公园; 天坛设计以圆象征天、以方象征地,
+# 寓天地相通 (审读核对 Wikipedia "Temple of Heaven"; 原稿"方形院落象征地"不准确, 已改);
+# 公园里老人晨练、跳舞、唱歌, 有人用蘸水的大毛笔在地上写字 (地书); 前门、大栅栏有百年老店卖丝绸、茶叶;
+# 京剧旦角穿戏服、甩水袖, 头面闪亮, 以程式化动作表达感情; 部分剧场两侧屏幕有中英文字幕。人物赵阿姨为虚构。
+STORY = {
+ 'id': 'S0048', 'title': 'Two Days in Old Beijing', 'titleZh': '老北京两日游', 'genre': 'travel',
+ 'paras': [
+  [
+   ("If you want to understand Chinese history, there is no better place to start than Beijing, where emperors governed the country for centuries.",
+    "如果你想了解中国历史，北京是再好不过的起点——几百年来，历代皇帝都在这里治理国家。", False),
+   ("My parents and I stayed at a small inn in a hutong, a narrow lane lined with grey brick walls.",
+    "我和爸爸妈妈住在一条胡同里的小客栈，胡同窄窄的，两旁是灰色的砖墙。", False),
+   ("Our hostess, Ms Zhao, had lived in the lane all her life, and every morning she served us steamed buns and porridge.",
+    "客栈的女主人赵阿姨一辈子都住在这条胡同里，每天早上她都给我们端来包子和粥。", False),
+  ],
+  [
+   ("On our first day we visited the Palace Museum, which most people know as the Forbidden City.",
+    "第一天，我们参观了故宫博物院，也就是大多数人所说的紫禁城。", False),
+   ("Tickets must be booked online in advance, and you need to bring your passport or identity card for identification at the gate.",
+    "门票必须提前在网上预约，入口处要凭护照或身份证核验身份。", False),
+   ("Walking through one huge gate after another, we finally reached the largest hall in the palace, where the grandest ceremonies were once held.",
+    "穿过一道又一道巨大的宫门，我们终于来到了宫里最大的殿，这里曾举行过最隆重的典礼。", True),
+   ("In the past, palace guards stood at every gate, and ordinary people could not come anywhere near.",
+    "从前，每道宫门都有侍卫把守，普通百姓根本无法靠近。", False),
+   ("In a gallery full of treasures, we saw gold, jade and jewellery once used by the emperors and their families, and I was impressed by the fine work.",
+    "在一间陈列珍宝的展馆里，我们看到了历代皇帝和皇室成员用过的金器、玉器和首饰，精湛的做工让我赞叹不已。", True),
+  ],
+  [
+   ("Early the next morning we went to the Temple of Heaven, where emperors came every spring to pray for a good harvest.",
+    "第二天一大早，我们去了天坛，从前每年春天，皇帝都会来这里祈求五谷丰登。", False),
+   ("It was once a holy place closed to ordinary people, but today it is a public park full of life.",
+    "这里曾是普通百姓不得入内的神圣之地，如今却成了一座充满生气的公园。", False),
+   ("In its design, circles stand for heaven and squares for the earth, reflecting an old belief that the two should be in harmony.",
+    "天坛的设计以圆形象征天，以方形象征地，体现了天地应当和谐相通的古老观念。", True),
+   ("Retired people were jogging and dancing under the old trees, and an old gentleman was writing characters on the ground with a brush dipped in water.",
+    "退休的老人们在古树下跑步、跳舞，还有一位老先生正用蘸了水的毛笔在地上写字。", True),
+  ],
+  [
+   ("In the afternoon we wandered around Qianmen, where some shops more than a hundred years old still sell traditional goods such as silk and tea.",
+    "下午，我们在前门一带闲逛，那里有些开了一百多年的老店，至今仍在卖丝绸、茶叶等传统商品。", True),
+   ("In the evening we watched Peking Opera in a small theatre.",
+    "晚上，我们在一家小剧场看了京剧。", False),
+   ("The heroine wore a pink silk gown with long white sleeves, and her headdress sparkled with jewels.",
+    "女主角穿着一件粉色的丝绸长袍，拖着长长的白色水袖，头饰上的珠宝闪闪发亮。", False),
+   ("Even when she was not singing, every gesture of her hands and sleeves expressed a feeling, from shyness to sorrow.",
+    "即使在不唱的时候，她的手和水袖的每一个动作也都传达着一种情感，从娇羞到哀伤。", False),
+  ],
+  [
+   ("My strongest impression of Beijing is how naturally its past and present live side by side.",
+    "北京给我印象最深的，是它的过去和现在竟能如此自然地共存。", False),
+   ("Travel tip: the Palace Museum is closed on most Mondays, so check before you go.",
+    "旅行小贴士：故宫博物院大多数星期一闭馆，出发前最好先查一查。", False),
+  ],
+ ],
+ 'words': [
+  ('govern', 'governed', 'v.', '统治，治理', 1, 'govern a country', '治理国家'),
+  ('inn', 'inn', 'n.', '小旅馆，客栈', 2, 'stay at an inn', '住在小旅馆里'),
+  ('grey', 'grey', 'adj.', '灰色的', 2, 'grey brick walls', '灰砖墙'),
+  ('hostess', 'hostess', 'n.', '女主人', 3, 'a kind hostess', '和善的女主人'),
+  ('identification', 'identification', 'n.', '身份证明；鉴定', 5, 'for identification', '用于核验身份'),
+  ('grand', 'grandest', 'adj.', '盛大的，宏伟的', 6, 'a grand ceremony', '盛大的典礼'),
+  ('guard', 'guards', 'n.', '卫兵，警卫', 7, 'palace guards', '宫廷侍卫'),
+  ('gallery', 'gallery', 'n.', '陈列室，展馆', 8, 'an art gallery', '美术馆'),
+  ('jewellery', 'jewellery', 'n.', '（总称）首饰，珠宝', 8, 'gold jewellery', '金首饰'),
+  ('impress', 'impressed', 'v.', '给……留下深刻印象', 8, 'be impressed by sth', '对某事印象深刻'),
+  ('harvest', 'harvest', 'n.', '收成，收获', 9, 'a good harvest', '好收成'),
+  ('holy', 'holy', 'adj.', '神圣的', 10, 'a holy place', '圣地'),
+  ('heaven', 'heaven', 'n.', '天，天空', 11, 'heaven and earth', '天和地'),
+  ('harmony', 'harmony', 'n.', '和谐，融洽', 11, 'be in harmony with', '与……和谐相处'),
+  ('jog', 'jogging', 'v.', '慢跑', 12, 'go jogging', '去慢跑'),
+  ('gentleman', 'gentleman', 'n.', '先生，绅士', 12, 'an old gentleman', '一位老先生'),
+  ('goods', 'goods', 'n.', '商品，货物', 13, 'sell goods', '出售商品'),
+  ('heroine', 'heroine', 'n.', '女主角；女英雄', 15, 'the heroine of the play', '这出戏的女主角'),
+  ('gown', 'gown', 'n.', '长袍，礼服', 15, 'a silk gown', '丝绸长袍'),
+  ('jewel', 'jewels', 'n.', '宝石，珠宝', 15, 'be covered in jewels', '镶满珠宝'),
+  ('gesture', 'gesture', 'n.', '姿势，手势', 16, 'make a gesture', '做手势'),
+  ('impression', 'impression', 'n.', '印象，感觉', 17, 'a strong impression', '深刻的印象'),
+ ],
+ 'gloss': {'hutong': 'n. 胡同', 'jade': 'n. 玉，玉器', 'headdress': 'n. 头饰', 'shyness': 'n. 羞怯，害羞'},
+}

@@ -1,5 +1,34 @@
 // sw.js — VocabPeak Service Worker
 
+// hsv-v51 (?v=148) — 3500 词入库 + AI 短文 + 发音包瘦身:
+//   • 统一词库 lexicon-3500.js: 《英语·单词本》3500 词 (英文词头按音标、
+//     中文与字母序逐条还原, 校正源文件 134 处音标错误) 并入内置高中词库,
+//     分级 H 高中核心 / E 高中拓展 / J 初中·值得学 / B 非常简单。单词页
+//     导入弹窗新增「载入 3500 新增词」: 只追加 E/J 级新词, 已有词条与
+//     学习记录不动, 仅给缺音标的已有词补音标。
+//   • AI 短文 (stories.js + 同源 stories/): 与教材课文分开的第二个来源,
+//     课文页顶部「教材课文 | AI 短文」切换。按默写本字母顺序每篇 20+ 个
+//     目标词, 听读/点词/填空/短语四步与课文共用; 点任意词查词 (统一词库
+//     → 本篇注释 → 离线词典), 非基础词可一键入生词本。短文存本机
+//     IndexedDB hsv_stories, 不进 Gist; 学习记录照常同步。
+//   • 课文页新增「点词查词 / 点句听句」切换: AI 短文默认查词, 教材课文
+//     默认听句 (旧行为不变)。
+//   • 发音包分片 (tts-pack.js v2): 索引 + 约 44 个分片, 只下载 sha256 变了的
+//     分片, 全部对齐后清掉旧音色与已删词的片段; 启动时每 12 小时检查一次,
+//     25 MB 以内的更新自动补齐。生成器转单声道 48 kbps、截掉词尾长静音,
+//     查出 233 个静音坏片段重新合成, 原有内容约 1.6 GB → 约 0.15 GB,
+//     加上 107 篇短文朗读全包约 0.26 GB。短文里的词形与搭配只用朗读者音色。
+//   • AI 短文整篇一个朗读者 (narrator), 生成器直接读 stories/ 合成。
+//   • 发布前独立审查后的加固: 分片文件名带内容哈希 (发布失败旧索引仍完整),
+//     索引丢失时生成器从现存分片重建状态 (不重新计费); 一次删掉 10% 以上
+//     片段的构建默认中止; 分片包设备索引 404 时不回退 1.6 GB 旧整包; 同步
+//     串行 (Web Locks); 设备端一次剪枝超过 20% 暂缓; 删词不删分片包音频。
+//     课文/短文点词入本与答错强化对已有词只补空字段 (不盖整理过的释义);
+//     载入 3500 新增词补音标不打 editedAt、不塞回删掉的词; 短文清单不倒退。
+//   • 带 t= 时间戳的请求只走网络不入缓存 (离线时旧 manifest 会让短文被误删)。
+//   • 配额保护: localStorage 与 EMPro 同源共享, 拉取前快照最多三代生词本;
+//     写学习记录撞配额时先逐代丢弃最老的快照再重试, 记录优先于保险。
+
 // hsv-v50 (?v=147) — 同步停摆 7 周的根因修复 + 重连数据保护 (高危):
 //   • 根因: v142 在 sync.js 里把 K_PUSH_DIRTY 写在 APP_PREFIX 声明之前,
 //     const 暂时性死区让整个模块加载即抛错 —— 从 v142 起没有任何设备推
@@ -685,7 +714,7 @@
 
 // 缓存名与 EMPro 隔离：Cache Storage 也是按 origin 共享的，两个应用
 // 的 CACHE_NAME 必须不同，否则会互相删除对方的缓存。
-const CACHE_NAME = 'hsv-v50';
+const CACHE_NAME = 'hsv-v51';
 const ASSETS = [
     './',
     './index.html',
@@ -694,8 +723,10 @@ const ASSETS = [
     './expressions-coach.css',
     './config.js',
     './dictionary.js',
+    './lexicon-3500.js',
     './vocab-hs-data.js',
     './lessons-data.js',
+    './stories.js',
     './lessons.js',
     './lessons.css',
     './db.js',
@@ -773,6 +804,15 @@ self.addEventListener('fetch', (e) => {
     // Any non-GET (or sync file): never cache
     if (e.request.method !== 'GET' || url.pathname.includes('hsv-sync')) {
         e.respondWith(fetch(e.request));
+        return;
+    }
+
+    // v148: 带 t= 时间戳的请求 (课程订阅、AI 短文的 manifest 与文件) 要的
+    // 就是最新内容: 只走网络, 不入缓存, 离线时直接失败。此前离线回退会用
+    // ignoreSearch 交回最老的一份缓存 manifest, 短文模块据此把新篇目当成
+    // 已下架删掉; 每次检查还会往缓存里多塞一条。
+    if (url.searchParams.has('t')) {
+        e.respondWith(fetch(e.request).catch(() => new Response('Offline', { status: 504 })));
         return;
     }
 

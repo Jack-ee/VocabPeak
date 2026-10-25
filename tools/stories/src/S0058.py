@@ -1,0 +1,86 @@
+# S0058 — 科普说明文: How a Mosquito Finds You (3500 · L–O 窗口 6, 第 5 组)
+# 事实: 蚊子传播疟疾等疾病, 常被称为对人类最危险的动物 (WHO、盖茨基金会等的通行说法); 只有雌蚊吸血, 产卵需要
+# 血液中的营养 (蛋白质); 雄蚊和雌蚊都吸食花蜜、果汁等植物汁液获取能量; 雌蚊靠呼出的二氧化碳 (数米外即可察觉,
+# 实际可达十米以上, 写"几米"属保守)、体温和皮肤气味找人, 黑暗中照样能找到; 喙内有六根口针, 有的刺穿皮肤,
+# 一根吸血, 一根注入唾液; 唾液含抗凝成分, 起包发痒是人体对唾液的免疫反应, 通常较轻; 不同人被叮次数差异大,
+# 研究认为与皮肤气味有关 (写 probably); 雌蚊一次在静水上产几十到上百枚卵, 温暖时约一周可发育为成蚊;
+# 雨后积水增多, 蚊子更易滋生; 卫生部门建议至少每周清除一次积水、盛水容器加盖。
+# 审读核对: 口器 = 外层柔软的下唇 (labium, 叮咬时弯折留在皮肤外) 包着六根针状口针: 两根下颚 (带细齿, 锯开皮肤)、
+# 两根上颚 (撑开组织)、一根上唇 (吸血)、一根舌 (注入唾液) (KQED Deep Look 2016); 吸血后约两三天产卵;
+# 卵到成蚊温暖时约 8–10 天, 写"一周多一点"; "对人类危害最大的昆虫"改为比较说法, 不写最高级。
+STORY = {
+ 'id': 'S0058', 'title': 'How a Mosquito Finds You', 'titleZh': '蚊子是怎样找到你的', 'genre': 'popular science',
+ 'paras': [
+  [
+   ("When people think of dangerous insects, they may picture a huge cloud of locusts eating a farmer's crops.",
+    "说起危险的昆虫，人们也许会想到遮天蔽日、啃食庄稼的蝗虫群。", False),
+   ("Yet a much smaller insect has caused mankind far more trouble: the mosquito.",
+    "然而，一种小得多的昆虫给人类带来的麻烦要大得多，那就是蚊子。", False),
+   ("Because it spreads diseases such as malaria, it is often called the most dangerous animal in the world.",
+    "由于蚊子会传播疟疾等疾病，它常被称为世界上最危险的动物。", False),
+  ],
+  [
+   ("Surprisingly, only female mosquitoes bite.",
+    "出人意料的是，只有雌蚊才叮人。", False),
+   ("Male mosquitoes live on sweet liquids from flowers and fruit, and females drink these too for energy.",
+    "雄蚊靠花朵和果实里的甜汁为生，雌蚊也会吸食这些汁液来补充能量。", False),
+   ("However, to produce eggs, a female needs extra nutrition, and she obtains it from blood.",
+    "可是，雌蚊要产卵就需要额外的营养，而这些营养要从血液中获取。", False),
+   ("To find a meal, she follows the carbon dioxide that we breathe out from our lungs, and she can sense it from several metres away.",
+    "为了找到“一顿饭”，雌蚊会循着我们从肺里呼出的二氧化碳飞来，几米之外就能察觉到。", True),
+   ("As she gets closer, she is also attracted by our body heat and the natural smell of our skin.",
+    "离得更近时，我们的体温和皮肤散发的天然气味也会吸引她。", False),
+   ("Darkness will not protect you, nor will keeping still, because you never stop breathing.",
+    "黑暗保护不了你，一动不动也没用，因为你一刻也没停止呼吸。", False),
+  ],
+  [
+   ("Her mouth looks like a single thin tube, but under a microscope you can see six fine, needle-like parts inside a soft cover.",
+    "雌蚊的口器看起来像一根细管，但在显微镜下可以看到，一层柔软的外鞘里包着六根细细的针状部件。", True),
+   ("When she bites, only the needles go in: four of them work their way into the skin, one sucks up blood and another pumps in saliva.",
+    "叮人时，只有这些“针”刺进去：其中四根负责钻开皮肤，一根吸血，另一根把唾液注入进去。", True),
+   ("The saliva keeps the blood flowing easily, and the itchy bump that follows is our body's response to it.",
+    "唾液能让血液保持流动、不易凝结；随后鼓起的那个发痒的小包，就是我们的身体对唾液作出的反应。", False),
+  ],
+  [
+   ("Scientists have observed that some people are bitten far more often than others, probably because of differences in the smell of their skin.",
+    "科学家观察到，有些人被叮的次数比别人多得多，这很可能是因为他们皮肤的气味不同。", True),
+   ("A few days after a meal, a female lays dozens or even hundreds of eggs on or near still water.",
+    "饱餐一顿几天后，雌蚊会在静水水面或水边产下几十甚至上百枚卵。", False),
+   ("In warm weather, these eggs can turn into adult mosquitoes in little more than a week.",
+    "天气暖和时，这些卵只要一周多一点就能长成成蚊。", False),
+   ("As a result, problems with mosquitoes are most likely to occur in hot, wet summers, especially after heavy rain leaves pools of water everywhere.",
+    "因此，蚊患最容易出现在炎热多雨的夏天，尤其是大雨过后、到处积着水洼的时候。", True),
+  ],
+  [
+   ("Luckily, you can protect yourself by taking a few simple measures, and the most obvious one is to get rid of still water.",
+    "好在采取几项简单的措施就能保护自己，其中最显而易见的一项，就是清除积水。", True),
+   ("At least once a week, empty any water from flower pots and buckets nearby, and put a lid on every container of water.",
+    "至少每周一次，把附近花盆和水桶里的积水倒掉，所有盛水的容器都要盖上盖子。", True),
+   ("At night, a net over the bed will keep these tiny hunters away.",
+    "晚上，在床上挂一顶蚊帐，就能把这些小小的猎手挡在外面。", False),
+  ],
+ ],
+ 'words': [
+  ('locust', 'locusts', 'n.', '蝗虫', 1, 'a swarm of locusts', '一大群蝗虫'),
+  ('mankind', 'mankind', 'n.', '人类', 2, 'the history of mankind', '人类历史'),
+  ('mosquito', 'mosquito', 'n.', '蚊子', 2, 'a mosquito bite', '蚊子叮的包'),
+  ('male', 'Male', 'adj.', '雄性的', 5, 'male and female', '雄性和雌性'),
+  ('liquid', 'liquids', 'n.', '液体', 5, 'a clear liquid', '透明的液体'),
+  ('nutrition', 'nutrition', 'n.', '营养', 6, 'good nutrition', '充足的营养'),
+  ('obtain', 'obtains', 'v.', '获得，得到', 6, 'obtain sth from sth', '从……获得某物'),
+  ('lung', 'lungs', 'n.', '肺', 7, 'healthy lungs', '健康的肺'),
+  ('natural', 'natural', 'adj.', '天然的，自然的', 8, 'natural light', '自然光'),
+  ('nor', 'nor', 'conj.', '也不', 9, 'not A, nor B', '不……，也不……'),
+  ('microscope', 'microscope', 'n.', '显微镜', 10, 'under a microscope', '在显微镜下'),
+  ('observe', 'observed', 'v.', '观察到，注意到', 13, 'observe that...', '观察到……'),
+  ('lay', 'lays', 'v.', '产（卵），下（蛋）', 14, 'lay eggs', '产卵'),
+  ('likely', 'likely', 'adj.', '很可能的', 16, 'be likely to do sth', '很可能做某事'),
+  ('occur', 'occur', 'v.', '发生，出现', 16, 'problems occur', '出现问题'),
+  ('obvious', 'obvious', 'adj.', '明显的，显而易见的', 17, 'the obvious choice', '显而易见的选择'),
+  ('measure', 'measures', 'n.', '措施', 17, 'take measures', '采取措施'),
+  ('least', 'least', 'n.', '（at least）至少', 18, 'at least', '至少'),
+  ('nearby', 'nearby', 'adv.', '在附近', 18, 'live nearby', '住在附近'),
+  ('lid', 'lid', 'n.', '盖子', 18, 'put a lid on sth', '给某物盖上盖子'),
+ ],
+ 'gloss': {'malaria': 'n. 疟疾', 'saliva': 'n. 唾液，口水', 'itchy': 'adj. 发痒的'},
+}

@@ -4,12 +4,17 @@ const fs = require('fs');
 const path = require('path');
 const { spawnSync } = require('child_process');
 
+// v148: 也跑 test_*.py (生成器端到端测试, 用 python3; 没有 python3 时跳过)
+const hasPy = spawnSync('python3', ['--version']).status === 0;
 const files = fs.readdirSync(__dirname)
-    .filter(f => /\.js$/.test(f) && !/^_|^run-all\.js$/.test(f))
+    .filter(f => (/\.js$/.test(f) && !/^_|^run-all\.js$/.test(f)) || (hasPy && /^test_.*\.py$/.test(f)))
     .sort();
 let failed = [];
 files.forEach(f => {
-    const r = spawnSync(process.execPath, [path.join(__dirname, f)], { encoding: 'utf8' });
+    const py = /\.py$/.test(f);
+    const r  = spawnSync(py ? 'python3' : process.execPath,
+                         py ? ['-I', path.join(__dirname, f)] : [path.join(__dirname, f)],
+                         { encoding: 'utf8' });
     const out  = (r.stdout || '') + (r.stderr || '');
     const line = (out.match(/通过 \d+ 项, 失败 \d+ 项/g) || []).pop() ||
                  (out.match(/跳过[^\n]*/) || [''])[0] || out.trim().split('\n').pop();

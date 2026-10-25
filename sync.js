@@ -468,9 +468,11 @@ window.SyncManager = (function() {
     // 此静默不记学习数据; 单词页位置、打乱状态也被另一台设备拽来拽去。
     // device_test_mode 从 v147 起已改存非同步键 (db.js), 这里仍按旧名
     // 拦截 —— 云端旧快照里还留着它, 绝不能再被套用。
+    // v148: 课文页的来源切换 (教材课文 / AI 短文) 与点词模式也是本机视图状态。
     const DEVICE_LOCAL_PREFS         = new Set(['mw_progress', 'mw_shuffle', 'mw_shuffle_seed',
-                                                'device_test_mode', 'debug_panel_enabled']);
-    const DEVICE_LOCAL_PREF_PREFIXES = ['mw_pos_'];
+                                                'device_test_mode', 'debug_panel_enabled',
+                                                'lesson_source']);
+    const DEVICE_LOCAL_PREF_PREFIXES = ['mw_pos_', 'lesson_tap_'];
     function isDeviceLocalName(name) {
         return DEVICE_LOCAL_PREFS.has(name) ||
                DEVICE_LOCAL_PREF_PREFIXES.some(p => String(name).startsWith(p));

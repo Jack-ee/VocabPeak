@@ -11,6 +11,49 @@
         return `${PREFIX}${pid}_${name}`;
     }
 
+    // ─── 配额保护 (v148) ─────────────────────────────────────
+    // 学习记录优先于本机安全快照。localStorage 与 EMPro 同源共享 (Chrome
+    // 约 500 万字符), sync.js 的拉取前快照最多存三代生词本, 会把余量吃满;
+    // 3500 新增词让生词本再长一截以后, 一次普通的复习写入就可能撞上配额
+    // 而丢失。这里写入失败时先逐代丢弃最老的快照再重试, 快照丢光仍写不进
+    // 才报错 (并提示一次)。快照只是误冲回滚的保险, 让位给真实记录。
+    let _quotaWarned = false;
+    function _prePullKey() { return '_' + key('prepull'); }
+    function _isQuotaErr(e) {
+        return !!e && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED'
+                       || e.code === 22 || e.code === 1014);
+    }
+    // 丢掉最老的一代快照; 已经没有快照可丢时返回 false
+    function _trimPrePull() {
+        const k = _prePullKey();
+        let raw = null;
+        try { raw = localStorage.getItem(k); } catch (e) { return false; }
+        if (!raw) return false;
+        let gens = [];
+        try { const o = JSON.parse(raw); gens = (o && Array.isArray(o.gens)) ? o.gens : []; } catch (e) {}
+        localStorage.removeItem(k);
+        if (gens.length > 1) {
+            try { localStorage.setItem(k, JSON.stringify({ v: 2, gens: gens.slice(0, gens.length - 1) })); }
+            catch (e) { /* 少一代也放不下: 整个快照让位 */ }
+        }
+        console.warn('[DB] localStorage 配额不足: 丢弃一代拉取前快照, 让学习记录先写入');
+        return true;
+    }
+    function lsSet(k, v) {
+        for (;;) {
+            try { localStorage.setItem(k, v); return; }
+            catch (e) {
+                if (_isQuotaErr(e) && _trimPrePull()) continue;
+                if (_isQuotaErr(e) && !_quotaWarned) {
+                    _quotaWarned = true;
+                    console.error('[DB] localStorage 已满, 写入失败:', k);
+                    try { window.App?.showToast?.('\u26A0 \u672C\u673A\u5B58\u50A8\u7A7A\u95F4\u5DF2\u6EE1\uFF0C\u6700\u65B0\u7684\u5B66\u4E60\u8BB0\u5F55\u6CA1\u80FD\u4FDD\u5B58\u3002\u8BF7\u6E05\u7406\u672C\u7AD9\u7684\u6D4F\u89C8\u5668\u5B58\u50A8\u540E\u518D\u8BD5\u3002', 9000); } catch (x) {}
+                }
+                throw e;
+            }
+        }
+    }
+
     function safeJSON(str, fallback) {
         if (str === null || str === undefined) return fallback;
         try { return JSON.parse(str) || fallback; }
@@ -403,7 +446,7 @@
             return v !== null ? v : fallback;
         },
         setPref: function(name, val) {
-            localStorage.setItem(key('pref_' + name), val);
+            lsSet(key('pref_' + name), val);
         },
         // v132: 静默写 pref —— 与 setPref 同一个键, 但不会被 sync.js 的
         // 推送钩子包装 (钩子按方法名包装 setPref 本身)。专给高频落盘的
@@ -411,7 +454,7 @@
         // 推送风暴; 走这里只落本地, 上云搭别的推送便车 (答题的 bumpDaily
         // 每题都在 triggerSave) 或由调用方在退出/切后台时补一次推送。
         setPrefQuiet: function(name, val) {
-            localStorage.setItem(key('pref_' + name), val);
+            lsSet(key('pref_' + name), val);
         },
         // v141: 测试设备开关 —— 家长在自己设备上调试 APP 时, 学习
         // 记账 (时长/答题档案/天记录/薄弱词) 全部跳过, 不污染孩子的
@@ -462,11 +505,11 @@
                 if (dirty) {
                     const cut = now - NB_TOMB_KEEP_MS;
                     Object.keys(tombs).forEach(w => { if (_num(tombs[w]) <= cut) delete tombs[w]; });
-                    localStorage.setItem(tKey, JSON.stringify(tombs));
+                    lsSet(tKey, JSON.stringify(tombs));
                 }
             } catch (e) { console.warn('[DB] notebook tombstone bookkeeping failed', e); }
             const raw = JSON.stringify(arr);
-            localStorage.setItem(nbKey, raw);
+            lsSet(nbKey, raw);
             _nbCache = nextSet ? { raw: raw, set: nextSet } : null;
         },
 
@@ -665,6 +708,32 @@
                 // word with the canonical base form so the notebook
                 // standardizes on lemmas (squeezed → squeeze).
                 const old = nb[idx];
+                // v148: fillOnly —— 课文/短文点词入本、答错强化走这里: 生词本里
+                // 已有的词只补空字段, 绝不用一句语境释义盖掉整理过的释义、搭配、
+                // 例句、来源、语域; 标签取并集。补空不打 editedAt (逐词合并的
+                // 「空字段互补」会把补上的内容带到别的设备, 打戳反而可能让这台
+                // 设备的旧内容盖掉别处的新编辑)。
+                if (opts && opts.fillOnly) {
+                    const filled = Object.assign({}, old);
+                    let changed = false;
+                    Object.keys(item).forEach(k => {
+                        if (k === 'word' || k === 'addedAt') return;
+                        if (k === 'tags') {
+                            const t = Array.isArray(old.tags) ? old.tags.slice() : [];
+                            item.tags.forEach(x => { if (t.indexOf(x) < 0) { t.push(x); changed = true; } });
+                            filled.tags = t;
+                            return;
+                        }
+                        const ov = old[k];
+                        const empty = ov == null || ov === '' || (Array.isArray(ov) && !ov.length);
+                        const nv = item[k];
+                        if (empty && nv && !(Array.isArray(nv) && !nv.length) && k !== 'register') {
+                            filled[k] = nv; changed = true;
+                        }
+                    });
+                    if (changed) { nb[idx] = filled; this.saveNotebook(nb); }
+                    return filled;
+                }
                 Object.keys(item).forEach(k => {
                     if (k === 'addedAt') return;
                     if (k === 'word') {
@@ -1038,7 +1107,7 @@
             });
         },
         saveStats: function(stats) {
-            localStorage.setItem(key('stats'), JSON.stringify(stats || {}));
+            lsSet(key('stats'), JSON.stringify(stats || {}));
         },
         bumpSession: function(mode, score) {
             const stats = this.loadStats();
@@ -1102,7 +1171,7 @@
             rec.quizTotal   += (delta.quizTotal   || 0);
             rec.quizCorrect += (delta.quizCorrect || 0);
             rec.updatedAt    = Date.now();
-            localStorage.setItem(k, JSON.stringify(rec));
+            lsSet(k, JSON.stringify(rec));
             this.markActiveDay();          // keep the streak in step with activity
             _pruneDayLog(400);             // bound the synced payload (~13 months)
             // Day keys are written directly (not via a hooked DB method), so

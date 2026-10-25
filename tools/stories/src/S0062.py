@@ -1,0 +1,76 @@
+# S0062 — 日记: Two Weeks as an Aunt (3500 · L–O 窗口 6, 第 9 组)
+# 情境: 高一暑假去英国利兹看望在医院当护士的姐姐, 帮忙照看四岁的外甥和快两岁的外甥女; 人物为虚构。
+# 日期与星期对应 2026 年 7 月 (18 日为星期六, 20 日星期一, 22 日星期三, 31 日星期五 = 两周里最后一个整天)。
+# 事实/合理性: 英国托儿所 (nursery) 全年开放, 四岁儿童常按周几上半周 (英式说法 go to nursery, 不加冠词), 故周一送去、
+# 周三在家; 英国孩子叫妈妈 Mummy (词头 mommy 为美式, 文中按英式写); 英式芥末 (English mustard) 很冲;
+# 安全细节: 玻璃弹珠放高处, 防止两岁孩子放进嘴里; 午睡时用婴儿监护器。
+STORY = {
+ 'id': 'S0062', 'title': 'Two Weeks as an Aunt', 'titleZh': '当了两周小姨', 'genre': 'diary',
+ 'paras': [
+  [
+   ("Saturday, 18 July", "7月18日 星期六", False),
+   ("I arrived in Leeds this afternoon to spend two weeks with my sister, who has worked as a nurse here since she finished her nursing degree.",
+    "今天下午我到了利兹，要在姐姐家住两周；姐姐读完护理专业后，就一直在这里当护士。", True),
+   ("My nephew Leo, who is four, ran to the door, while my niece Amy, who is nearly two, hid behind her mother's legs.",
+    "四岁的外甥利奥一溜烟跑到门口，快两岁的外甥女艾米却躲在妈妈腿后面。", True),
+   ("Because he goes to nursery here, Leo speaks more English than Chinese, and he calls his mother \"Mummy\".",
+    "利奥在这里上托儿所，所以他说英语比说中文多，还管妈妈叫“妈咪”。", False),
+  ],
+  [
+   ("Monday, 20 July", "7月20日 星期一", False),
+   ("My sister and her husband both left for work early, so breakfast was my job, and it turned into a complete mess.",
+    "姐姐和姐夫一大早都上班去了，早饭就归我管了，结果弄得一团糟。", False),
+   ("Little Amy threw her porridge on the floor, and meanwhile Leo knocked over a whole glass of milk.",
+    "小艾米把麦片粥扔到了地上，与此同时，利奥又打翻了一整杯牛奶。", False),
+   ("By the time I had taken Leo to nursery and mopped the kitchen floor, I understood why my sister always looks so tired.",
+    "等我把利奥送到托儿所、又把厨房的地拖干净，终于明白姐姐为什么总是一脸疲惫了。", False),
+   ("When Amy fell asleep after lunch, I moved Leo's marbles to a high shelf, because my sister had warned me that small children might put them in their mouths.",
+    "午饭后艾米睡着了，我把利奥的玻璃弹珠挪到了高高的架子上，因为姐姐提醒过我，小孩子可能会把它们放进嘴里。", True),
+   ("Then I put the baby monitor in my pocket and finally sat down.",
+    "然后我把婴儿监护器揣进兜里，总算能坐下来歇一会儿了。", False),
+  ],
+  [
+   ("Wednesday, 22 July", "7月22日 星期三", False),
+   ("On Wednesdays Leo doesn't go to nursery, so I made lunch for all three of us by heating up last night's leftovers in the microwave.",
+    "利奥每周三不去托儿所，所以我用微波炉热了热昨晚的剩菜，给我们三个人当午饭。", True),
+   ("I also made mushroom soup and bought a loaf of bread from the bakery on the corner.",
+    "我还做了蘑菇汤，又在街角的面包店买了一条面包。", False),
+   ("At lunch Leo insisted on trying the English mustard from the fridge, and after one tiny taste he needed a whole glass of lemon water.",
+    "吃午饭时，利奥非要尝尝冰箱里的英式芥末，结果才舔了一点点，就灌下了一整杯柠檬水。", True),
+   ("In the afternoon we found a bird's nest in a bush in the garden, and both children watched it quietly for almost ten minutes.",
+    "下午，我们在花园的灌木丛里发现了一个鸟窝，两个孩子安安静静地看了将近十分钟。", False),
+  ],
+  [
+   ("Friday, 31 July", "7月31日 星期五", False),
+   ("On my last full day, my sister had a day off, and when she took the children to the park, I felt a wonderful sense of liberation.",
+    "在这儿的最后一个整天，姐姐正好休息；她带孩子们去公园时，我感到一种说不出的轻松，像被解放了一样。", True),
+   ("But by lunch the house felt far too quiet, and I missed my two messy little helpers.",
+    "可还没到午饭时间，我就觉得屋子里太安静了，开始想念那两个把家里弄得乱七八糟的小帮手。", False),
+   ("My sister said I had become much more mature, and she was surprised that I had managed to look after two small children on my own.",
+    "姐姐说我成熟了很多，还说没想到我一个人就把两个小家伙照顾得好好的。", True),
+  ],
+ ],
+ 'words': [
+  ('nursing', 'nursing', 'n.', '护理（工作）', 2, 'study nursing', '学护理'),
+  ('nephew', 'nephew', 'n.', '外甥；侄子', 3, 'a favourite nephew', '最疼爱的外甥（侄子）'),
+  ('niece', 'niece', 'n.', '外甥女；侄女', 3, 'nieces and nephews', '外甥女和外甥（侄女和侄子）'),
+  ('nursery', 'nursery', 'n.', '托儿所', 4, 'go to nursery', '上托儿所'),
+  ('mommy', 'Mummy', 'n.', '妈妈，妈咪（英式写作 mummy）', 4, 'Mummy and Daddy', '妈咪和爹地'),
+  ('mess', 'mess', 'n.', '凌乱，一团糟', 6, 'a complete mess', '一团糟'),
+  ('meanwhile', 'meanwhile', 'adv.', '与此同时', 7, 'meanwhile, ...', '与此同时，……'),
+  ('mop', 'mopped', 'v.', '用拖把拖（地）', 8, 'mop the floor', '拖地'),
+  ('marble', 'marbles', 'n.', '玻璃弹子，弹珠', 9, 'play marbles', '玩弹珠'),
+  ('monitor', 'monitor', 'n.', '监视器，监护器', 10, 'a baby monitor', '婴儿监护器'),
+  ('leftover', 'leftovers', 'n.', '剩饭菜', 12, 'heat up leftovers', '热剩饭菜'),
+  ('microwave', 'microwave', 'n.', '微波炉；微波', 12, 'heat sth in the microwave', '用微波炉加热某物'),
+  ('mushroom', 'mushroom', 'n.', '蘑菇', 13, 'mushroom soup', '蘑菇汤'),
+  ('loaf', 'loaf', 'n.', '一条（面包）', 13, 'a loaf of bread', '一条面包'),
+  ('mustard', 'mustard', 'n.', '芥末', 14, 'English mustard', '英式芥末'),
+  ('lemon', 'lemon', 'n.', '柠檬', 14, 'lemon juice', '柠檬汁'),
+  ('nest', 'nest', 'n.', '巢，窝', 15, 'a bird\'s nest', '鸟窝'),
+  ('liberation', 'liberation', 'n.', '解放；解脱', 17, 'a sense of liberation', '解脱感'),
+  ('messy', 'messy', 'adj.', '弄得乱七八糟的，邋遢的', 18, 'a messy eater', '吃东西弄得一塌糊涂的人'),
+  ('mature', 'mature', 'adj.', '成熟的', 19, 'mature for one\'s age', '比同龄人成熟'),
+  ('manage', 'managed', 'v.', '设法完成；应付', 19, 'manage to do sth', '设法做成某事'),
+ ],
+}

@@ -1,0 +1,40 @@
+3828	whether	初中值得学	/ˈweðə(r)/	conj.是否
+3830	whichever	初中值得学	/wɪtʃˈevə(r)/	pron.无论哪个;无论哪些
+3832	whisper	高中核心	/ˈwɪspə(r)/	v.&n.低语&耳语
+3833	whistle	高中核心	/wɪsl/	n.&v.口哨声&吹口哨
+3841	widespread	高中核心	/ˈwaɪdspred,-ˈspred/	a.分布广的,普遍的
+3844	wildlife	高中核心	/ˈwaɪldlaɪf/	n.野生动物
+3847	willing	高中核心	/ˈwɪlɪŋ/	a.乐意的；愿意的
+3860	wipe	高中核心	/waɪp/	v.擦；擦净；擦干
+3861	wire	高中核心	/ˈwaɪə(r)/	n.电线
+3862	wisdom	高中核心	/ˈwɪzdəm/	n.智慧
+3863	wise	初中值得学	/waɪz/	a.聪明,英明的,有见识的
+3866	withdraw	高中核心	/wɪðˈdrɔː/	v.撤回，撤离
+3867	within	高中核心	/wɪˈðɪn/	prep.&adv.在…里面&在里面
+3869	witness	高中核心	/ˈwɪtnɪs/	v./n.目击者，见证人
+3870	wolf	高中核心	/wʊlf/	（复wolves） n.狼
+3872	wonder	初中值得学	/ˈwʌndə(r)/	v.对…疑惑，感到惊奇,想知道 n.惊讶,惊叹;奇迹
+3876	wool	高中核心	/wʊl/	n.羊毛，羊绒
+3877	woollen	高中拓展	/ˈwʊlɪn/	a.羊毛的，羊毛制的
+3882	workforce	初中值得学	/ˈwɜːkfɔːs/	n.劳动力
+3888	worldwide	高中核心	/ˈwɜːldwaɪd,-ˈwaɪd/	a.遍及全球的，世界范围的
+3889	worm	高中核心	/wɜːm/	n.软体虫,蠕虫(尤指蚯蚓)
+3891	worried	高中核心	/ˈwʌrɪd/	a.担心的，烦恼的
+3895	worth	初中值得学	/wɜːθ/	a.有…的价值,值得…的
+3896	worthless	初中值得学	/ˈwɜːθlɪs/	a.没有价值,没有用的
+3897	worthwhile	高中核心	/wɜːθˈwaɪl/	a.值得做的
+3898	worthy	高中核心	/ˈwɜːðɪ/	a.值得的
+3900	wound	初中值得学	/wuːnd/	vt.伤,伤害 n.创伤,伤口
+3901	wounded	初中值得学	/wuːndɪd/	a.受伤的
+3902	wrestle	高中拓展	/ˈres(ə)l/	v.摔跤
+3903	wrinkle	高中拓展	/ˈrɪŋk(ə)l/	n.皱纹
+3904	wrist	高中核心	/rɪst/	n.手腕，腕关节
+3910	yawn	高中拓展	/jɔːn/	vi.&n.打呵欠&呵欠
+3912	yell	高中核心	/jel/	v.叫喊，吼叫
+3917	yoghurt	高中拓展	/ˈjɔgət,ˈjəʊ-/	n.酸奶
+3924	youth	高中核心	/juːθ/	n.青春；青年
+3925	yummy	高中核心	/ˈjʌmɪ/	a.很好吃的
+3929	zip	高中核心	/zɪp/	v.&n.拉开(或扣上)……的拉链；拉链
+3931	zipper	高中拓展	/ˈzɪpə(r)/	n.拉链
+3932	zone	高中核心	/zəʊn/	n.区域；范围
+3934	zoom	高中核心	/zuːm/	v.快速移动，迅速前往，猛涨

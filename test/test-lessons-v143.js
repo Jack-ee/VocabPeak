@@ -82,7 +82,9 @@ endVoiceSession();
 sec('2. 接线');
 ok(/beginVoiceSession: beginVoiceSession/.test(packSrc)
    && /endVoiceSession  : endVoiceSession/.test(packSrc), 'TTSPack 导出两个新 API');
-ok(/beginVoiceSession\?\.\(window\.App\?\.getPackVoices\?\.\(\)\)/.test(lessonsSrc),
+// v148: AI 短文改用整篇朗读者作音色池, 教材课文仍用 getPackVoices()
+ok(/beginVoiceSession\?\.\(window\.App\?\.getPackVoices\?\.\(\)\)/.test(lessonsSrc)
+   || (/beginVoiceSession\?\.\(pool\)/.test(lessonsSrc) && /: window\.App\?\.getPackVoices\?\.\(\);/.test(lessonsSrc)),
    'playSentences 开始时锁定 (单句/段落/整课三入口共用)');
 const endCount = (lessonsSrc.match(/endVoiceSession\?\.\(\)/g) || []).length;
 ok(endCount === 2, '正常结束与中途停止都解锁 (' + endCount + ' 处)');

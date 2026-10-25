@@ -1,14 +1,20 @@
 # ============================================================
-# Build audio pack — 增量合成发音包并发布到 Release (audio-pack)
+# Build audio pack — 增量合成发音包, 分片发布到 Release (audio-pack)
 #
 # 触发: 手动 (Actions -> Build audio pack -> Run workflow),
-#       或 push 改动了词表/生成器。
+#       或 push 改动了词表 / AI 短文 / 生成器。
 # 前置: 仓库 Secret OPENAI_API_KEY (Settings -> Secrets and
 #       variables -> Actions); Workflow permissions 为
 #       Read and write (本文件的 permissions 也声明了写权限)。
-# 产物: tools/dist/ 下三个文件, 发布到 audio-pack 标签的 Release,
-#       下载 URL 稳定 (见 tools/README.md)。
-# 增量: 生成器自动下载上一代包, 只合成缺失 clip; 中途失败也会
+# 产物 (v148): tools/dist/ 下若干分片 vocabpeak-audio-pack.<id>.empack
+#       + 索引 vocabpeak-audio-pack.index.json。只上传内容变了的分片,
+#       索引最后上传 (客户端永远不会看到指向缺失内容的索引), 下线的
+#       分片随后删除。旧版整包 (vocabpeak-audio-pack.empack 等) 不再
+#       生成也不自动删除: 首次 v148 构建从它迁移, 确认 App 里显示
+#       "已安装 第 N 代 … MB" 后可在 Release 页面手动删掉这三个旧文件。
+# 瘦身: 生成器用 ffmpeg 转成单声道 48 kbps、截掉词尾长静音, 同时
+#       查出静音/截断的坏片段重新合成; 因此 ffmpeg 是必需的。
+# 增量: 生成器下载上一代索引和分片, 只合成缺失 clip; 中途失败也会
 #       写出部分包, 因此发布步骤 if: always() —— 已合成的钱不浪费。
 # 超时: 三层递进, 保证任何一次运行的成果都能落到 Release ——
 #       320 分钟  生成器带内时间预算 (TIME_BUDGET_MINUTES): 到点
@@ -17,18 +23,22 @@
 #                 if: always() 的发布步骤仍然执行 (作业级超时会
 #                 连发布一起取消 —— 2h 跑丢过一整轮, 教训);
 #       350 分钟  作业级兜底 (托管 runner 上限 360)。
-# 重跑: Re-run 永远从头开始, 但因为每次运行都会发布已合成部分,
-#       "从头"实际是从上次发布的进度继续, 语料不变时几乎秒过。
 # ============================================================
 name: Build audio pack
 
 on:
   workflow_dispatch:
+    inputs:
+      allow_drop:
+        description: '允许删除超过 10% 的已有片段 (确认单词表确实删了很多词时才勾)'
+        type: boolean
+        default: false
   push:
     branches: [ main ]
     paths:
       - 'tools/wordlist.txt'
       - 'tools/generate_audio_pack.py'
+      - 'stories/**'
 
 permissions:
   contents: write
@@ -50,7 +60,18 @@ jobs:
         with:
           python-version: '3.11'
 
-      # 生成器只用标准库, 无需 pip 安装。
+      # 生成器只用标准库; 瘦身与坏片段检测需要 ffmpeg。
+      - name: Install ffmpeg
+        run: |
+          if ! command -v ffmpeg > /dev/null; then
+            sudo apt-get update -q
+            sudo apt-get install -y -q --no-install-recommends ffmpeg
+          fi
+          ffmpeg -version | head -1
+
+      - name: Self-test
+        run: python tools/generate_audio_pack.py --selftest
+
       # 步骤级超时 (330) 只杀本步骤, 后面的发布照常执行;
       # 带内预算 (320) 让生成器到点优雅停车, 部分包完整写出。
       - name: Build pack (incremental)
@@ -59,6 +80,8 @@ jobs:
           OPENAI_API_KEY:      ${{ secrets.OPENAI_API_KEY }}
           GITHUB_TOKEN:        ${{ secrets.GITHUB_TOKEN }}
           TIME_BUDGET_MINUTES: '320'
+          PACK_REQUIRE_FFMPEG: '1'
+          PACK_ALLOW_DROP:     ${{ inputs.allow_drop && '1' || '' }}
         run: python tools/generate_audio_pack.py
 
       - name: Publish release assets
@@ -68,22 +91,43 @@ jobs:
         run: |
           set -e
           DIST=tools/dist
-          if [ ! -f "$DIST/vocabpeak-audio-pack.empack" ]; then
-            echo "No pack produced; nothing to publish."
+          INDEX="$DIST/vocabpeak-audio-pack.index.json"
+          if [ ! -f "$INDEX" ]; then
+            echo "No index produced; nothing to publish."
             exit 0
           fi
           # Release (标签 audio-pack) 不存在则创建, 存在则复用。
           if ! gh release view audio-pack > /dev/null 2>&1; then
             gh release create audio-pack \
               --title "Audio pack" \
-              --notes "Auto-built offline pronunciation pack. Assets are overwritten by each build; download URLs stay stable."
+              --notes "Auto-built offline pronunciation pack (sharded). Assets are overwritten by each build; download URLs stay stable."
           fi
-          gh release upload audio-pack \
-            "$DIST/vocabpeak-audio-pack.empack" \
-            "$DIST/vocabpeak-audio-pack.manifest.json" \
-            --clobber
-          if [ -f "$DIST/vocabpeak-audio-pack.delta.empack" ]; then
-            gh release upload audio-pack \
-              "$DIST/vocabpeak-audio-pack.delta.empack" --clobber
-          fi
+          # 分片文件名带内容哈希, 新版本是新文件: 旧索引指向的文件在整个
+          # 发布过程中都不会被改动, 任何一步失败旧索引都仍然完整可用。
+          # 1) 新分片 (同名即同内容, --clobber 只为重跑时覆盖上次传了一半的)
+          n=0
+          while read -r f; do
+            [ -n "$f" ] || continue
+            gh release upload audio-pack "$DIST/$f" --clobber
+            n=$((n + 1))
+          done < "$DIST/changed-shards.txt"
+          echo "Uploaded $n new shard(s)."
+          # 2) 索引最后上传 (唯一会被覆盖的文件)
+          gh release upload audio-pack "$INDEX" --clobber
+          # 3) 删掉新索引不再引用的分片 —— 按 Release 里实际的文件算, 连同
+          #    以前失败的发布留下的残片一起清掉; 旧整包三个文件不动。
+          gh release view audio-pack --json assets -q '.assets[].name' > "$DIST/release-assets.txt"
+          python3 - "$INDEX" "$DIST/release-assets.txt" > "$DIST/delete-assets.txt" <<'PY'
+          import json, sys
+          keep = {s["file"] for s in json.load(open(sys.argv[1]))["shards"]}
+          legacy = {"vocabpeak-audio-pack.empack", "vocabpeak-audio-pack.delta.empack"}
+          for name in open(sys.argv[2]).read().split():
+              if name.startswith("vocabpeak-audio-pack.") and name.endswith(".empack") \
+                      and name not in legacy and name not in keep:
+                  print(name)
+          PY
+          while read -r f; do
+            [ -n "$f" ] || continue
+            gh release delete-asset audio-pack "$f" -y || echo "could not delete $f"
+          done < "$DIST/delete-assets.txt"
           echo "Published to release 'audio-pack'."

@@ -590,9 +590,13 @@
         if (!statEl || !window.TTSPack) return;
         window.TTSPack.status().then(s => {
             statEl.textContent = s
-                ? 'Installed \u2014 generation ' + s.generation + ', '
-                  + s.clipCount + ' clip(s), ' + s.voices.length + ' voice(s).'
-                : 'No pack installed yet.';
+                ? '已安装 \u2014 第 ' + s.generation + ' 代, ' + s.clipCount + ' 个片段, '
+                  + s.voices.length + ' 个音色'
+                  + (s.size ? ', ' + Math.round(s.size / 1048576) + ' MB' : '')
+                  + (s.format < 2 ? ' (旧版整包, 点「下载音频包」换成瘦身版)' : '')
+                  + (s.partial ? ' (上次有分片没下好, 可再点一次)' : '')
+                  + (s.pruneHeld ? ' (有 ' + s.pruneHeld + ' 个过期片段暂未清理)' : '') + '。'
+                : '尚未安装音频包。';
         }).catch(() => {});
     }
 
@@ -1893,6 +1897,14 @@
             } catch (e) {
                 console.error('[app] initCourses failed:', e);
             }
+            // v148: AI 短文缓存 (IndexedDB hsv_stories) 同样先灌满,
+            // 课文模块 init 时才能恢复上次打开的短文。
+            try {
+                const n = await window.Stories?.load?.();
+                console.log('[app] stories ready:', n);
+            } catch (e) {
+                console.error('[app] Stories.load failed:', e);
+            }
             // Verify required globals are actually present before initializing
             // modules — a missing global is a clearer error than a cascade of
             // undefined-method failures deep inside a feature.
@@ -1950,6 +1962,8 @@
             // 课程订阅 (v131): boot 已 await initCourses, 缓存就绪;
             // init 内部再延时错峰, 让首次同步拉取先落地。
             safeCall('CourseFeed', () => window.CourseFeed?.init?.());
+            // v148: AI 短文增量更新 (同源 stories/, 延时错峰)
+            safeCall('Stories', () => window.Stories?.init?.());
             // weak 标签一次性迁移 (v134): 合流前课文错词补打 weak,
             // 进入统一毕业流程。幂等, 跑过即跳过。
             safeCall('WeakMigrate', () => window.DB?.migrateWeakTags?.());
@@ -1963,6 +1977,24 @@
                 }
             });
             safeCall('TestDeviceBadge', updateTestDeviceBadge);
+
+            // v148: 发音包分片增量检查 —— 已装包的设备每 12 小时看一次索引,
+            // 更新不超过 25 MB (新一批 AI 短文、几十个新词) 就静默补齐,
+            // 更大的更新只提示, 留给用户在 设置 → 语音 手动下载。
+            safeCall('PackUpdate', () => {
+                setTimeout(() => {
+                    if (navigator.onLine === false || !window.TTSPack?.checkForUpdates) return;
+                    window.TTSPack.checkForUpdates({ autoMaxBytes: 25 * 1048576 }).then(r => {
+                        if (!r || !r.todo) return;
+                        if (r.synced) {
+                            console.log('[pack] auto-updated ' + r.todo + ' shard(s)');
+                        } else if (!r.synced && r.bytes > 25 * 1048576) {
+                            showToast('发音包有更新（约 ' + Math.round(r.bytes / 1048576)
+                                      + ' MB），可到 设置 → 语音 点「下载音频包」', 7000);
+                        }
+                    }).catch(e => console.warn('[pack] update check failed:', e && e.message));
+                }, 15000);
+            });
 
             // Header stats
             refreshStats();

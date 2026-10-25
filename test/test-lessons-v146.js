@@ -46,6 +46,7 @@ async function play(items, voices, lesson) {
     const fakeEl = () => ({ classList:{add(){},remove(){}}, scrollIntoView(){}, dataset:{} });
     const root = { querySelector:()=>fakeEl(), querySelectorAll:()=>[] };
     const tMarkActivity=()=>{}, bumpProgress=()=>{}, renderHeaderProgress=()=>{}, toast=()=>{};
+    const isStory = (l) => !!l && l.kind === 'ai';   // v148
     function stopPlay(){ playToken++; }
     global.window = {
         App    : { beginSession(){}, endSession(){}, stopSpeak(){}, getPackVoices: () => voices },
@@ -108,6 +109,11 @@ const voicesByPara = (heard) => {
     ok(Object.values(m5).every(s => s.size === 1) &&
        new Set(Object.keys(m5).map(p => [...m5[p]][0])).size === 2,
        '句子没有 id 时仍能按段换人 (对象引用分组)');
+
+    // v148: AI 短文整篇固定朗读者, 不按段换人
+    const story = { id:'S0001', kind:'ai', narrator:'coral', paras: LESSON.paras };
+    const h6 = await play(allOf(story), POOL, story);
+    ok(h6.length === 7 && h6.every(x => x[1] === 'coral'), 'AI 短文全程锁定朗读者 coral', JSON.stringify(h6));
 
     // ─── 4. 重听换人 ────────────────────────────────────────
     sec('4. 重听');

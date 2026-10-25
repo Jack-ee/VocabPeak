@@ -1,0 +1,26 @@
+# 统一词库补充: 《英语·单词本》3500 词表里没有、但高一学生早已熟悉的常用词。
+# 级别 X (常用词, 词表外): 不做短文目标词、不进「载入 3500 新增词」,
+# 但短文校验不算超纲, 点词能查到, 也可以手动加入生词本。
+# 格式: 词<TAB>英式音标<TAB>释义
+centre	/ˈsentə/	n. 中心；中央
+community	/kəˈmjuːnəti/	n. 社区；团体
+complain	/kəmˈpleɪn/	v. 抱怨；投诉
+complaint	/kəmˈpleɪnt/	n. 抱怨；投诉
+delivery	/dɪˈlɪvəri/	n. 递送；交付
+email	/ˈiːmeɪl/	n. 电子邮件 v. 发电子邮件
+factory	/ˈfæktri/	n. 工厂
+grandfather	/ˈɡrænfɑːðə/	n. 祖父；外祖父
+grandmother	/ˈɡrænmʌðə/	n. 祖母；外祖母
+laptop	/ˈlæptɒp/	n. 笔记本电脑
+mum	/mʌm/	n. 妈妈
+online	/ˌɒnˈlaɪn/	adj./adv. 在线的；网上
+party	/ˈpɑːti/	n. 聚会；党派
+payment	/ˈpeɪmənt/	n. 付款；支付
+pink	/pɪŋk/	adj./n. 粉红色(的)
+smartphone	/ˈsmɑːtfəʊn/	n. 智能手机
+subway	/ˈsʌbweɪ/	n. 地铁；地下通道
+teenage	/ˈtiːneɪdʒ/	adj. 十几岁的；青少年的
+campus	/ˈkæmpəs/	n. 校园
+app	/æp/	n. 应用程序；手机软件
+muscle	/ˈmʌsl/	n. 肌肉
+reaction	/riˈækʃn/	n. 反应

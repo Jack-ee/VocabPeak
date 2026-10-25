@@ -240,6 +240,13 @@ window.MyWords = (function() {
             if (hsMeta) loadAll.textContent = `载入全部 (${hsMeta.count})`;
             loadAll.addEventListener('click', () => loadBuiltinVocab('all'));
         }
+        const load3500 = document.getElementById('mw-load-3500');
+        if (load3500) {
+            const n = lexicon3500New().length;
+            load3500.textContent = `载入 3500 新增词 (${n})`;
+            load3500.disabled    = !n;
+            load3500.addEventListener('click', loadLexicon3500);
+        }
         document.getElementById('mw-add-single')?.addEventListener('click', handleAddSingle);
         document.getElementById('mw-single-input')?.addEventListener('keydown', (e) => {
             const dropdown = document.getElementById('mw-search-dropdown');
@@ -562,6 +569,67 @@ window.MyWords = (function() {
         const skipped = pick.length - added;
         window.App?.showToast?.(`已载入 ${added} 个${label}${skipped > 0 ? `（跳过 ${skipped} 个已有）` : ''}。`);
         window.App?.updateNotebookBadge?.();
+        refreshStudyList();
+        currentIdx = 0;
+        render();
+        closeImportModal();
+    }
+
+    // v148: 《英语·单词本》3500 词里生词本还没有、又不属于「非常简单」
+    // 的词 (统一词库级别 E 高中拓展 / J 初中·值得学)。基础词 (B) 不进
+    // 生词本, 但短文里照样能点词查到。
+    function lexicon3500New() {
+        const L = window.HSV_LEXICON;
+        if (!L || !Array.isArray(L.words)) return [];
+        const have = new Set((window.DB.loadNotebook() || [])
+            .map(w => String(w.word || '').trim().toLowerCase()));
+        // 孩子删掉过的词 (删词墓碑) 不再塞回来
+        let tombs = {};
+        try { tombs = JSON.parse(window.DB.getPref('nb_tomb', '{}') || '{}') || {}; } catch (e) { tombs = {}; }
+        return L.words.filter(w => {
+            const k = String(w && w[0] || '').toLowerCase();
+            return w && w[1] > 0 && (w[4] === 'E' || w[4] === 'J') && !have.has(k) && tombs[k] == null;
+        });
+    }
+
+    // 载入 3500 新增词: 只追加, 绝不改动已有词条的学习记录 (SRS、焦点、
+    // 错题)。已有词条只在音标为空时补上词库音标, 且不打 editedAt —— 逐词
+    // 合并的「空字段互补」会把音标带到别的设备; 打戳则会让这台设备的旧
+    // 释义在合并时盖掉别处的新编辑 (内置核心词全都没有音标, 波及上千词)。
+    function loadLexicon3500() {
+        const L   = window.HSV_LEXICON;
+        const add = lexicon3500New();
+        if (!L || !add.length) { window.App?.showToast?.('3500 词表里没有需要新增的词。'); return; }
+        if (!confirm(`把 ${add.length} 个 3500 词表新增词加入生词本？\n已有的词和学习记录保持不变。`)) return;
+        const nb    = window.DB.loadNotebook() || [];
+        const ipaOf = {};
+        L.words.forEach(w => { if (w[2]) ipaOf[String(w[0]).toLowerCase()] = w[2]; });
+        const now   = Date.now();
+        let filled  = 0;
+        nb.forEach(w => {
+            const ipa = ipaOf[String(w.word || '').trim().toLowerCase()];
+            if (ipa && !w.phonetic) { w.phonetic = ipa; filled++; }
+        });
+        add.forEach(w => nb.push({
+            word     : w[0],
+            phonetic : w[2] || '',
+            meaning  : String(w[3] || '').replace(/\s+/g, ' ').trim(),
+            enDef    : '',
+            collo    : w[5] || '',
+            colloCn  : '',
+            register : 'neutral',
+            context  : '',
+            focus    : [],
+            level    : w[4] === 'E' ? '拓展' : '3500',
+            freq     : null,
+            source   : '3500 词默写本 #' + w[1],
+            addedAt  : now
+        }));
+        window.DB.saveNotebook(nb);          // 一次写入; 同步钩子推送一次
+        window.App?.showToast?.(`已载入 ${add.length} 个 3500 新增词` + (filled ? `，并给 ${filled} 个已有词补了音标` : '') + '。');
+        window.App?.updateNotebookBadge?.();
+        const btn = document.getElementById('mw-load-3500');
+        if (btn) { btn.textContent = '载入 3500 新增词 (0)'; btn.disabled = true; }
         refreshStudyList();
         currentIdx = 0;
         render();

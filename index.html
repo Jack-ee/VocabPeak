@@ -20,11 +20,11 @@
          In VS Code: Ctrl+H, find "?v=N" with the current N, replace
          with "?v=N+1" across this file. Then bump CACHE_NAME in
          sw.js to match (e.g. 'hsv-vN+1').
-         Current version: v=147
+         Current version: v=148
          ========================================================= -->
-    <link rel="stylesheet" href="style.css?v=147">
-    <link rel="stylesheet" href="expressions-coach.css?v=147">
-    <link rel="stylesheet" href="lessons.css?v=147">
+    <link rel="stylesheet" href="style.css?v=148">
+    <link rel="stylesheet" href="expressions-coach.css?v=148">
+    <link rel="stylesheet" href="lessons.css?v=148">
 </head>
 <body>
 
@@ -202,6 +202,10 @@
             <div style="display:flex;gap:8px;margin-bottom:14px">
                 <button class="wl-btn-primary" id="mw-load-core" style="flex:1">载入核心词</button>
                 <button class="wl-btn-secondary" id="mw-load-all" style="flex:1">载入全部</button>
+            </div>
+            <p class="settings-hint" style="margin:0 0 8px">《英语·单词本》3500 词里生词本还没有的词（不含非常简单的基础词，带音标释义；已有的词与学习记录不动）：</p>
+            <div style="display:flex;gap:8px;margin-bottom:14px">
+                <button class="wl-btn-secondary" id="mw-load-3500" style="flex:1">载入 3500 新增词</button>
             </div>
             <div style="border-top:1px solid rgba(255,255,255,0.10);margin:0 0 14px"></div>
             <p class="settings-hint">或粘贴你自己的单词表 —— 任意常见格式均可：</p>
@@ -436,32 +440,34 @@ eloquent manifest scrutinize caveat
 
 <div id="toast-container"></div>
 
-<script src="config.js?v=147"></script>
-<script src="dictionary.js?v=147"></script>
-<script src="vocab-hs-data.js?v=147"></script>
-<script src="lessons-data.js?v=147"></script>
-<script src="db.js?v=147"></script>
-<script src="ai-engine.js?v=147"></script>
-<script src="my-words.js?v=147"></script>
-<script src="cloze.js?v=147"></script>
-<script src="writing-lab.js?v=147"></script>
-<script src="vocab-drill.js?v=147"></script>
-<script src="reader.js?v=147"></script>
-<script src="lessons.js?v=147"></script>
-<script src="speaking-coach.js?v=147"></script>
-<script src="expressions-data.js?v=147"></script>
-<script src="expressions-coach.js?v=147"></script>
-<script src="sentence.js?v=147"></script>
-<script src="sentence-drill.js?v=147"></script>
-<script src="sync.js?v=147"></script>
-<script src="tts-pack.js?v=147"></script>
-<script src="course-feed.js?v=147"></script>
-<script src="setup-link.js?v=147"></script>
-<script src="app.js?v=147"></script>
+<script src="config.js?v=148"></script>
+<script src="dictionary.js?v=148"></script>
+<script src="lexicon-3500.js?v=148"></script>
+<script src="vocab-hs-data.js?v=148"></script>
+<script src="lessons-data.js?v=148"></script>
+<script src="db.js?v=148"></script>
+<script src="ai-engine.js?v=148"></script>
+<script src="my-words.js?v=148"></script>
+<script src="cloze.js?v=148"></script>
+<script src="writing-lab.js?v=148"></script>
+<script src="vocab-drill.js?v=148"></script>
+<script src="reader.js?v=148"></script>
+<script src="stories.js?v=148"></script>
+<script src="lessons.js?v=148"></script>
+<script src="speaking-coach.js?v=148"></script>
+<script src="expressions-data.js?v=148"></script>
+<script src="expressions-coach.js?v=148"></script>
+<script src="sentence.js?v=148"></script>
+<script src="sentence-drill.js?v=148"></script>
+<script src="sync.js?v=148"></script>
+<script src="tts-pack.js?v=148"></script>
+<script src="course-feed.js?v=148"></script>
+<script src="setup-link.js?v=148"></script>
+<script src="app.js?v=148"></script>
 <!-- Debug panel — hidden by default, toggled via Settings → Developer.
      Script always loads so console-log capture is active even when UI
      is hidden, enabling post-mortem inspection of recent errors. -->
-<script src="debug-panel.js?v=147"></script>
+<script src="debug-panel.js?v=148"></script>
 <script>
 // --- PWA install: capture the browser's install prompt ---
 // Chrome fires beforeinstallprompt when install criteria are met.

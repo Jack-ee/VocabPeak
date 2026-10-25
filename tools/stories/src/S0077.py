@@ -1,0 +1,87 @@
+# S0077 — 议论文: Can Online Lessons Replace the Classroom? (3500 · ABC 窗口 8, 第 4 组)
+# 立场: 网课是有用的补充, 但不能取代课堂; 与 S0039 (手机进课堂)、S0010 (AI 写作业) 话题不同。
+# 事实: 几年前 (2020 年春) 全国中小学延期开学、"停课不停学", 数以百万计的学生在家上了几个月网课;
+# 免费在线课程报名的人很多, 坚持学完的比例普遍很低 (只写"许多人中途放弃", 不给数字)。
+# 班级问卷为文中虚构情境, 只写"许多人", 不给百分比。
+# 审读 (21st Century 英文报 2020 "Stay home studying"): 2020 年春季学期全国延期开学, 改为网上教学, 已核实;
+# "A few years ago"改为 2020 年 (距今已六年); "lectures"不用于中学课堂, 改为 lessons; 结尾长句拆成两句,
+# "as a support"改为常见说法 a useful addition to ..., not a substitute for it。
+STORY = {
+ 'id': 'S0077', 'title': 'Can Online Lessons Replace the Classroom?', 'titleZh': '网课能取代课堂吗？', 'genre': 'argumentative',
+ 'paras': [
+  [
+   ("In 2020, when schools across China closed for several months, millions of students took their lessons online at home.",
+    "2020 年，全国各地的学校停课了好几个月，千千万万的学生在家里上网课。", False),
+   ("Since then, some people have argued that online learning could one day replace the classroom altogether.",
+    "从那以后，有人提出，网上学习总有一天会完全取代课堂。", False),
+   ("I reject this idea, even though I accept that online lessons have real advantages.",
+    "我不赞同这种看法，尽管我承认网课确实有它的优点。", False),
+  ],
+  [
+   ("Learning online is not restricted by distance, so a student in a small mountain town can watch the same lessons as a student in Beijing.",
+    "网上学习不受距离限制，山区小镇的学生也能和北京的学生听同样的课。", True),
+   ("Many of us also rely on recorded lessons to go over difficult points again before an exam.",
+    "我们许多人在考试前也会靠课程录像，把难点再过一遍。", False),
+   ("In addition, online classes make it easy to request extra help from teachers outside class time.",
+    "此外，网课让我们可以方便地在课外向老师请求额外的帮助。", False),
+  ],
+  [
+   ("However, last term our class handed out a short questionnaire to students chosen at random.",
+    "然而，上学期我们班向随机抽取的同学发放了一份简短的问卷。", False),
+   ("Many of them said that it was much harder to resist the temptation to play games at home than at school.",
+    "许多人说，在家里比在学校难抵挡玩游戏的诱惑得多。", True),
+   ("Without a teacher in the room, online learning tends to reward only those students who can organize their own time.",
+    "教室里没有老师，网上学习往往只会让那些善于安排自己时间的学生受益。", False),
+   ("This is one reason why so many people who sign up for free online courses quit long before the end.",
+    "这也是为什么许多报名参加免费在线课程的人，远没到结课就放弃了。", False),
+   ("During online lessons, some students even refuse to switch on their cameras, so teachers cannot tell whether anyone is really listening.",
+    "上网课时，有些学生甚至拒绝打开摄像头，老师根本不知道到底有没有人在认真听。", True),
+   ("Sitting in front of a screen for six or seven hours a day can also rob young people of exercise and fresh air.",
+    "每天在屏幕前坐上六七个小时，还会让年轻人失去锻炼和呼吸新鲜空气的机会。", False),
+  ],
+  [
+   ("More importantly, school is not just a place for learning facts.", "更重要的是，学校不只是学习知识的地方。", False),
+   ("The relationship between a teacher and a class is built through many small moments that no video call can copy.",
+    "老师和一个班之间的关系，是在许许多多小小的瞬间里建立起来的，这是任何视频通话都无法复制的。", False),
+   ("Group work, sports and recreation at break time teach us how to get along with others, a skill that is highly relevant to adult life.",
+    "小组合作、体育活动和课间的娱乐，教会我们如何与人相处，而这项本领与成年后的生活息息相关。", True),
+  ],
+  [
+   ("I am not sceptical about technology, and I do not think schools should stick to rigid old methods.",
+    "我并不怀疑科技的作用，也不认为学校应该死守僵化的老办法。", False),
+   ("Online lessons are a reliable way to keep learning when students cannot come to school.",
+    "在学生无法到校的时候，网课是一种可靠的、让学习不中断的方式。", False),
+   ("In my view, the root of the problem with online learning is simply the lack of real human contact.",
+    "在我看来，网上学习问题的根源，就在于缺少真正的人与人之间的接触。", False),
+   ("The most reasonable approach is to treat online lessons as a useful addition to school, not a substitute for it.",
+    "最合理的做法，是把网课当作学校教育的有益补充，而不是替代品。", True),
+   ("Time spent with real teachers and classmates is still a basic requirement of a good education.",
+    "和真实的老师、同学相处的时间，仍然是良好教育的一项基本要求。", False),
+  ],
+ ],
+ 'words': [
+  ('replace', 'replace', 'v.', '代替，取代', 2, 'replace A with B', '用 B 代替 A'),
+  ('reject', 'reject', 'v.', '拒绝接受，不认同', 3, 'reject an idea', '否定某种想法'),
+  ('restrict', 'restricted', 'v.', '限制', 4, 'be restricted by sth', '受……限制'),
+  ('rely', 'rely', 'v.', '依靠，依赖', 5, 'rely on sb/sth', '依靠某人/某物'),
+  ('request', 'request', 'v.', '请求，要求', 6, 'request help', '请求帮助'),
+  ('questionnaire', 'questionnaire', 'n.', '调查问卷', 7, 'fill in a questionnaire', '填写调查问卷'),
+  ('random', 'random', 'n.', '随机', 7, 'at random', '随机地，随意地'),
+  ('resist', 'resist', 'v.', '抵挡，抵制（诱惑）', 8, 'resist the temptation to do sth', '抵挡做某事的诱惑'),
+  ('reward', 'reward', 'v.', '使受益；奖赏', 9, 'reward sb for sth', '因某事奖赏某人'),
+  ('reason', 'reason', 'n.', '原因，理由', 10, 'the reason why ...', '……的原因'),
+  ('quit', 'quit', 'v.', '放弃，退出', 10, 'quit a course', '中途退出课程'),
+  ('refuse', 'refuse', 'v.', '拒绝', 11, 'refuse to do sth', '拒绝做某事'),
+  ('screen', 'screen', 'n.', '屏幕', 12, 'in front of a screen', '在屏幕前'),
+  ('rob', 'rob', 'v.', '使丧失，夺走', 12, 'rob sb of sth', '使某人失去某物'),
+  ('relationship', 'relationship', 'n.', '关系', 14, 'the relationship between A and B', 'A 与 B 之间的关系'),
+  ('recreation', 'recreation', 'n.', '娱乐，消遣', 15, 'time for recreation', '娱乐时间'),
+  ('relevant', 'relevant', 'adj.', '紧密相关的', 15, 'be relevant to sth', '与……相关'),
+  ('sceptical', 'sceptical', 'adj.', '怀疑的', 16, 'be sceptical about sth', '对某事持怀疑态度'),
+  ('rigid', 'rigid', 'adj.', '僵化的，死板的', 16, 'rigid rules', '死板的规定'),
+  ('reliable', 'reliable', 'adj.', '可靠的，可信赖的', 17, 'a reliable way to do sth', '做某事的可靠方法'),
+  ('root', 'root', 'n.', '根源', 18, 'the root of the problem', '问题的根源'),
+  ('reasonable', 'reasonable', 'adj.', '合理的，合乎情理的', 19, 'a reasonable approach', '合理的做法'),
+  ('requirement', 'requirement', 'n.', '要求，必要条件', 20, 'a basic requirement', '基本要求'),
+ ],
+}

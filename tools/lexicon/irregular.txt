@@ -1,0 +1,198 @@
+# 不规则变形 → 原形 (每行: 原形 变形1 变形2 ...)。供"点任意词查词"与短文超纲检查共用。
+be am is are was were been being
+have has had having
+do does did done doing
+go goes went gone
+arise arose arisen
+awake awoke awoken
+bear bore born borne
+beat beaten
+become became
+begin began begun
+bend bent
+bet
+bind bound
+bite bit bitten
+bleed bled
+blow blew blown
+break broke broken
+breed bred
+bring brought
+broadcast
+build built
+burn burnt
+burst
+buy bought
+cast
+catch caught
+choose chose chosen
+cling clung
+come came
+cost
+creep crept
+cut
+deal dealt
+dig dug
+draw drew drawn
+dream dreamt
+drink drank drunk
+drive drove driven
+eat ate eaten
+fall fell fallen
+feed fed
+feel felt
+fight fought
+find found
+flee fled
+fly flew flown flies
+forbid forbade forbidden
+forecast
+foresee foresaw foreseen
+forget forgot forgotten
+forgive forgave forgiven
+freeze froze frozen
+get got gotten
+give gave given
+grind ground
+grow grew grown
+hang hung
+hear heard
+hide hid hidden
+hit
+hold held
+hurt
+keep kept
+kneel knelt
+know knew known
+lay laid
+lead led
+lean leant
+leap leapt
+learn learnt
+leave left
+lend lent
+let
+lie lay lain lying
+light lit
+lose lost
+make made
+mean meant
+meet met
+mislead misled
+mistake mistook mistaken
+misunderstand misunderstood
+overcome overcame
+pay paid
+prove proven
+put
+quit
+read
+ride rode ridden
+ring rang rung
+rise rose risen
+run ran
+say said
+see saw seen
+seek sought
+sell sold
+send sent
+set
+sew sewn
+shake shook shaken
+shine shone
+shoot shot
+show shown
+shrink shrank shrunk
+shut
+sing sang sung
+sink sank sunk
+sit sat
+sleep slept
+slide slid
+smell smelt
+sow sown
+speak spoke spoken
+speed sped
+spell spelt
+spend spent
+spin spun
+spit spat
+split
+spread
+spring sprang sprung
+stand stood
+steal stole stolen
+stick stuck
+sting stung
+strike struck stricken
+strive strove striven
+swear swore sworn
+sweep swept
+swell swollen
+swim swam swum
+swing swung
+take took taken
+teach taught
+tear tore torn
+tell told
+think thought
+throw threw thrown
+understand understood
+undertake undertook undertaken
+undo undid undone
+upset
+wake woke woken
+wear wore worn
+weep wept
+win won
+wind wound
+withdraw withdrew withdrawn
+write wrote written
+good better best
+well better best
+bad worse worst
+ill worse worst
+far farther farthest further furthest
+little less least
+many more most
+much more most
+man men
+woman women
+child children
+foot feet
+tooth teeth
+mouse mice
+goose geese
+ox oxen
+person people
+sheep
+deer
+fish
+criterion criteria
+phenomenon phenomena
+bacterium bacteria
+medium media
+datum data
+analysis analyses
+basis bases
+crisis crises
+thesis theses
+knife knives
+wife wives
+life lives
+leaf leaves
+half halves
+shelf shelves
+wolf wolves
+thief thieves
+self selves
+loaf loaves
+calf calves
+I me my mine myself
+we us our ours ourselves
+you your yours yourself yourselves
+he him his himself
+she her hers herself
+it its itself
+they them their theirs themselves
+one oneself

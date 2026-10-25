@@ -1,0 +1,91 @@
+# S0051 — 科普说明文: One Storm, Three Names (3500 · ABC 窗口 5, 第 8 组)
+# 事实: 飓风、台风、气旋是同一类热带气旋, 按海域命名 (大西洋和东北太平洋即美洲附近叫 hurricane, 西北太平洋叫 typhoon,
+# 印度洋和南太平洋叫 cyclone); 全球每年约形成八九十个 (写"几十个"); 一般在海温约 26.5 °C 以上的洋面形成
+# (写"一般至少 26 摄氏度"); 上升空气冷却, 水汽凝结放热, 推动空气继续上升; 四周空气涌入补充, 受地球自转偏转而旋转,
+# 中心为风眼; 近中心持续风速约 118–119 km/h (12 级) 以上才称飓风/台风; 登陆后失去暖水补给、受地面摩擦而减弱
+# (减弱往往较快, 原稿"slowly"已删), 但仍可能带来内陆暴雨洪水; 探空气球充氢气或氦气携带仪器;
+# 美国 NOAA P-3 与空军 C-130 机组 ("飓风猎人") 飞入风暴, NOAA G-IV 喷气机在约 13700 米高空绕风暴观测引导气流
+# (审读核对 NOAA "celebrating200years" 飞机页); 中心气压骤降表示风暴增强;
+# NOAA GFDL 综述 / IPCC AR6: 多数模式预计全球热带气旋总数减少或变化不大, 4–5 级强风暴所占比例上升, 降雨率上升。
+# 不写具体年份、伤亡或损失数字。
+STORY = {
+ 'id': 'S0051', 'title': 'One Storm, Three Names', 'titleZh': '一种风暴，三个名字', 'genre': 'popular science',
+ 'paras': [
+  [
+   ("Every summer and autumn, news reports in the United States warn of hurricanes, while families in southern China prepare for typhoons.",
+    "每年夏秋两季，美国的新闻都会发布飓风警报，而中国南方的家庭则在为台风做准备。", False),
+   ("In fact, they are the same kind of storm with different local names.",
+    "其实，它们是同一种风暴，只是各地叫法不同。", False),
+   ("It is called a hurricane near the Americas, a typhoon in the north-western Pacific and a cyclone in the Indian Ocean and the South Pacific.",
+    "在美洲附近，它叫飓风；在西北太平洋，它叫台风；在印度洋和南太平洋，它则叫气旋。", True),
+   ("Every year, dozens of them form around the globe, and the strongest are among the most powerful storms on Earth.",
+    "每年全球都会形成几十个这样的风暴，其中最强的几个是地球上威力最大的风暴。", False),
+  ],
+  [
+   ("These storms can only form over warm ocean water, usually at least 26 degrees Celsius.",
+    "这种风暴只能在温暖的洋面上形成，水温一般至少要有26摄氏度。", False),
+   ("As the warm, wet air rises, it cools, and the water in it changes from a gas into tiny liquid drops.",
+    "温暖潮湿的空气上升时会变冷，其中的水便由气体变成细小的液滴。", False),
+   ("This process gives off heat, which warms the air and pushes it up even faster.",
+    "这一过程会放出热量，使空气变暖，推动它更快地上升。", False),
+   ("In other words, warm sea water is the storm's fuel.",
+    "换句话说，温暖的海水就是风暴的燃料。", False),
+   ("As more air rushes in at sea level to replace the rising air, the Earth's spin makes it turn.",
+    "更多的空气从海面上涌进来补充，地球的自转使这些空气旋转起来。", False),
+   ("Soon a huge ring of cloud forms around a calm centre called the eye.",
+    "不久，一个巨大的云环便围绕着一个平静的中心形成了，这个中心叫作“风眼”。", False),
+   ("When its winds increase to about 120 kilometres an hour, far stronger than a gale, the storm is officially called a hurricane or typhoon.",
+    "当风速增加到每小时约120公里——远比一般的大风猛烈——这个风暴就正式被称为飓风或台风。", True),
+  ],
+  [
+   ("Over land, a hurricane soon begins to lose strength, because it no longer has warm water to feed it and friction with the ground slows its winds.",
+    "到了陆地上，飓风很快就会开始减弱，因为它失去了温暖海水的补给，而且与地面的摩擦也会让风速减慢。", True),
+   ("However, the storm still carries a great deal of water, so it may rain heavily for days, and floods can reach towns far inland.",
+    "不过，风暴仍携带着大量的水，所以可能连续几天下大雨，洪水甚至会波及远在内陆的城镇。", True),
+  ],
+  [
+   ("To track these storms, satellites watch them from space, and weather balloons filled with hydrogen or helium carry instruments high into the sky.",
+    "为了追踪这些风暴，卫星从太空中监视它们，充了氢气或氦气的气象气球则携带仪器升上高空。", True),
+   ("In the United States, pilots and scientists known as \"hurricane hunters\" even fly into the storms, while a jet collects information high above and around them.",
+    "在美国，被称为“飓风猎人”的飞行员和科学家甚至会驾机飞进风暴，同时还有一架喷气式飞机在风暴上空和四周的高空收集信息。", True),
+   ("A sharp fall in air pressure at the centre indicates that a storm is growing stronger.",
+    "风暴中心的气压急剧下降，表明风暴正在增强。", False),
+   ("With this information, forecasters can inform people of the danger days in advance, so fishing boats return to harbour and families move to safety.",
+    "有了这些信息，预报员就能提前几天把危险通知给人们，渔船可以返港避风，居民也能转移到安全的地方。", False),
+   ("When the winds drop, helicopters can bring immediate help to villages that floods have cut off.",
+    "风势减弱后，直升机可以为被洪水围困的村庄及时送去救助。", False),
+  ],
+  [
+   ("Many families near the coast also insure their homes against storm damage.",
+    "沿海的许多家庭还会给房子上保险，以防风暴造成损失。", False),
+   ("Most studies suggest that such storms will not become more frequent overall as the oceans warm.",
+    "大多数研究认为，随着海洋变暖，这类风暴总体上并不会变得更频繁。", False),
+   ("However, scientists expect a larger share of them to be very strong and to bring heavier rain.",
+    "不过，科学家预计，其中特别强的风暴所占的比例会更大，带来的降雨也会更多。", False),
+  ],
+ ],
+ 'words': [
+  ('hurricane', 'hurricanes', 'n.', '飓风', 1, 'a hurricane warning', '飓风警报'),
+  ('globe', 'globe', 'n.', '地球；全球', 4, 'around the globe', '在全世界'),
+  ('gas', 'gas', 'n.', '气体', 6, 'change from a gas into a liquid', '由气体变成液体'),
+  ('fuel', 'fuel', 'n.', '燃料', 8, 'a source of fuel', '燃料来源'),
+  ('huge', 'huge', 'adj.', '巨大的', 10, 'a huge amount of', '大量的'),
+  ('increase', 'increase', 'v.', '增加，增长', 11, 'increase to...', '增加到……'),
+  ('gale', 'gale', 'n.', '大风，强风', 11, 'a strong gale', '强劲的大风'),
+  ('friction', 'friction', 'n.', '摩擦', 12, 'friction with the ground', '与地面的摩擦'),
+  ('heavily', 'heavily', 'adv.', '大量地；猛烈地', 13, 'rain heavily', '下大雨'),
+  ('inland', 'inland', 'adv.', '在内陆；向内地', 13, 'far inland', '远在内陆'),
+  ('hydrogen', 'hydrogen', 'n.', '氢；氢气', 14, 'hydrogen gas', '氢气'),
+  ('instrument', 'instruments', 'n.', '仪器，器械', 14, 'scientific instruments', '科学仪器'),
+  ('hunter', 'hunters', 'n.', '猎人；搜寻者', 15, 'hurricane hunters', '飓风猎人（驾机飞入飓风观测的人员）'),
+  ('jet', 'jet', 'n.', '喷气式飞机', 15, 'a jet plane', '喷气式飞机'),
+  ('indicate', 'indicates', 'v.', '表明，显示', 16, 'indicate that...', '表明……'),
+  ('inform', 'inform', 'v.', '通知，告诉', 17, 'inform sb of sth', '把某事通知某人'),
+  ('harbour', 'harbour', 'n.', '港口，港湾', 17, 'return to harbour', '返港'),
+  ('helicopter', 'helicopters', 'n.', '直升机', 18, 'by helicopter', '乘直升机'),
+  ('immediate', 'immediate', 'adj.', '立即的，即时的', 18, 'immediate help', '及时的帮助'),
+  ('insure', 'insure', 'v.', '给……保险', 19, 'insure sth against sth', '给某物投保以防……'),
+  ('frequent', 'frequent', 'adj.', '频繁的，经常的', 20, 'become more frequent', '变得更加频繁'),
+ ],
+ 'gloss': {'cyclone': 'n. 气旋（印度洋、南太平洋一带对热带风暴的叫法）', 'helium': 'n. 氦；氦气'},
+}

@@ -1,0 +1,86 @@
+# S0065 — 科普说明文: Living in Orbit (3500 · ABC 窗口 7, 第 2 组)
+# 事实: 天宫空间站轨道高度约 340–450 km (写"约 400 公里"), 绕地球一圈约 90 多分钟, 每天约 16 次日出日落;
+# 傍晚或黎明前肉眼可见; 中国首批航天员均选自空军飞行员 (写"许多"); 航天员漂浮是因为处于持续自由落体,
+# 不是没有重力 (400 公里处重力约为地面的九成); 失重时体液向上半身转移 (脸变圆、腿变细),
+# 肌肉骨骼因不承重而变弱, 每天锻炼 (太空跑台、太空自行车, 用束带固定); 舱内气压接近海平面 (约一个大气压, 与国际空间站相同);
+# 再生生保系统: 电解水制氧、去除二氧化碳、收集冷凝水 (呼吸和汗液) 与尿液净化成饮用水 (航天科技集团/新华社);
+# 电力来自太阳翼 (文中写 solar panels); 部分食品为脱水食品, 部分饮料为冲调粉, 站上有热水。航天员返回后需一段时间才能正常行走。
+# 审读: 太空跑台、太空自行车, 跑步时用束带/背心把人固定 (搜狐 2025 报道); 天宫一号地面试验中密封舱复压至"载人环境要求的
+# 常压状态"(约 100 kPa, sciengine), 故"接近海平面气压"保留; 电解制氧、CO2 去除、水处理见中新网 2023-04-13。
+STORY = {
+ 'id': 'S0065', 'title': 'Living in Orbit', 'titleZh': '在轨道上生活', 'genre': 'popular science',
+ 'paras': [
+  [
+   ("On a clear evening, you may see a bright point of light moving steadily across the sky, and it could be China's Tiangong space station passing overhead.",
+    "在晴朗的傍晚，你也许会看到一个亮点平稳地划过天空，那可能就是中国的天宫空间站正从头顶经过。", True),
+   ("The station travels in orbit about 400 kilometres above the Earth and goes round the planet roughly sixteen times per day.",
+    "空间站在距地面约四百公里的轨道上运行，每天绕地球大约十六圈。", False),
+   ("A powerful rocket is needed to send astronauts there, but keeping them healthy in outer space is just as great a challenge.",
+    "把航天员送上去需要一枚强大的火箭，而让他们在外太空保持健康，同样是一项巨大的挑战。", False),
+  ],
+  [
+   ("Many of China's astronauts were once pilots, yet even they have to get used to floating.",
+    "中国的许多航天员以前都是飞行员，可即便是他们，也得慢慢习惯飘浮的感觉。", False),
+   ("Surprisingly, the reason they float is not that there is no gravity at that height.",
+    "出人意料的是，他们之所以会飘浮，并不是因为那个高度上没有重力。", False),
+   ("As physicists explain, the station and everything inside it are always falling towards the Earth, but they are also moving forward so fast that they keep missing it.",
+    "物理学家解释说，空间站和里面的一切其实一直在朝地球下落，但它们同时又在高速向前飞行，所以总是“落不到”地球上。", True),
+   ("It is this phenomenon, known as free fall, that makes people and objects seem to have no weight.",
+    "正是这种被称为“自由落体”的现象，让人和物体看上去好像没有了重量。", False),
+  ],
+  [
+   ("On Earth, the heart, the organ that keeps blood moving round the body, has to pump hard to push blood up to the head.",
+    "在地球上，心脏这个让血液在全身流动的器官，必须用力泵血，才能把血液送到头部。", True),
+   ("In orbit, more blood and water collect in the upper body, so astronauts' faces often look rounder and their legs thinner.",
+    "而在轨道上，更多的血液和水分会聚集到上半身，所以航天员的脸常常显得更圆，腿则显得更细。", False),
+   ("Their muscles and bones also grow weaker, because they no longer have to support the body's weight.",
+    "他们的肌肉和骨骼也会变弱，因为它们不再需要支撑身体的重量。", False),
+   ("To prevent this, astronauts do physical exercise every day, running or cycling while belts hold them in place.",
+    "为了防止这种情况，航天员每天都要进行体育锻炼，跑步或蹬车，同时用束带把身体固定住。", False),
+   ("Otherwise, they would find it much harder to walk when they returned to Earth.",
+    "否则，等他们回到地球时，走路会困难得多。", False),
+  ],
+  [
+   ("Machines keep the air pressure close to that at sea level and remove the carbon dioxide that the crew breathe out.",
+    "舱内的设备让气压保持在接近海平面的水平，并清除航天员呼出的二氧化碳。", False),
+   ("Oxygen is produced by a process that uses electricity to split water, and the power comes from the station's large solar panels.",
+    "氧气是通过一种用电分解水的过程制造出来的，而电力来自空间站巨大的太阳能电池板（太阳翼）。", True),
+   ("Water from the crew's breath and sweat is collected, passed through pipes and filters, and turned back into pure drinking water.",
+    "航天员呼吸和出汗产生的水分会被收集起来，经过管道和过滤装置，重新变成纯净的饮用水。", True),
+  ],
+  [
+   ("Some of their food is dried, and some drinks come as a powder that is mixed with hot water.",
+    "他们的一部分食物是脱水的，有些饮料则是粉末，用热水冲开就能喝。", False),
+   ("Every working day follows a precise timetable, and medical personnel on the ground regularly check the astronauts' pulse and how well they sleep.",
+    "每个工作日都按照精确的时间表进行，地面的医务人员还会定期检查航天员的脉搏和睡眠情况。", True),
+   ("What they learn in orbit may one day help people travel even farther, to the Moon and beyond.",
+    "他们在轨道上获得的经验，也许有一天能帮助人类走得更远，登上月球，甚至更远的地方。", False),
+  ],
+ ],
+ 'words': [
+  ('overhead', 'overhead', 'adv.', '在头顶上，在空中', 1, 'fly overhead', '从头顶飞过'),
+  ('orbit', 'orbit', 'n.', '（天体等的）运行轨道', 2, 'in orbit', '在轨道上'),
+  ('per', 'per', 'prep.', '每，每一', 2, 'per day', '每天'),
+  ('powerful', 'powerful', 'adj.', '强大的，强有力的', 3, 'a powerful engine', '强劲的发动机'),
+  ('outer', 'outer', 'adj.', '外部的，外面的', 3, 'outer space', '外太空'),
+  ('pilot', 'pilots', 'n.', '飞行员', 4, 'an air force pilot', '空军飞行员'),
+  ('physicist', 'physicists', 'n.', '物理学家', 6, 'a nuclear physicist', '核物理学家'),
+  ('phenomenon', 'phenomenon', 'n.', '现象', 7, 'a natural phenomenon', '自然现象'),
+  ('organ', 'organ', 'n.', '（人或动物的）器官', 8, 'internal organs', '内脏器官'),
+  ('pump', 'pump', 'v.', '用泵输送；（心脏）泵出（血液）', 8, 'pump blood', '泵血'),
+  ('prevent', 'prevent', 'v.', '防止，预防', 11, 'prevent sth (from) happening', '防止某事发生'),
+  ('physical', 'physical', 'adj.', '身体的', 11, 'physical exercise', '体育锻炼'),
+  ('otherwise', 'Otherwise', 'adv.', '否则，要不然', 12, '..., otherwise ...', '……，否则……'),
+  ('pressure', 'pressure', 'n.', '压力，压强', 13, 'air pressure', '气压'),
+  ('oxygen', 'Oxygen', 'n.', '氧气', 14, 'produce oxygen', '产生氧气'),
+  ('process', 'process', 'n.', '过程，工序', 14, 'a chemical process', '化学过程'),
+  ('power', 'power', 'n.', '电力，动力', 14, 'solar power', '太阳能'),
+  ('pipe', 'pipes', 'n.', '管子，管道', 15, 'a water pipe', '水管'),
+  ('pure', 'pure', 'adj.', '纯净的，不掺杂的', 15, 'pure water', '纯净水'),
+  ('powder', 'powder', 'n.', '粉，粉末', 16, 'milk powder', '奶粉'),
+  ('precise', 'precise', 'adj.', '精确的，准确的', 17, 'precise instructions', '精确的指示'),
+  ('personnel', 'personnel', 'n.', '全体人员，职员', 17, 'medical personnel', '医务人员'),
+  ('pulse', 'pulse', 'n.', '脉搏', 17, 'check sb\'s pulse', '给某人测脉搏'),
+ ],
+ 'gloss': {'thinner': 'adj. 更细的；更瘦的（thin 的比较级）', 'panels': 'n. 板（solar panels：太阳能电池板）'},
+}
