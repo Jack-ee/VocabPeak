@@ -571,18 +571,45 @@
         const statEl  = document.getElementById('settings-pack-status');
         const setStat = (m) => { if (statEl) statEl.textContent = m; };
         if (!window.TTSPack) { setStat('Audio pack module not loaded.'); return; }
-        const label = btn ? btn.textContent : '';
+        const label  = btn ? btn.textContent : '';
+        let   failed = false;
         if (btn) { btn.disabled = true; btn.textContent = 'Working\u2026'; }
         try {
             await window.TTSPack.download(setStat);
         } catch (err) {
+            failed = true;
             console.warn('[pack] download failed:', err && err.message);
-            setStat('Failed: ' + ((err && err.message) || err));
+            setStat('\u4e0b\u8f7d\u5931\u8d25\uff1a' + packErrorHint(err));
         } finally {
             if (btn) { btn.disabled = false; btn.textContent = label || 'Download audio pack'; }
-            hydratePackStatus();
+            // v153: \u5931\u8d25\u65f6\u4fdd\u7559\u5931\u8d25\u539f\u56e0\u3002\u539f\u6765\u8fd9\u91cc\u4e00\u5f8b\u5237\u65b0\u5b89\u88c5\u72b6\u6001, \u539f\u56e0\u88ab
+            // \u300c\u5c1a\u672a\u5b89\u88c5\u97f3\u9891\u5305\u300d\u7acb\u523b\u76d6\u6389, \u53ea\u80fd\u5f00\u63a7\u5236\u53f0\u624d\u770b\u5f97\u5230\u3002
+            if (!failed) hydratePackStatus();
             hydratePackCoverage();
         }
+    }
+
+    // v153: \u628a\u97f3\u9891\u5305\u4e0b\u8f7d\u7684\u539f\u59cb\u62a5\u9519\u7ffb\u6210\u80fd\u7167\u7740\u6539\u7684\u8bdd, \u5e76\u5e26\u4e0a\u5f53\u524d Worker \u5730\u5740\u3002
+    // \u5b9e\u9645\u4e8b\u6545: \u65b0\u8bbe\u5907\u7684 TTS \u4ee3\u7406\u5730\u5740\u586b\u6210\u4e86 EMPro \u7684 Worker (empro-tts),
+    // \u5b83\u53ea\u8ba4 empro-audio-pack* \u6587\u4ef6\u540d, \u5e94\u7528\u91cc\u53ea\u663e\u793a\u300c\u5c1a\u672a\u5b89\u88c5\u97f3\u9891\u5305\u300d\u3002
+    function packErrorHint(err) {
+        const msg   = String((err && err.message) || err || '');
+        const proxy = (window.DB?.getPref?.('tts_proxy_url', '') || '').trim();
+        const where = proxy ? '\uff08\u5f53\u524d TTS \u4ee3\u7406\u5730\u5740\uff1a' + proxy + '\uff09' : '';
+        if (!proxy) {
+            return '\u5148\u5728\u300c\u795e\u7ecf\u8bed\u97f3\u300d\u91cc\u586b TTS \u4ee3\u7406\u5730\u5740\uff08VocabPeak \u7684 Worker \u5730\u5740\uff09\u3002';
+        }
+        if (/Unknown or disallowed asset name/i.test(msg)) {
+            return '\u8fd9\u4e2a Worker \u4e0d\u63d0\u4f9b VocabPeak \u7684\u97f3\u9891\u5305\uff0c\u591a\u534a\u586b\u6210\u4e86\u522b\u7684\u5e94\u7528\uff08\u5982 EMPro\uff09\u7684 Worker\u3002'
+                 + '\u8bf7\u628a TTS \u4ee3\u7406\u5730\u5740\u6539\u6210 VocabPeak \u7684 Worker' + where + '\u3002';
+        }
+        if (/Origin not allowed/i.test(msg)) {
+            return '\u8fd9\u4e2a Worker \u4e0d\u63a5\u53d7\u5f53\u524d\u7f51\u5740\uff0c\u8bf7\u4ece https://jack-ee.github.io/VocabPeak/ \u6253\u5f00\u5e94\u7528' + where + '\u3002';
+        }
+        if (/Failed to fetch|NetworkError|Load failed/i.test(msg)) {
+            return '\u8fde\u4e0d\u4e0a Worker\uff0c\u8bf7\u68c0\u67e5\u7f51\u7edc\u548c TTS \u4ee3\u7406\u5730\u5740' + where + '\u3002';
+        }
+        return msg + where;
     }
 
     function hydratePackStatus() {

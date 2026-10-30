@@ -1,5 +1,11 @@
 // sw.js — VocabPeak Service Worker
 
+// hsv-v56 (?v=153) — 音频包下载失败时说清原因:
+//   • 设置 → 语音「下载音频包」失败后, 失败原因一直留在按钮下面 (原来立刻被
+//     「尚未安装音频包」盖掉, 只有控制台能看到)。
+//   • 常见原因翻成能照着改的话, 并显示当前 TTS 代理地址: Worker 不认 VocabPeak
+//     的文件名 (多半填成了 EMPro 的 Worker)、网址不被放行、连不上、没填地址。
+//
 // hsv-v55 (?v=152) — 默写本页:
 //   • 顶栏新「📒 默写本」: 老师发的 3500 词默写本逐页可查, 序号和 PDF 完全一致
 //     (3929 行, 重复词照原样保留), 第 1–120 页, 每行 序号 · 英文 · 音标 · 中文 ·
@@ -768,7 +774,7 @@
 
 // 缓存名与 EMPro 隔离：Cache Storage 也是按 origin 共享的，两个应用
 // 的 CACHE_NAME 必须不同，否则会互相删除对方的缓存。
-const CACHE_NAME = 'hsv-v55';
+const CACHE_NAME = 'hsv-v56';
 const ASSETS = [
     './',
     './index.html',
