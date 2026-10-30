@@ -106,7 +106,15 @@ srv.listen(0, async () => {
         sec('来源切换与增量下载');
         await page.click('.nav-tab[data-nav="lessons"]');
         await page.waitForSelector('.ls-src-seg');
-        const nBookCards = await page.locator('.ls-card').count();
+        // 课程订阅启动后约 3 秒才到 (36 课), 之前只有 2 篇内置课。原来这里立刻数,
+        // 后面重开应用时课程已在本机 —— 结果取决于时序。等列表连续 5 秒不变再数。
+        let nBookCards = -1;
+        for (let i = 0, same = 0; i < 60 && same < 20; i++) {
+            const n = await page.locator('.ls-card').count();
+            same = n === nBookCards ? same + 1 : 0;
+            nBookCards = n;
+            await page.waitForTimeout(250);
+        }
         ok(nBookCards > 0, '默认显示教材课文', nBookCards);
         await page.evaluate(() => Stories.check(false));
         await page.click('.ls-src-btn[data-src="ai"]');

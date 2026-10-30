@@ -150,7 +150,8 @@ window.Daily = (function () {
                 });
             });
         }
-        return exIndex.get(key(w)) || null;
+        // v154: 短文里没有这个词时用随软件发布的例句
+        return exIndex.get(key(w)) || (window.HSVEnrich && window.HSVEnrich.example(w.word)) || null;
     }
     function markSurface(text, surface) {
         const safe = esc(text);
@@ -617,7 +618,11 @@ window.Daily = (function () {
         const w   = item.w;
         const ex  = exampleOf(w);
         const n   = numOf(w);
-        const col = (ex && ex.phr) ? ex.phr : (w.collo ? { en: String(w.collo).split(/\s*[·;]\s*/)[0], zh: '' } : null);
+        const en  = window.HSVEnrich && window.HSVEnrich.get(w.word);    // v154: 释义 / 搭配中文 / 提示
+        const col = (ex && ex.phr) ? ex.phr
+                  : (en && en.collo.length) ? { en: en.collo[0], zh: en.colloCn[0] || '' }
+                  : (w.collo ? { en: String(w.collo).split(/\s*[·;]\s*/)[0], zh: '' } : null);
+        const note = w.note || (en && en.note) || '';
         body.innerHTML = `
             <div class="dl-learn">
                 <div class="dl-tag">新词${n ? ' · 默写本 #' + n : ''}</div>
@@ -628,6 +633,7 @@ window.Daily = (function () {
                 ${col ? `<div class="dl-col"><span class="dl-col-k">搭配</span> ${esc(col.en)}${col.zh ? ` <span class="dl-dim">${esc(col.zh)}</span>` : ''}
                     <button class="dl-say-s" data-say="${esc(col.en)}" title="听搭配">\u{1F50A}</button></div>` : ''}
                 ${exampleHtml(w)}
+                ${note ? `<div class="dl-note">\u{1F4A1} ${esc(note)}</div>` : ''}
                 <div class="dl-btns dl-btns-left">
                     <button class="dl-ghost" id="dl-cut" title="太简单: 不学了, 放进熟词">✂️ 太简单，斩</button>
                 </div>

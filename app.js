@@ -1969,6 +1969,7 @@
             safeCall('MyWords',         () => window.MyWords?.init?.());
             safeCall('Daily',           () => window.Daily?.init?.());   // v150: 今日任务 (在 3500 并入之后)
             safeCall('Book',            () => window.Book?.init?.());    // v152: 默写本
+            safeCall('Enrich',          () => window.HSVEnrich?.init?.()); // v154: 单词卡详细信息 (空闲时加载)
             safeCall('WritingLab',      () => window.WritingLab?.init?.());
             safeCall('VocabDrill',      () => window.VocabDrill?.init?.());
             safeCall('Reader',          () => window.Reader?.init?.());

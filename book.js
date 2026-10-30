@@ -32,6 +32,7 @@ window.Book = (function () {
 
     // ─── 数据 ───────────────────────────────────────────────
     function load() {
+        window.HSVEnrich?.load?.();      // v154: 词卡的英文释义 / 例句 / 提示
         if (window.HSV_BOOK) return Promise.resolve(window.HSV_BOOK);
         if (!loading) {
             loading = new Promise((resolve, reject) => {
@@ -193,16 +194,19 @@ window.Book = (function () {
         const hk  = headOf(r[1]);
         const e   = nb.get(hk);
         const st  = statusOf(e);
-        const ex  = window.Stories?.exampleOf?.(hk) || null;
+        const en  = window.HSVEnrich?.get?.(hk) || null;     // v154: 英文释义 / 搭配中文 / 例句 / 提示
+        const ex  = window.Stories?.exampleOf?.(hk) || window.HSVEnrich?.example?.(hk) || null;
         const rows = rowsOf(page);
         const i    = rows.findIndex(x => x[0] === n);
-        const collo = lx && lx[5] ? String(lx[5]).split(/\s*[·;]\s*/).filter(Boolean).slice(0, 3) : [];
+        const collo = en && en.collo.length ? en.collo.slice(0, 3).map((c, j) => [c, en.colloCn[j] || ''])
+                    : lx && lx[5] ? String(lx[5]).split(/\s*[·;]\s*/).filter(Boolean).slice(0, 3).map(c => [c, ''])
+                    : [];
         const exHtml = ex ? `
             <div class="bk-ex">
                 <div class="bk-ex-en">${markSurface(ex.text, ex.surface)}
                     <button class="bk-say-s" data-say="${esc(ex.text)}" title="听这句">\u{1F50A}</button></div>
                 ${ex.zh ? `<div class="bk-ex-zh">${esc(ex.zh)}</div>` : ''}
-                <button class="bk-link" data-story="${esc(ex.sid)}">读这篇短文 ${esc(ex.sid)}${ex.title ? ' · ' + esc(ex.title) : ''} →</button>
+                ${ex.sid ? `<button class="bk-link" data-story="${esc(ex.sid)}">读这篇短文 ${esc(ex.sid)}${ex.title ? ' · ' + esc(ex.title) : ''} →</button>` : ''}
             </div>` : '';
         const stLine = !e ? '不在单词本里'
             : st.k === 'cut' ? '熟词（已斩，不进复习）'
@@ -223,10 +227,12 @@ window.Book = (function () {
             ${hk !== String(r[1]).toLowerCase() ? `<div class="bk-sh-form">原形 <b>${esc(hk)}</b></div>` : ''}
             ${r[2] ? `<div class="bk-sh-ipa">${esc(r[2])}</div>` : ''}
             <div class="bk-sh-zh">${esc(r[3])}</div>
+            ${en && en.enDef ? `<div class="bk-sh-def">${esc(en.enDef)}</div>` : ''}
             ${ex && ex.ctx ? `<div class="bk-sh-ctx">短文里：${esc(ex.ctx)}</div>` : ''}
             ${collo.length ? `<div class="bk-sh-col"><span class="bk-col-k">搭配</span>${collo.map(c =>
-                `<span class="bk-col">${esc(c)} <button class="bk-say-s" data-say="${esc(c)}">\u{1F50A}</button></span>`).join('')}</div>` : ''}
+                `<span class="bk-col">${esc(c[0])}${c[1] ? ` <span class="bk-col-zh">${esc(c[1])}</span>` : ''} <button class="bk-say-s" data-say="${esc(c[0])}">\u{1F50A}</button></span>`).join('')}</div>` : ''}
             ${exHtml}
+            ${en && en.note ? `<div class="bk-sh-note">\u{1F4A1} ${esc(en.note)}</div>` : ''}
             <div class="bk-sh-st"><span class="bk-st bk-st-${st.k}">${st.t || (e ? '未学' : '')}</span> ${esc(stLine)} ${act}</div>
             <div class="bk-sh-nav">
                 <button class="bk-navb" id="bk-sh-prev"${i <= 0 ? ' disabled' : ''}>◀ 上一个</button>

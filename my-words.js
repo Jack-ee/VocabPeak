@@ -212,6 +212,13 @@ window.MyWords = (function() {
         // Re-pull notebook from storage and re-render if MyWords is the
         // active tab. If the user is on a different tab, the next time
         // they open MyWords they'll see fresh data via the normal init.
+        // v154: 详细信息数据到了 —— 卡片 / 列表模式刷新一下 (做题中不打断)
+        window.addEventListener('hsv:enrichready', () => {
+            if (!document.getElementById('view-my-words')?.classList.contains('active')) return;
+            if (studyMode === 'quiz' || autoplayOn) { updateFilterCounts(); return; }
+            render();
+        });
+
         window.addEventListener('hsv:datachanged', () => {
             const isOnMyWordsTab = document.getElementById('view-my-words')?.classList.contains('active');
             autoMergeLexicon3500();      // 新设备: 云端数据到了才并 (已并过则立即返回)
@@ -1064,8 +1071,13 @@ window.MyWords = (function() {
 
     function isWordComplete(w) {
         // A word is "complete" if it has phonetic + meaning + enDef + at least one collocation + example
+        // v154: 随软件发布的详细信息 (enrich.js) 也算 —— 只剩自己加的词才需要 AI 补全
+        w = enr(w);
         return Boolean(w.phonetic && w.meaning && w.enDef && w.collo && w.context);
     }
+
+    // v154: 显示用的条目 —— 单词本里空着的释义 / 搭配 / 例句 / 提示用随软件发布的数据补上 (不写回)
+    function enr(w) { return (window.HSVEnrich && window.HSVEnrich.view(w)) || w; }
 
     // register 白名单。AI 回填的 REGISTER 会被拼进卡片的 class 与文本，
     // 若不收敛到已知集合，异常回复（含引号/尖括号）可注入 HTML 破版。
@@ -1395,7 +1407,7 @@ IMPORTANT:
     function speakCurrentAndQueueNext(myToken) {
         if (!autoplayOn || myToken !== autoplayToken) return;
         const words = getGroupWords();
-        const w     = words[currentIdx];
+        const w     = enr(words[currentIdx]);
         if (!w) { stopAutoplay(); return; }
 
         // Highlight current card so the user can follow along on mobile
@@ -1646,7 +1658,7 @@ IMPORTANT:
     function renderBrowseCard() {
         const area  = document.getElementById('mw-area');
         const words = getGroupWords();
-        const w     = words[currentIdx];
+        const w     = enr(words[currentIdx]);
         if (!w) return;
 
         const hasMeaning = Boolean(w.meaning || w.enDef);

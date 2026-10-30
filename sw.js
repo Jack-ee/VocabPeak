@@ -1,5 +1,14 @@
 // sw.js — VocabPeak Service Worker
 
+// hsv-v57 (?v=154) — 单词卡详细信息一次补齐:
+//   • 3895 个词 (3500 词 + 内置高中词) 的英文释义、2–3 个搭配及中文、例句及翻译、
+//     中文用法提示随软件发布 (enrich-3500.js, 启动后空闲时加载, SW 预缓存可离线)。
+//   • 单词卡只补空着的字段, 不写回单词本: 同步数据和本机存储大小不变; 自己用 AI
+//     补过或改过的内容优先。3500 词不再显示「needs enrich」, AI 丰富只剩自己加的词。
+//   • 今日任务新词卡、默写本词卡也用上: 英文释义、搭配中文、用法提示; 短文里
+//     没出现的词用这里的例句。
+//   • tools/enrich/: 规格、逐条校验、合并脚本 (以后加词照此补)。
+//
 // hsv-v56 (?v=153) — 音频包下载失败时说清原因:
 //   • 设置 → 语音「下载音频包」失败后, 失败原因一直留在按钮下面 (原来立刻被
 //     「尚未安装音频包」盖掉, 只有控制台能看到)。
@@ -774,7 +783,7 @@
 
 // 缓存名与 EMPro 隔离：Cache Storage 也是按 origin 共享的，两个应用
 // 的 CACHE_NAME 必须不同，否则会互相删除对方的缓存。
-const CACHE_NAME = 'hsv-v56';
+const CACHE_NAME = 'hsv-v57';
 const ASSETS = [
     './',
     './index.html',
@@ -797,6 +806,8 @@ const ASSETS = [
     './book.js',
     './book.css',
     './book-3500.js',
+    './enrich.js',
+    './enrich-3500.js',
     './cloze.js',
     './writing-lab.js',
     './vocab-drill.js',
